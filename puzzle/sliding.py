@@ -1,8 +1,10 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
+from numpy import argwhere
 from random import randint
-import numpy as np
+from torch import tensor
+from torch.nn.functional import one_hot
 ########################################################################################################################
 from puzzle.puzzle import Move, Puzzle
 ########################################################################################################################
@@ -21,29 +23,38 @@ class SlidingPuzzle(Puzzle):
 
     move_type = Slide
 
-    possible_moves = {}
+    possible_moves_map = {}
 
     def __init__(self, tiles, empty=None):
         super().__init__()
         self.tiles = tiles
         if empty is None:
-            self.empty = tuple(np.argwhere(0 == tiles)[0])
+            self.empty = tuple(argwhere(0 == tiles)[0])
         else:
             self.empty = empty
 
     def __repr__(self):
         return 'tiles=%s\nempty=%s' % (self.tiles, self.empty)
 
-    @staticmethod
-    def goal(n, m=None):
+    def dimension(self):
+        return self.tiles.shape
+
+    def clone(self):
+        return SlidingPuzzle(self.tiles.detach().clone(), self.empty)
+
+    def is_goal(self):
+        return self.tiles == self.goal().tiles
+
+    @classmethod
+    def construct_puzzle(cls, n, m=None):
         if m is None:
             m = n
-        goal = np.array(range(1, n * m + 1)).reshape((n, m))
+        goal = tensor(range(1, n * m + 1)).reshape((n, m))
         goal[n - 1][m - 1] = 0
         return SlidingPuzzle(goal, (n - 1, m - 1))
-            
-    def goal_state(self):
-        return self.goal(*self.tiles.shape)
+
+    def goal(self):
+        return self.construct_puzzle(*self.tiles.shape)
 
     def apply(self, move: Slide):
         """ moved tile must either be same row or same col as the empty tile 
@@ -63,7 +74,7 @@ class SlidingPuzzle(Puzzle):
                 raise ValueError('Invalid slide')
         else:  
             raise ValueError('Invalid slide')
-        tiles = self.tiles.copy()
+        tiles = self.tiles.detach().clone()
         tiles[self.empty[0]][self.empty[1]] = self.tiles[move.tile[0]][move.tile[1]]
         empty = move.tile
         tiles[empty[0]][empty[1]] = 0
@@ -82,18 +93,35 @@ class SlidingPuzzle(Puzzle):
             c.append(Slide(empty[0], empty[1] + 1))
         return c
 
-    def random_move(self):
-        if self.tiles.shape not in self.possible_moves:
-            self.possible_moves[self.tiles.shape] = self.get_possible_moves(self.tiles.shape)
-        choices = self.possible_moves[self.tiles.shape][self.empty]
-        return choices[randint(0, len(choices) - 1)]
-
-    def get_possible_moves(self, shape):
+    @classmethod
+    def get_possible_moves(cls, shape):
         possible_moves = {}
         for row in range(shape[0]):
             for col in range(shape[1]):
                 empty = (row, col)
-                possible_moves[empty] = self.choices(empty, shape)
+                possible_moves[empty] = cls.choices(empty, shape)
         return possible_moves
-            
+
+    @classmethod
+    def populate_possible_moves(cls, shape):
+        if shape not in cls.possible_moves_map:
+            cls.possible_moves_map[shape] = cls.get_possible_moves(shape)
+
+    def possible_moves(self):
+        self.populate_possible_moves(self.tiles.shape)
+        return self.possible_moves_map[self.tiles.shape][self.empty]
+
+    def random_move(self):
+        self.populate_possible_moves(self.tiles.shape)
+        choices = self.possible_moves_map[self.tiles.shape][self.empty]
+        if not choices:
+            return None
+        return choices[randint(0, len(choices) - 1)]
+
+    def from_tensor(self):
+        raise NotImplementedError('Please implement this ... need to de-one_hot then call init')
+    
+    def to_tensor(self):
+        return one_hot(self.tiles).flatten(1)
+    
 ########################################################################################################################

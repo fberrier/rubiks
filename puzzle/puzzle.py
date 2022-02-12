@@ -65,7 +65,7 @@ class Puzzle(metaclass=ABCMeta):
         return
 
     def name(self):
-        return '%s|%s' % (__class__.__name__, str(tuple(self.dimension())))
+        return '%s|%s' % (self.__class__.__name__, str(tuple(self.dimension())))
 
     @abstractmethod
     def is_goal(self) -> bool:

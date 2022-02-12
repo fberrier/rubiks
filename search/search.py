@@ -4,6 +4,8 @@
 from abc import abstractmethod, ABCMeta
 from time import time as snap
 ########################################################################################################################
+from rubiks.utils.loggable import Loggable
+########################################################################################################################
 
 
 class Node:
@@ -39,7 +41,7 @@ class Node:
 ########################################################################################################################
 
 
-class SearchStrategy(metaclass=ABCMeta):
+class SearchStrategy(Loggable, metaclass=ABCMeta):
     """ Base class to represent a search strategy. All the basic logic of collecting
     the optimal path and storing it, as well as the cost and time spent running the
     algo are abstracted here. There is also an optional time out functionality
@@ -47,7 +49,7 @@ class SearchStrategy(metaclass=ABCMeta):
     run.
     """
 
-    def __init__(self, initial_state, time_out=None):
+    def __init__(self, initial_state, time_out=None, **kw_args):
         self.initial_node = Node(initial_state,
                                  parent=None,
                                  action=None,
@@ -57,6 +59,7 @@ class SearchStrategy(metaclass=ABCMeta):
         self.cost = 0
         self.time_out = int(time_out) if time_out is not None else time_out
         self.expanded_nodes = 1
+        Loggable.__init__(self, self.name(), kw_args.pop('log_level', 'INFO'))
 
     def get_run_time(self):
         return self.run_time

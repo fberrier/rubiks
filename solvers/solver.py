@@ -53,9 +53,10 @@ class Solver(Loggable, metaclass=ABCMeta):
     avg_expanded_nodes = 'avg_expanded_nodes'
     max_expanded_nodes = 'max_expanded_nodes'
     nb_timeout = 'nb_timeout'
-    avg_run_time = 'avg_run_time'
-    max_run_time = 'max_run_time'
+    avg_run_time = 'avg_run_time (ms)'
+    max_run_time = 'max_run_time (ms)'
     solver_name = 'solver_name'
+    pct_solved = 'solved (%)'
     
     def performance(self, max_nb_shuffles, nb_samples, time_out):
         assert max_nb_shuffles > 0
@@ -69,7 +70,8 @@ class Solver(Loggable, metaclass=ABCMeta):
                self.__class__.max_expanded_nodes: [0],
                self.__class__.nb_timeout: [0],
                self.__class__.avg_run_time: [0],
-               self.__class__.max_run_time: [0]}
+               self.__class__.max_run_time: [0],
+               self.__class__.pct_solved: [100]}
         performance = DataFrame(res)
         for nb_shuffles in range(1, max_nb_shuffles + 1):
             total_cost = 0
@@ -81,7 +83,7 @@ class Solver(Loggable, metaclass=ABCMeta):
             nb_timeout = 0
             res[self.__class__.nb_shuffle] = nb_shuffles
             consecutive_timeout = 0
-            self.log_info('Calc performance for nb_shuffles=', nb_shuffles)
+            self.log_debug('Calc performance for nb_shuffles=', nb_shuffles)
             for sample in range(nb_samples):
                 run_time = -snap()
                 try:
@@ -89,7 +91,7 @@ class Solver(Loggable, metaclass=ABCMeta):
                     run_time += snap()
                     consecutive_timeout = 0
                 except Exception as error:
-                    self.log_error(error)
+                    self.log_debug(error)
                     run_time = time_out
                     nb_timeout += 1
                     cost = 0
@@ -101,6 +103,8 @@ class Solver(Loggable, metaclass=ABCMeta):
                 total_run_time += run_time
                 max_run_time = max(max_run_time, run_time)
                 if consecutive_timeout > self.max_consecutive_timeout:
+                    self.log_info('break out for nb_shuffles=', nb_shuffles,
+                                  ' as timed-out %d times', self.max_consecutive_timeout)
                     break
             div = nb_samples + 1 - nb_timeout
             if 0 == div:
@@ -119,6 +123,7 @@ class Solver(Loggable, metaclass=ABCMeta):
             res[self.__class__.nb_timeout] = nb_timeout
             res[self.__class__.avg_run_time] = int(avg_run_time * 1000)
             res[self.__class__.max_run_time] = int(max_run_time * 1000)
+            res[self.__class__.pct_solved] = int(100 * (sample + 1 - nb_timeout) / nb_samples)
             performance = performance.append(res, ignore_index=True)
         return performance
 

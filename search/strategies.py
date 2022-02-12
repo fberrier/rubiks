@@ -1,9 +1,12 @@
-################################################################################
+########################################################################################################################
+# Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
+########################################################################################################################
+########################################################################################################################
 from sortedcontainers import SortedDict
-################################################################################
-from rubiks.search.search import SearchStrategy, Node
+########################################################################################################################
 from rubiks.heuristics.heuristic import Heuristic
-################################################################################
+from rubiks.search.search import SearchStrategy, Node
+########################################################################################################################
 
 
 class BreadthFirstSearch(SearchStrategy):
@@ -42,7 +45,7 @@ class BreadthFirstSearch(SearchStrategy):
                     return child
                 frontier = [child] + frontier
     
-################################################################################
+########################################################################################################################
 
 
 class DepthFirstSearch(SearchStrategy):
@@ -57,9 +60,9 @@ class DepthFirstSearch(SearchStrategy):
     max_limit = 1000000
 
     def __init__(self, initial_state, **kw_args):
+        self.limit = int(kw_args.pop('limit', self.max_limit))
         SearchStrategy.__init__(self, initial_state, **kw_args)
         self.explored = set()
-        self.limit = int(kw_args.pop('limit', self.max_limit))
 
     def name(self):
         nem = SearchStrategy.name(self)
@@ -103,7 +106,7 @@ class DepthFirstSearch(SearchStrategy):
             raise solution
         return solution
     
-################################################################################
+########################################################################################################################
 
 
 class AStar(SearchStrategy):
@@ -112,10 +115,10 @@ class AStar(SearchStrategy):
     """
 
     def __init__(self, initial_state, heuristic, **kw_args):
-        SearchStrategy.__init__(self, initial_state, **kw_args)
-        self.heuristic = heuristic
-        assert isinstance(self.heuristic, Heuristic), \
+        assert issubclass(heuristic, Heuristic), \
             'SearchStrategy: heuristic should be a subclass of Heuristic'
+        self.heuristic = heuristic(**kw_args)
+        SearchStrategy.__init__(self, initial_state, **kw_args)
 
     def name(self):
         return 'A*[%s]' % self.heuristic.__class__.__name__
@@ -123,7 +126,7 @@ class AStar(SearchStrategy):
     def solve_impl(self):
         """ Uncontroversial implementation of A* """
         node = self.initial_node
-        g_plus_h = 0 + self.heuristic.value(node.state) 
+        g_plus_h = 0 + self.heuristic.cost_to_go(node.state) 
         frontier = SortedDict({g_plus_h: set([node])})
         """ for efficient removing from the frontier, we use a reverse mapping """
         reverse_frontier = {node: g_plus_h}
@@ -147,7 +150,7 @@ class AStar(SearchStrategy):
                               action=move,
                               path_cost=move.cost() + node.path_cost)
                 self.increment_node_count()
-                g_plus_h_2 = node_2.path_cost + self.heuristic.value(node_2.state)
+                g_plus_h_2 = node_2.path_cost + self.heuristic.cost_to_go(node_2.state)
                 if node_2 in reverse_frontier:
                     existing_g_plus_h = reverse_frontier[node_2]
                     if existing_g_plus_h > g_plus_h_2:
@@ -170,4 +173,4 @@ class AStar(SearchStrategy):
                     else:
                         frontier[g_plus_h_2] = set([node_2])
 
-################################################################################
+########################################################################################################################

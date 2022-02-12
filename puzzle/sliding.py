@@ -69,7 +69,7 @@ class SlidingPuzzle(Puzzle):
         return self == self.goal()
 
     @classmethod
-    def construct_puzzle(cls, n, m=None):
+    def construct_puzzle(cls, n, m=None, **kw_args):
         if m is None:
             m = n
         goal = tensor(range(1, n * m + 1)).reshape((n, m))

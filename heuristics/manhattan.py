@@ -1,7 +1,7 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from heuristics.heuristics import Heuristic
+from rubiks.heuristics.heuristic import Heuristic
 from rubiks.puzzle.sliding import SlidingPuzzle
 ########################################################################################################################
 
@@ -12,8 +12,10 @@ class Manhattan(Heuristic):
     puzzle_type = SlidingPuzzle
 
 
-    def __init__(self, n, m=None, verbose=False):
-        super().__init__(n=n, m=m)
+    def __init__(self, n, m=None, verbose=False, **kw_args):
+        if m is None:
+            m = n
+        super().__init__(n=n, m=m, **kw_args)
         # build map of where each value should be
         self.goal_map = {}
         goal = 1

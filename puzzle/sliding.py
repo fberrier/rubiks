@@ -1,12 +1,14 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from numpy import argwhere
+from numpy import argwhere, array, where
+from pandas import DataFrame
 from random import randint
-from torch import tensor
+from tabulate import tabulate
+from torch import equal, tensor
 from torch.nn.functional import one_hot
 ########################################################################################################################
-from puzzle.puzzle import Move, Puzzle
+from rubiks.puzzle.puzzle import Move, Puzzle
 ########################################################################################################################
 
 
@@ -14,6 +16,16 @@ class Slide(Move):
 
     def __init__(self, n, m):
         self.tile = (n, m)
+
+    def __eq__(self, other):
+        return self.tile == other.tile
+
+    def __ne__(self, other):
+        return self.tile != other.tile
+
+    def cost(self):
+        return 1
+
 
 ########################################################################################################################
 
@@ -34,7 +46,18 @@ class SlidingPuzzle(Puzzle):
             self.empty = empty
 
     def __repr__(self):
-        return 'tiles=%s\nempty=%s' % (self.tiles, self.empty)
+        tiles = array(self.tiles.numpy(), dtype=str)
+        tiles = where(tiles == '0', '', tiles)
+        return '\n'.join(tabulate(DataFrame(tiles),
+                                  headers='keys',
+                                  tablefmt='grid',
+                                  showindex=False).split('\n')[2:])
+
+    def __eq__(self, other):
+        return equal(self.tiles, other.tiles)
+
+    def __hash__(self):
+        return hash(self.tiles)
 
     def dimension(self):
         return self.tiles.shape
@@ -43,7 +66,7 @@ class SlidingPuzzle(Puzzle):
         return SlidingPuzzle(self.tiles.detach().clone(), self.empty)
 
     def is_goal(self):
-        return self.tiles == self.goal().tiles
+        return self == self.goal()
 
     @classmethod
     def construct_puzzle(cls, n, m=None):

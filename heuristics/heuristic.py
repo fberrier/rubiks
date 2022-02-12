@@ -4,7 +4,7 @@
 from abc import ABCMeta, abstractmethod
 from torch import Tensor
 ########################################################################################################################
-from puzzle.puzzle import Puzzle
+from rubiks.puzzle.puzzle import Puzzle
 ########################################################################################################################
 
 

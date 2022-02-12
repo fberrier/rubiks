@@ -8,7 +8,20 @@ from torch import Size, stack, tensor, Tensor
 
 class Move(metaclass=ABCMeta):
     """ Generic concept of move """
-    pass
+
+    @abstractmethod
+    def __eq__(self, other):
+        return
+
+    @abstractmethod
+    def __ne__(self, other):
+        return
+
+    @abstractmethod
+    def cost(self):
+        """ What is the cost of this move """
+        return
+
 
 ########################################################################################################################
 
@@ -22,6 +35,15 @@ class Puzzle(metaclass=ABCMeta):
     def dimension(self) -> Size:
         """ returns the dimension of that puzzle. The concept of dimension is type of puzzle dependent obviously """
         return
+
+    @abstractmethod
+    def __hash__(self, other):
+        """ Useful to put in containers that rely on hashes """
+        pass
+    
+    @abstractmethod
+    def __eq__(self, other):
+        pass
 
     @classmethod
     def get_move_type(cls):
@@ -41,6 +63,9 @@ class Puzzle(metaclass=ABCMeta):
     @abstractmethod
     def clone(self):
         return
+
+    def name(self):
+        return '%s|%s' % (__class__.__name__, str(tuple(self.dimension())))
 
     @abstractmethod
     def is_goal(self) -> bool:

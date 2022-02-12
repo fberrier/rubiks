@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from heuristics.heuristics import Heuristic
-from puzzle.sliding import SlidingPuzzle
+from rubiks.puzzle.sliding import SlidingPuzzle
 ########################################################################################################################
 
 

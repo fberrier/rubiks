@@ -4,12 +4,12 @@
 from setuptools import setup
 ########################################################################################################################
 setup(name='rubiks',
-      version='1.0',    
+      version='2.0.2.2',
       description='Royal Holloway | MSc in Artificial Intelligence',
       url='https://github.com/fberrier/rubiks',
       author='Francois Berrier',
       author_email='francois.berrier@cantab.net',
       license='None',
-      packages=['rubiks'], #install_requires=['numpy','tbd'],
+      packages=['rubiks'],
 )
 ########################################################################################################################

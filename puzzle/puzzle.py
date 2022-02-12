@@ -103,6 +103,12 @@ class Puzzle(metaclass=ABCMeta):
             return self.clone()
         return self.apply(random_move)
 
+    def apply_random_moves(self, r):
+        move = self.clone()
+        for _ in range(r):
+            move = move.apply_random_move()
+        return move
+
     @abstractmethod
     def to_tensor(self) -> Tensor:
         """ return a torch.Tensor to represent internal state """

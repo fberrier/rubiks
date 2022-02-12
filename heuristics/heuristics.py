@@ -19,10 +19,12 @@ class Heuristic(metaclass=ABCMeta):
 
     @classmethod
     def get_puzzle_type(cls):
+        """ returns the type of puzzle that this heuristic deals with """
         assert issubclass(cls.puzzle_type, Puzzle), 'Puzzle type for %s has not been setup properly' % cls.__name__
         return cls.puzzle_type
 
     def __init__(self, **kw_args):
+        """ the kw_args are passed to the underlying type of puzzle that this heuristic deals with """
         self.goal = self.get_puzzle_type().construct_puzzle(**kw_args)
 
     def puzzle_dimension(self):
@@ -30,6 +32,7 @@ class Heuristic(metaclass=ABCMeta):
 
     @abstractmethod
     def cost_to_go_from_puzzle_impl(self, puzzle):
+        """ this is where derived concrete classes should implement the actual heuristic """
         return
 
     dim_error_message = 'cost_to_go expected %s of dimension %s. Got %s instead'
@@ -41,7 +44,9 @@ class Heuristic(metaclass=ABCMeta):
         return self.cost_to_go_from_puzzle_impl(puzzle)
 
     def cost_to_go_from_tensor(self, puzzle, **kw_args):
-        """ feel free to overwrite by more efficient in derived classes """
+        """ feel free to overwrite this by more efficient in derived classes. If not, we convert to 
+        puzzle from tensor from the function that the puzzle (has to) provide
+        """
         return self.cost_to_go_from_puzzle(self.puzzle_type.from_tensor(puzzle, **kw_args))
 
     def cost_to_go(self, puzzle, **kw_args):

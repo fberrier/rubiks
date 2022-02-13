@@ -2,6 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
+from numpy import isnan
 from pandas import DataFrame
 from time import time as snap
 ########################################################################################################################
@@ -27,7 +28,7 @@ class Solver(Loggable, metaclass=ABCMeta):
         """ overwrite where meaningful """
         return
 
-    def learn(puzzle_type, **kw_args):
+    def learn(self):
         """ overwrite this in the case where there is some learning to do """
         return
 
@@ -58,9 +59,12 @@ class Solver(Loggable, metaclass=ABCMeta):
     solver_name = 'solver_name'
     pct_solved = 'solved (%)'
     
-    def performance(self, max_nb_shuffles, nb_samples, time_out):
+    def performance(self, max_nb_shuffles, nb_samples, time_out, min_nb_shuffles=None):
         assert max_nb_shuffles > 0
         assert nb_samples > 0
+        if min_nb_shuffles is None:
+            min_nb_shuffles = 1
+        assert min_nb_shuffles <= max_nb_shuffles
         res = {self.__class__.solver_name: self.name(),
                self.__class__.nb_shuffle: [0],
                self.__class__.nb_samples: [1],
@@ -73,7 +77,8 @@ class Solver(Loggable, metaclass=ABCMeta):
                self.__class__.max_run_time: [0],
                self.__class__.pct_solved: [100]}
         performance = DataFrame(res)
-        for nb_shuffles in range(1, max_nb_shuffles + 1):
+        nan = float('nan')
+        for nb_shuffles in range(min_nb_shuffles, max_nb_shuffles + 1):
             total_cost = 0
             max_cost = 0
             total_expanded_nodes = 0
@@ -93,6 +98,7 @@ class Solver(Loggable, metaclass=ABCMeta):
                 except Exception as error:
                     self.log_debug(error)
                     run_time = time_out
+                    expanded_nodes = 0
                     nb_timeout += 1
                     cost = 0
                     consecutive_timeout += 1
@@ -106,7 +112,7 @@ class Solver(Loggable, metaclass=ABCMeta):
                     self.log_info('break out for nb_shuffles=', nb_shuffles,
                                   ' as timed-out %d times', self.max_consecutive_timeout)
                     break
-            div = nb_samples + 1 - nb_timeout
+            div = nb_samples - nb_timeout
             if 0 == div:
                 div = float('nan')
             avg_cost = round(total_cost / div, 1)
@@ -121,8 +127,8 @@ class Solver(Loggable, metaclass=ABCMeta):
             res[self.__class__.avg_expanded_nodes] = avg_expanded_nodes
             res[self.__class__.max_expanded_nodes] = max_expanded_nodes
             res[self.__class__.nb_timeout] = nb_timeout
-            res[self.__class__.avg_run_time] = int(avg_run_time * 1000)
-            res[self.__class__.max_run_time] = int(max_run_time * 1000)
+            res[self.__class__.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
+            res[self.__class__.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
             res[self.__class__.pct_solved] = int(100 * (sample + 1 - nb_timeout) / nb_samples)
             performance = performance.append(res, ignore_index=True)
         return performance

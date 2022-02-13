@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import ABCMeta, abstractmethod
-from torch import Size, stack, tensor, Tensor
+from torch import Size, stack, Tensor
 ########################################################################################################################
 
 
@@ -51,12 +51,12 @@ class Puzzle(metaclass=ABCMeta):
         return cls.move_type
 
     @classmethod
-    def get_puzzle(cls, nb_shuffle, **kw_args):
-        """ return a puzzle shuffled nb_shuffle times randomly from goal state
+    def get_puzzle(cls, nb_shuffles, **kw_args):
+        """ return a puzzle shuffled nb_shuffles times randomly from goal state
         kw_args allow to construct the puzzle with e.g. puzzle dimension
         """
         puzzle = cls.construct_puzzle(**kw_args)
-        for _ in range(nb_shuffle):
+        for _ in range(nb_shuffles):
             puzzle = puzzle.apply_random_move()
         return puzzle
     
@@ -73,22 +73,23 @@ class Puzzle(metaclass=ABCMeta):
         return
 
     @classmethod
-    def get_training_data(cls, nb_shuffle, nb_sequences, **kw_args) -> (Tensor, Tensor):
+    def get_training_data(cls, nb_shuffles, nb_sequences, **kw_args):
         """
-        :param nb_shuffle: number of shuffles we do from goal state
+        :param nb_shuffles: number of shuffles we do from goal state
         :param nb_sequences: how many such sequences we produce
         :param kw_args: args to be passed to constructor of the puzzle
-        :returns: (tensor of puzzles, tensor of nb shuffles)
+        :returns: (list of puzzles, list of nb shuffles)
         """
         goal = cls.construct_puzzle(**kw_args)
         training_data = []
         for _ in range(nb_sequences):
             puzzle = goal.clone()
-            training_data.append(puzzle.to_tensor())
-            for __ in range(nb_shuffle):
+            training_data.append(puzzle)
+            for __ in range(nb_shuffles):
                 puzzle = puzzle.apply_random_move()
-                training_data.append(puzzle.to_tensor())
-        return (stack(training_data), tensor(range(nb_shuffle + 1)).repeat(nb_sequences))    
+                training_data.append(puzzle)
+        return (training_data,
+                list(range(nb_shuffles + 1)) * nb_sequences)
 
     @classmethod
     @abstractmethod

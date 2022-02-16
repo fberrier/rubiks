@@ -9,9 +9,7 @@ from tabulate import tabulate
 ########################################################################################################################
 
 
-def pprint(what):
-    """ util function to print tables nicely
-    """
+def pformat(what):
     if isinstance(what, DataFrame):
         what = what.to_dict(orient='list')
     elif isinstance(what, Series):
@@ -19,9 +17,16 @@ def pprint(what):
     if isinstance(what, dict):
         what = {k: [v] if not isinstance(v, (list, np.ndarray)) \
                 else v for k, v in what.items()}
-        print(tabulate(what, headers='keys', tablefmt='psql'))
-    else:
-        print(what)
+        return tabulate(what, headers='keys', tablefmt='psql')
+    return what
+
+########################################################################################################################
+
+
+def pprint(what):
+    """ util function to print tables nicely
+    """
+    print(pformat(what))
 
 ########################################################################################################################
 

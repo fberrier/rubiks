@@ -14,21 +14,15 @@ class FullyConnected(DeepLearning):
     def __init__(self, puzzle_dimension, **kw_args):
         DeepLearning.__init__(self, puzzle_dimension, **kw_args)
         in_channels = prod(self.puzzle_dimension) ** 2
-        self.layers = Linear(16, 1)
-        #Sequential(Linear(in_channels, 1000),
-         #                        ReLU(),
-          #                       BatchNorm1d(1000),
-           #                      Linear(1000, 500),
-            #                     ReLU(),
-             #                    BatchNorm1d(500),
-              #                   Linear(500, 100),
-               #                  ReLU(),
-                #                 BatchNorm1d(100),
-                 #                Linear(100, 1))
+        self.layers = Sequential(Linear(in_channels, 100),
+                                 ReLU(),
+                                 BatchNorm1d(100),
+                                 Linear(100, 50),
+                                 ReLU(),
+                                 Linear(50, 1))
 
     def evaluate(self, puzzle):
         puzzle = puzzle.to_tensor().float().reshape(-1)
-        self.log_info(puzzle)
         value = self.layers(puzzle)
         return value
 

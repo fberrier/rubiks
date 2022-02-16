@@ -4,6 +4,8 @@
 import coloredlogs
 from logging import getLogger, DEBUG, INFO, WARNING, ERROR
 ########################################################################################################################
+from rubiks.utils.utils import pformat
+########################################################################################################################
 
 
 class Loggable:
@@ -31,8 +33,7 @@ class Loggable:
         return ' '.join(str(self.process(arg)) for arg in args)
 
     def process(self, arg):
-        """ TBD if need to process some stuff in a special manner """
-        return arg
+        return pformat(arg)
 
 ########################################################################################################################
 

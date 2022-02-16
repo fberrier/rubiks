@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
-from copy import deepcopy
+from copy import deepcopy as copy
 from numpy import isnan
 from pandas import DataFrame
 from time import time as snap
@@ -15,9 +15,10 @@ from rubiks.utils.loggable import Loggable
 class DeepLearning(Module, Loggable, metaclass=ABCMeta):
     """ TBD """
 
-    def __init__(self, puzzle_dimension, **kw_args):
-        Loggable.__init__(self, self.name(), kw_args.pop('log_level', 'INFO'))
+    def __init__(self, puzzle_dimension, **network_config):
+        Loggable.__init__(self, self.name())
         self.puzzle_dimension = puzzle_dimension
+        self.network_config = network_config
         self.log_info('dimension puzzle to learn: ', self.puzzle_dimension)
         Module.__init__(self)
 
@@ -60,6 +61,8 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
         return
 
     def clone(self):
-        return deepcopy(self)
+        cloned = self.__class__(self.puzzle_dimension, **self.network_config)
+        cloned.load_state_dict(copy(self.state_dict()))
+        return cloned
     
  #######################################################################################################################

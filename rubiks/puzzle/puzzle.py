@@ -37,7 +37,7 @@ class Puzzle(metaclass=ABCMeta):
         return
 
     @abstractmethod
-    def __hash__(self, other):
+    def __hash__(self):
         """ Useful to put in containers that rely on hashes """
         pass
     

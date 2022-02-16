@@ -57,7 +57,7 @@ class SlidingPuzzle(Puzzle):
         return equal(self.tiles, other.tiles)
 
     def __hash__(self):
-        return hash(self.tiles)
+        return hash(tuple(self.tiles.flatten().numpy()))
 
     def dimension(self):
         return self.tiles.shape

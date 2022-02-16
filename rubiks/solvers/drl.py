@@ -1,7 +1,7 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from torch import tensor, stack, no_grad
+from torch import tensor, no_grad
 from torch.nn import MSELoss
 from torch.optim import RMSprop
 ########################################################################################################################
@@ -35,7 +35,13 @@ class DRLSolver(Solver):
                                                                **self.kw_args)
             (puzzles, nb_shuffles_List) = training_data
             targets = []
-            hashes_to_puzzle = {hash(puzzle): (puzzle, nb_shuffles) for puzzle, nb_shuffles in zip(*training_data)}
+            hashes_to_puzzle = {}
+            for puzzle, nb_shuffles in zip(*training_data):
+                puzzle_hash = hash(puzzle)
+                if puzzle_hash not in hashes_to_puzzle:
+                    hashes_to_puzzle[puzzle_hash] = (puzzle, nb_shuffles)
+                elif hashes_to_puzzle[puzzle_hash][1] > nb_shuffles:
+                    hashes_to_puzzle[puzzle_hash][1] = nb_shuffles
             for puzzle, nb_shuffles in zip(*training_data):
                 self.log_debug('#'*80 + '\n', 'Checking out puzzle\n', puzzle, ' with nb_shuffles: ', nb_shuffles)
                 if 0 == nb_shuffles or puzzle.is_goal():
@@ -61,11 +67,11 @@ class DRLSolver(Solver):
                 targets.append(target)
             targets = tensor(targets)
             puzzles_strings = [str(p) for p in puzzles]
-            puzzles = stack([puzzle.to_tensor().float().reshape(-1) for puzzle in puzzles])
-            for puzzle, target in zip(puzzles, targets):
-                self.log_debug('puzzle:\n', puzzle, ', target: ', target,
-                               'current net: ', self.current_network(puzzle))
-            y_hat = self.current_network(puzzles)
+            #puzzles = stack([puzzle.to_tensor().float().reshape(-1) for puzzle in puzzles])
+            #for puzzle, target in zip(puzzles, targets):
+            #    self.log_debug('puzzle:\n', puzzle, ', target: ', target,
+            #                   'current net: ', self.current_network(puzzle))
+            y_hat = self.current_network.evaluate(puzzles)
             loss = self.loss_function(y_hat, targets)
             self.log_info('epoch %d. loss: ' % epoch, loss.item())
             self.current_network.zero_grad()
@@ -74,11 +80,11 @@ class DRLSolver(Solver):
             optimizer.step()
             if 0 == epoch % self.update_target_network_frequency:
                 self.log_info('Updating target network')
-                self.log_info({'puzzle': puzzles_strings,
+                self.log_info('\n',
+                              {'puzzle': puzzles_strings,
                                'y_hat': list(y_hat.flatten().tolist()),
                                'target': list(targets.flatten().tolist())})
                 self.target_network = self.current_network.clone()
-
                 
             
     def solve_impl(self, puzzle, time_out, **kw_args):

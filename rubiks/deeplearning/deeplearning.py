@@ -41,17 +41,17 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
             raise NotImplementedError('DeepLearning.factory cannot construct network of type %s' % network_type)
         return network(puzzle_type, **kw_args)
 
-    def save(self, data_base):
+    def save(self, model_file):
         cls = self.__class__
         data = {cls.puzzle_type: self.puzzle_type,
                 cls.network_type_tag: self.network_type,
                 cls.kw_args: self.kw_args,
                 cls.state_dict_tag: self.state_dict()}
-        to_pickle(data, data_base)
+        to_pickle(data, model_file)
 
     @classmethod
-    def restore(cls, data_base):
-        data = read_pickle(data_base)
+    def restore(cls, model_file):
+        data = read_pickle(model_file)
         deeplearning = cls.factory(data[cls.puzzle_type],
                                    data[cls.network_type_tag],
                                    **data[cls.kw_args])

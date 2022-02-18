@@ -19,12 +19,12 @@ class Learner(Loggable, metaclass=ABCMeta):
     def learn(self):
         return
 
-    def save(self, data_base):
+    def save(self, model_file):
         """ overwrite where meaningful """
         return
 
     @staticmethod
-    def restore(data_base):
+    def restore(model_file):
         """ overwrite where meaningful """
         return
 

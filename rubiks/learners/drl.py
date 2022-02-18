@@ -91,12 +91,8 @@ class DRL(Learner):
                 self.log_info('Updating target network')
                 self.target_network = self.current_network.clone()
 
-    def save(self, data_base):
-        self.current_network.save(data_base)
-        self.log_info('Saved learner state in ', data_base)
-
-    @staticmethod
-    def get_heuristic(data_base):
-        return
+    def save(self, model_file):
+        self.current_network.save(model_file)
+        self.log_info('Saved learner state in ', model_file)
 
 ########################################################################################################################

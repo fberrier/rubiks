@@ -19,17 +19,8 @@ class Solver(Loggable, metaclass=ABCMeta):
         self.kw_args = kw_args
         Loggable.__init__(self, self.name(), kw_args.pop('log_level', 'INFO'))
 
-    def save(self, data_base):
-        """ overwrite where meaningful """
-        return
-
-    @staticmethod
-    def restore(data_base):
-        """ overwrite where meaningful """
-        return
-
     @abstractmethod
-    def solve_impl(self, puzzle, time_out):
+    def solve_impl(self, puzzle, time_out, **kw_args):
         return
 
     def solve(self, nb_shuffles, time_out):
@@ -54,27 +45,33 @@ class Solver(Loggable, metaclass=ABCMeta):
     max_run_time = 'max_run_time (ms)'
     solver_name = 'solver_name'
     pct_solved = 'solved (%)'
+    puzzle_type = 'puzzle_type'
+    puzzle_dimension = 'puzzle_dimension'
     
-    def performance(self, max_nb_shuffles, nb_samples, time_out, min_nb_shuffles=None):
+    def performance(self, max_nb_shuffles, nb_samples, time_out, min_nb_shuffles=None, step_nb_shuffles=1):
         assert max_nb_shuffles > 0
         assert nb_samples > 0
         if min_nb_shuffles is None:
             min_nb_shuffles = 1
         assert min_nb_shuffles <= max_nb_shuffles
-        res = {self.__class__.solver_name: self.name(),
-               self.__class__.nb_shuffle: [0],
-               self.__class__.nb_samples: [1],
-               self.__class__.avg_cost: [0],
-               self.__class__.max_cost: [0],
-               self.__class__.avg_expanded_nodes: [0],
-               self.__class__.max_expanded_nodes: [0],
-               self.__class__.nb_timeout: [0],
-               self.__class__.avg_run_time: [0],
-               self.__class__.max_run_time: [0],
-               self.__class__.pct_solved: [100]}
+        dimension = str(tuple(self.puzzle_type.construct_puzzle(**self.kw_args).dimension()))
+        cls = self.__class__
+        res = {cls.solver_name: self.name(),
+               cls.puzzle_type: self.puzzle_type.__name__,
+               cls.puzzle_dimension: dimension,
+               cls.nb_shuffle: [0],
+               cls.nb_samples: [1],
+               cls.avg_cost: [0],
+               cls.max_cost: [0],
+               cls.avg_expanded_nodes: [0],
+               cls.max_expanded_nodes: [0],
+               cls.nb_timeout: [0],
+               cls.avg_run_time: [0],
+               cls.max_run_time: [0],
+               cls.pct_solved: [100]}
         performance = DataFrame(res)
         nan = float('nan')
-        for nb_shuffles in range(min_nb_shuffles, max_nb_shuffles + 1):
+        for nb_shuffles in range(min_nb_shuffles, max_nb_shuffles + 1, step_nb_shuffles):
             total_cost = 0
             max_cost = 0
             total_expanded_nodes = 0
@@ -82,7 +79,7 @@ class Solver(Loggable, metaclass=ABCMeta):
             total_run_time = 0
             max_run_time = 0
             nb_timeout = 0
-            res[self.__class__.nb_shuffle] = nb_shuffles
+            res[cls.nb_shuffle] = nb_shuffles
             consecutive_timeout = 0
             self.log_debug('Calc performance for nb_shuffles=', nb_shuffles)
             for sample in range(nb_samples):
@@ -118,15 +115,15 @@ class Solver(Loggable, metaclass=ABCMeta):
             max_expanded_nodes = max(max_expanded_nodes, avg_expanded_nodes)
             avg_run_time = round(total_run_time / div, 3)
             max_run_time = max(max_run_time, avg_run_time)
-            res[self.__class__.nb_samples] = sample + 1
-            res[self.__class__.avg_cost] = avg_cost
-            res[self.__class__.max_cost] = max_cost
-            res[self.__class__.avg_expanded_nodes] = avg_expanded_nodes
-            res[self.__class__.max_expanded_nodes] = max_expanded_nodes
-            res[self.__class__.nb_timeout] = nb_timeout
-            res[self.__class__.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
-            res[self.__class__.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
-            res[self.__class__.pct_solved] = int(100 * (sample + 1 - nb_timeout) / nb_samples)
+            res[cls.nb_samples] = sample + 1
+            res[cls.avg_cost] = avg_cost
+            res[cls.max_cost] = max_cost
+            res[cls.avg_expanded_nodes] = avg_expanded_nodes
+            res[cls.max_expanded_nodes] = max_expanded_nodes
+            res[cls.nb_timeout] = nb_timeout
+            res[cls.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
+            res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
+            res[cls.pct_solved] = int(100 * (sample + 1 - nb_timeout) / nb_samples)
             performance = performance.append(res, ignore_index=True)
         return performance
 

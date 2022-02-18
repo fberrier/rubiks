@@ -10,8 +10,8 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 class DeepLearningHeuristic(Heuristic):
     """ TBD """
 
-    def __init__(self, data_base, **kw_args):
-        self.deep_learning = DeepLearning.restore(data_base)
+    def __init__(self, model_file, **kw_args):
+        self.deep_learning = DeepLearning.restore(model_file)
         self.puzzle_type = self.deep_learning.puzzle_type
         Heuristic.__init__(self, **kw_args)
 

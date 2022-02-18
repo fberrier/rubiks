@@ -4,6 +4,7 @@
 from argparse import ArgumentParser
 ########################################################################################################################
 from rubiks.heuristics.manhattan import Manhattan
+from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
 from rubiks.puzzle.sliding import SlidingPuzzle
 from rubiks.solvers.bfssolver import BFSSolver
 from rubiks.solvers.dfssolver import DFSSolver
@@ -21,18 +22,29 @@ def main():
     parser.add_argument('-s', type=int, default=1)
     parser.add_argument('-t', type=int, default=60)
     parser.add_argument('-solver', type=str, default='bfs', choices=['bfs', 'dfs', 'a*'])
-    parser.add_argument('-heuristic', type=str, default='manhattan', choices=['manhattan'])
+    parser.add_argument('-heuristic', type=str, default='manhattan', choices=['manhattan', 'deeplearning'])
+    parser.add_argument('-data_base', type=str, default='')
     parser = parser.parse_args()
-    solver = BFSSolver if parser.solver == 'bfs' else DFSSolver if parser.solver == 'dfs' else AStarSolver
+    kw_args = {'n': parser.n,
+               'm': parser.m}
+    if parser.solver == 'bfs':
+        solver = BFSSolver
+    elif parser.solver == 'dfs':
+        solver = DFSSolver
+    elif parser.solver == 'a*':
+        solver = AStarSolver
     if solver is DFSSolver:
-        kw_args = {'limit': 100}
+        kw_args.update({'limit': 100})
     elif solver is AStarSolver:
-        heuristic = Manhattan if parser.heuristic == 'manhattan' else None
-        kw_args = {'heuristic': heuristic}
-    else:
-        kw_args = {}
-    solver = solver(SlidingPuzzle, n=parser.n, m=parser.m, **kw_args)
-    solver.learn()
+        if parser.heuristic == 'manhattan':
+            heuristic = Manhattan
+        elif parser.heuristic == 'deeplearning':
+            kw_args.update({'data_base': parser.data_base})
+            heuristic = DeepLearningHeuristic(**kw_args)
+        else:
+            raise NotImplementedError
+        kw_args.update({'heuristic': heuristic})
+    solver = solver(SlidingPuzzle, **kw_args)
     rmin = parser.rmin
     rmax = parser.rmax
     if rmax is None:

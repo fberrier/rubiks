@@ -13,8 +13,10 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 class FullyConnected(DeepLearning):
     """ TBD """
 
-    def __init__(self, puzzle_dimension, **kw_args):
-        DeepLearning.__init__(self, puzzle_dimension, **kw_args)
+    network_type = DeepLearning.fully_connected_net
+
+    def __init__(self, puzzle_type, **kw_args):
+        DeepLearning.__init__(self, puzzle_type, **kw_args)
         in_channels = prod(self.puzzle_dimension) ** 2
         self.layers = Sequential(Linear(in_channels, 1000),
                                  ReLU(),
@@ -37,11 +39,6 @@ class FullyConnected(DeepLearning):
         return self.forward(x)
 
     def forward(self, x):
-        #self.log_info('x.shape: ', x.shape)
-        #self.log_info('x: ', x)
-        #self.log_info('x.dtype: ', x.dtype)
-        y = self.layers(x).squeeze()
-        #self.log_info('y.shape: ', y.shape)
-        return y
+        return self.layers(x).squeeze()
     
 ########################################################################################################################

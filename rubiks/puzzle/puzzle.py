@@ -2,6 +2,8 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import ABCMeta, abstractmethod
+from math import factorial
+from numpy import prod
 from torch import Size, stack, Tensor
 ########################################################################################################################
 
@@ -73,23 +75,42 @@ class Puzzle(metaclass=ABCMeta):
         return
 
     @classmethod
-    def get_training_data(cls, nb_shuffles, nb_sequences, **kw_args):
+    def get_training_data(cls, nb_shuffles, nb_sequences, strict=True, one_list=False, **kw_args):
         """
         :param nb_shuffles: number of shuffles we do from goal state
         :param nb_sequences: how many such sequences we produce
+        :param strict: make sure it s actually different puzzles for each sequence
         :param kw_args: args to be passed to constructor of the puzzle
         :returns: (list of puzzles, list of nb shuffles)
         """
         goal = cls.construct_puzzle(**kw_args)
+        max_size = factorial(prod(goal.dimension())) / 2
         training_data = []
+        hashes = set()
         for _ in range(nb_sequences):
+            puzzles = []
             puzzle = goal.clone()
-            training_data.append(puzzle)
+            puzzles.append(puzzle)
+            if strict:
+                hashes.clear()
+                hashes.add(hash(puzzle))
             for __ in range(nb_shuffles):
                 puzzle = puzzle.apply_random_move()
-                training_data.append(puzzle)
-        return (training_data,
-                list(range(nb_shuffles + 1)) * nb_sequences)
+                puzzle_hash = hash(puzzle)
+                while strict and puzzle_hash in hashes:
+                    puzzle = puzzle.apply_random_move()
+                    puzzle_hash = hash(puzzle)                    
+                hashes.add(puzzle_hash)
+                puzzles.append(puzzle)
+                if len(puzzles) >= max_size:
+                    break
+            while len(puzzles) < nb_shuffles:
+                puzzles.append(puzzles[-1])
+            if one_list:
+                training_data += puzzles
+            else:
+                training_data.append(puzzles)
+        return training_data
 
     @classmethod
     @abstractmethod

@@ -28,10 +28,6 @@ class Solver(Loggable, metaclass=ABCMeta):
         """ overwrite where meaningful """
         return
 
-    def learn(self):
-        """ overwrite this in the case where there is some learning to do """
-        return
-
     @abstractmethod
     def solve_impl(self, puzzle, time_out):
         return
@@ -96,7 +92,8 @@ class Solver(Loggable, metaclass=ABCMeta):
                     run_time += snap()
                     consecutive_timeout = 0
                 except Exception as error:
-                    self.log_debug(error)
+                    if error is not RecursionError:
+                        self.log_error(error)
                     run_time = time_out
                     expanded_nodes = 0
                     nb_timeout += 1
@@ -110,7 +107,7 @@ class Solver(Loggable, metaclass=ABCMeta):
                 max_run_time = max(max_run_time, run_time)
                 if consecutive_timeout > self.max_consecutive_timeout:
                     self.log_info('break out for nb_shuffles=', nb_shuffles,
-                                  ' as timed-out %d times', self.max_consecutive_timeout)
+                                  'as timed-out/errored %d times' % self.max_consecutive_timeout)
                     break
             div = nb_samples - nb_timeout
             if 0 == div:

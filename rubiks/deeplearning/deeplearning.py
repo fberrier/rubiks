@@ -4,7 +4,7 @@
 from abc import abstractmethod, ABCMeta
 from copy import deepcopy as copy
 from numpy import isnan
-from pandas import DataFrame
+from pandas import DataFrame, to_pickle, read_pickle
 from time import time as snap
 from torch.nn import Module
 ########################################################################################################################
@@ -15,41 +15,48 @@ from rubiks.utils.loggable import Loggable
 class DeepLearning(Module, Loggable, metaclass=ABCMeta):
     """ TBD """
 
-    def __init__(self, puzzle_dimension, **network_config):
-        Loggable.__init__(self, self.name())
-        self.puzzle_dimension = puzzle_dimension
-        self.network_config = network_config
-        self.log_info('dimension puzzle to learn: ', self.puzzle_dimension)
-        Module.__init__(self)
+    network_type = None
 
-    network_config = 'network_config'
-    network_type = 'network_type'
+    def __init__(self, puzzle_type, **kw_args):
+        Loggable.__init__(self, self.name())
+        self.puzzle_type = puzzle_type
+        self.kw_args = kw_args
+        self.puzzle_dimension = self.puzzle_type.construct_puzzle(**kw_args).dimension()
+        Module.__init__(self)
+        assert self.network_type is not None, 'Concrete DeepLearning should have a proper network_type'
+
+    puzzle_type = 'puzzle_type'
+    puzzle_dimension = 'puzzle_dimension'
+    network_type_tag = 'network_type_tag'
+    kw_args = 'kw_args'
     fully_connected_net = 'fully_connected_net'
+    state_dict_tag = 'state_dict_tag'
         
     @classmethod
-    def factory(cls, puzzle_type, **kw_args):
-        if cls.network_config not in kw_args:
-            raise ValueError('DeepLearning.factory cannot construct network as there is no %s' % cls.network_config)
-        network_config = kw_args[cls.network_config]
-        if not isinstance(network_config, dict) or cls.network_type not in network_config:
-            raise ValueError('DeepLearning.factory cannot construct network as %s badly formed' % cls.network_config)
-        network_type = network_config[cls.network_type]
+    def factory(cls, puzzle_type, network_type, **kw_args):
         if cls.fully_connected_net == network_type:
             from rubiks.deeplearning.fullyconnected import FullyConnected
             network = FullyConnected
         else:
             raise NotImplementedError('DeepLearning.factory cannot construct network of type %s' % network_type)
-        return network(puzzle_type.construct_puzzle(**kw_args).dimension(),
-                       **network_config)
+        return network(puzzle_type, **kw_args)
 
     def save(self, data_base):
-        """ overwrite where meaningful """
-        return
+        cls = self.__class__
+        data = {cls.puzzle_type: self.puzzle_type,
+                cls.network_type_tag: self.network_type,
+                cls.kw_args: self.kw_args,
+                cls.state_dict_tag: self.state_dict()}
+        to_pickle(data, data_base)
 
-    @staticmethod
-    def restore(data_base):
-        """ overwrite where meaningful """
-        return
+    @classmethod
+    def restore(cls, data_base):
+        data = read_pickle(data_base)
+        deeplearning = cls.factory(data[cls.puzzle_type],
+                                   data[cls.network_type_tag],
+                                   **data[cls.kw_args])
+        deeplearning.load_state_dict(data[cls.state_dict_tag])
+        return deeplearning
 
     def name(self):
         return self.__class__.__name__
@@ -61,7 +68,7 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
         return
 
     def clone(self):
-        cloned = self.__class__(self.puzzle_dimension, **self.network_config)
+        cloned = self.__class__(self.puzzle_type, **self.kw_args)
         cloned.load_state_dict(copy(self.state_dict()))
         return cloned
     

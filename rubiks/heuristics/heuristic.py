@@ -17,11 +17,10 @@ class Heuristic(metaclass=ABCMeta):
 
     puzzle_type = int
 
-    @classmethod
-    def get_puzzle_type(cls):
+    def get_puzzle_type(self):
         """ returns the type of puzzle that this heuristic deals with """
-        assert issubclass(cls.puzzle_type, Puzzle), 'Puzzle type for %s has not been setup properly' % cls.__name__
-        return cls.puzzle_type
+        assert issubclass(self.puzzle_type, Puzzle), 'Puzzle type for %s has not been setup properly' % self.__class__.__name__
+        return self.puzzle_type
 
     def __init__(self, **kw_args):
         """ the kw_args are passed to the underlying type of puzzle that this heuristic deals with """
@@ -38,9 +37,9 @@ class Heuristic(metaclass=ABCMeta):
     dim_error_message = 'cost_to_go expected %s of dimension %s. Got %s instead'
 
     def cost_to_go_from_puzzle(self, puzzle):
-        assert puzzle.dimension() == self.puzzle_dimension(), self.dim_error_message % (self.get_puzzle_type(),
-                                                                                        self.puzzle_dimension(),
-                                                                                        puzzle.dimension())
+        assert puzzle.dimension() == self.puzzle_dimension(), self.dim_error_message % (str(self.get_puzzle_type()),
+                                                                                        str(self.puzzle_dimension()),
+                                                                                        str(puzzle.dimension()))
         return self.cost_to_go_from_puzzle_impl(puzzle)
 
     def cost_to_go_from_tensor(self, puzzle, **kw_args):

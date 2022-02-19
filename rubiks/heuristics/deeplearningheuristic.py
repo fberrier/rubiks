@@ -20,11 +20,11 @@ class DeepLearningHeuristic(Heuristic):
             '%s knows cost for %s, not for %s' (self.__class__.__name__,
                                                 self.deep_learning.puzzle_type,
                                                 puzzle.__class__.__name__)
-        assert puzzle.dimension() == self.deep_learning.puzzle_dimension, \
-            '%s expected %s of dimension %s, for %s instead' % (self.__class__.__name__,
+        assert tuple(puzzle.dimension()) == tuple(self.deep_learning.puzzle_dimension), \
+            '%s expected %s of dimension %s, got %s instead' % (self.__class__.__name__,
                                                                 puzzle.__class__.__name__,
-                                                                self.deep_learning.puzzle_dimension,
-                                                                puzzle.dimension())
+                                                                tuple(self.deep_learning.puzzle_dimension),
+                                                                tuple(puzzle.dimension()))
         return self.deep_learning.evaluate(puzzle)
 
 ########################################################################################################################

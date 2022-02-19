@@ -24,7 +24,7 @@ def main():
     nb_epochs = parser.e
     update_target_network_frequency = parser.u
     n = parser.n
-    m = parser.m
+    m = parser.m if parser.m is not None else n
     learner = DRL(SlidingPuzzle,
                   nb_epochs=nb_epochs,
                   nb_shuffles=parser.nb_shuffles,
@@ -36,7 +36,7 @@ def main():
                   update_target_network_frequency=update_target_network_frequency,
                   verbose=parser.verbose)
     learner.learn()
-    learner.save(data_base='demodrl_%d_%d_%s.pkl' % (n, m, network_type))
+    learner.save(model_file='models/demodrl_%d_%d_%s.pkl' % (n, m, network_type))
     
 ########################################################################################################################
 

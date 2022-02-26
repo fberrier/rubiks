@@ -3,6 +3,7 @@
 ########################################################################################################################
 from argparse import ArgumentParser
 from pandas import to_pickle
+from sys import argv, platform
 ########################################################################################################################
 from rubiks.heuristics.manhattan import Manhattan
 from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
@@ -10,7 +11,7 @@ from rubiks.puzzle.sliding import SlidingPuzzle
 from rubiks.solvers.bfssolver import BFSSolver
 from rubiks.solvers.dfssolver import DFSSolver
 from rubiks.solvers.astarsolver import AStarSolver
-from rubiks.utils.utils import pprint
+from rubiks.utils.utils import pprint, is_windows
 ########################################################################################################################
 
 
@@ -18,9 +19,9 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('n', type=int)
     parser.add_argument('-m', type=int, default=None)
-    parser.add_argument('-rmin', type=int, default=None)
-    parser.add_argument('-rmax', type=int, default=None)
-    parser.add_argument('-rstep', type=int, default=1)
+    parser.add_argument('-r_min', type=int, default=None)
+    parser.add_argument('-r_max', type=int, default=None)
+    parser.add_argument('-r_step', type=int, default=1)
     parser.add_argument('-s', type=int, default=1)
     parser.add_argument('-t', type=int, default=60)
     parser.add_argument('-solver', type=str, default='bfs', choices=['bfs', 'dfs', 'a*'])
@@ -48,16 +49,16 @@ def main():
             raise NotImplementedError
         kw_args.update({'heuristic': heuristic})
     solver = solver(SlidingPuzzle, **kw_args)
-    rmin = parser.rmin
-    rmax = parser.rmax
-    rstep = parser.rstep
-    if rmax is None:
-        rmax = rmin
-    perf_table = solver.performance(max_nb_shuffles=rmax,
+    r_min = parser.r_min
+    r_max = parser.r_max
+    r_step = parser.r_step
+    if r_max is None:
+        r_max = r_min
+    perf_table = solver.performance(max_nb_shuffles=r_max,
                                     nb_samples=parser.s,
                                     time_out=parser.t,
-                                    min_nb_shuffles=rmin,
-                                    step_nb_shuffles=rstep)
+                                    min_nb_shuffles=r_min,
+                                    step_nb_shuffles=r_step)
     pprint(perf_table)
     if parser.save:
         to_pickle(perf_table, parser.save)
@@ -66,6 +67,9 @@ def main():
 
     
 if '__main__' == __name__:
+    if is_windows():
+        command_line_args = "2 -m=2 -r_min=1 -r_max=10 -s=100"
+        argv.extend(command_line_args.split(' '))
     main()
 
 ########################################################################################################################

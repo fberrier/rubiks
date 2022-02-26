@@ -16,10 +16,10 @@ class DeepLearningHeuristic(Heuristic):
         Heuristic.__init__(self, **kw_args)
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
-        assert isinstance(puzzle, self.deep_learning.puzzle_type), \
-            '%s knows cost for %s, not for %s' (self.__class__.__name__,
-                                                self.deep_learning.puzzle_type,
-                                                puzzle.__class__.__name__)
+        assert isinstance(puzzle, self.puzzle_type), \
+            '%s knows cost for %s, not for %s' % (self.__class__.__name__,
+                                                  self.puzzle_type.__name__,
+                                                  puzzle.__class__.__name__)
         assert tuple(puzzle.dimension()) == tuple(self.deep_learning.puzzle_dimension), \
             '%s expected %s of dimension %s, got %s instead' % (self.__class__.__name__,
                                                                 puzzle.__class__.__name__,

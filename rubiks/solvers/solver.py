@@ -3,7 +3,7 @@
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
 from numpy import isnan
-from pandas import DataFrame
+from pandas import concat, DataFrame, Series
 from time import time as snap
 ########################################################################################################################
 from rubiks.utils.loggable import Loggable
@@ -124,11 +124,13 @@ class Solver(Loggable, metaclass=ABCMeta):
             res[cls.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
             res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
             res[cls.pct_solved] = int(100 * (sample + 1 - nb_timeout) / nb_samples)
-            performance = performance.append(res, ignore_index=True)
+            performance = concat([performance,
+                                  Series(res).to_frame().transpose()],
+                                 ignore_index=True)
         return performance
 
     def name(self):
         return '%s|%s' %(self.__class__.__name__,
                          self.puzzle_type.construct_puzzle(**self.kw_args).name())
 
- ########################################################################################################################
+########################################################################################################################

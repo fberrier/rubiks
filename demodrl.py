@@ -2,11 +2,12 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from argparse import ArgumentParser
+from sys import argv
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.puzzle.sliding import SlidingPuzzle
 from rubiks.learners.drl import DRL
-from rubiks.utils.utils import pprint
+from rubiks.utils.utils import is_windows
 ########################################################################################################################
 
 
@@ -18,7 +19,7 @@ def main():
     parser.add_argument('-u', type=int, default=None)
     parser.add_argument('-nb_shuffles', type=int, default=100)
     parser.add_argument('-nb_sequences', type=int, default=1)
-    parser.add_argument('-verbose', type=bool, default=True)
+    parser.add_argument('-verbose', type=bool, default=False)
     parser = parser.parse_args()
     network_type = DeepLearning.fully_connected_net
     nb_epochs = parser.e
@@ -42,6 +43,9 @@ def main():
 
 
 if '__main__' == __name__:
+    if is_windows():
+        command_line_args = "3 -e=100 -u=10"
+        argv.extend(command_line_args.split(' '))
     main()
 
 ########################################################################################################################

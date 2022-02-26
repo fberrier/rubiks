@@ -2,10 +2,12 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from locale import format_string, LC_ALL, setlocale
-setlocale(LC_ALL, '')
 import numpy as np
 from pandas import DataFrame, Series
+from sys import platform
 from tabulate import tabulate
+########################################################################################################################
+setlocale(LC_ALL, '')
 ########################################################################################################################
 
 
@@ -17,7 +19,7 @@ def pformat(what):
     if isinstance(what, dict):
         what = {k: [v] if not isinstance(v, (list, np.ndarray)) \
                 else v for k, v in what.items()}
-        return tabulate(what, headers='keys', tablefmt='psql')
+        return '\n' + tabulate(what, headers='keys', tablefmt='psql')
     return what
 
 ########################################################################################################################
@@ -35,4 +37,22 @@ def ms_format(run_time):
     run_time = run_time * 1000
     return '%s ms' % format_string('%d', run_time, grouping=True)
     
+########################################################################################################################
+
+
+def is_windows():
+    return 'win32' == platform
+
+########################################################################################################################
+
+
+def is_mac_os():
+    return 'darwin' == platform
+
+########################################################################################################################
+
+
+def is_linux():
+    return platform in {'linux', 'linux2'}
+
 ########################################################################################################################

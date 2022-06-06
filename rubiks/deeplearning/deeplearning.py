@@ -3,9 +3,7 @@
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
 from copy import deepcopy as copy
-from numpy import isnan
-from pandas import DataFrame, to_pickle, read_pickle
-from time import time as snap
+from pandas import to_pickle, read_pickle
 from torch.nn import Module
 ########################################################################################################################
 from rubiks.utils.loggable import Loggable
@@ -72,4 +70,4 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
         cloned.load_state_dict(copy(self.state_dict()))
         return cloned
     
- #######################################################################################################################
+########################################################################################################################

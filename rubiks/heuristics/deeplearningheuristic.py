@@ -8,12 +8,16 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 
 
 class DeepLearningHeuristic(Heuristic):
-    """ TBD """
+    """ Just a heuristic that's been learnt by a Deep Learning Network """
 
     def __init__(self, model_file, **kw_args):
-        self.deep_learning = DeepLearning.restore(model_file)
+        self.model_file = model_file
+        self.deep_learning = DeepLearning.restore(self.model_file)
         self.puzzle_type = self.deep_learning.puzzle_type
         Heuristic.__init__(self, **kw_args)
+
+    def name(self):
+        return '%s[%s]' % (super().name(), self.model_file)
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
         assert isinstance(puzzle, self.puzzle_type), \

@@ -5,7 +5,7 @@ from numpy import argwhere, array, where
 from pandas import DataFrame
 from random import randint
 from tabulate import tabulate
-from torch import equal, tensor
+from torch import equal, tensor, randperm, reshape
 from torch.nn.functional import one_hot
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Move, Puzzle
@@ -37,11 +37,15 @@ class SlidingPuzzle(Puzzle):
 
     possible_moves_map = {}
 
+    goal_signature_map = {}
+
+    goal_map = {}
+
     def __init__(self, tiles, empty=None):
         super().__init__()
         self.tiles = tiles
         if empty is None:
-            self.empty = tuple(argwhere(0 == tiles)[0])
+            self.empty = tuple(argwhere(0 == tiles).squeeze().tolist())
         else:
             self.empty = empty
 
@@ -77,7 +81,10 @@ class SlidingPuzzle(Puzzle):
         return SlidingPuzzle(goal, (n - 1, m - 1))
 
     def goal(self):
-        return self.construct_puzzle(*self.tiles.shape)
+        dimension = tuple(self.dimension())
+        if dimension not in self.goal_map:
+            self.goal_map[dimension] = self.construct_puzzle(*self.tiles.shape)
+        return self.goal_map[dimension].clone()
 
     def apply(self, move: Slide):
         """ moved tile must either be same row or same col as the empty tile 
@@ -146,5 +153,53 @@ class SlidingPuzzle(Puzzle):
     
     def to_tensor(self):
         return one_hot(self.tiles).flatten(1)
+
+    def perfect_shuffle(self):
+        """ We set up the tiles randomly, and then just swap the first two if the signature is not right """
+        dimensions = self.dimension()
+        tiles = reshape(randperm(dimensions[0] * dimensions[1]), dimensions)
+        for row in range(dimensions[0]):
+            if 1 == row % 2:
+                tiles[row] = tiles[row].flip(0)
+        shuffle = SlidingPuzzle(tiles)
+        if shuffle.signature() == self.goal_signature():
+            return shuffle
+        row = 0
+        col = 0
+        while 0 == tiles[row][col]:
+            row, col = self.increment(row, col)
+        row2, col2 = self.increment(row, col)
+        while 0 == tiles[row2][col2]:
+            row2, col2 = self.increment(row2, col2)
+        a, b = tiles[row][col].item(), tiles[row2][col2].item()
+        tiles[row2][col2], tiles[row][col] = a, b
+        return SlidingPuzzle(tiles)
+
+    def increment(self, row, col):
+        col += 1
+        if self.dimension()[1] == col:
+            row += 1
+            col = 0
+        return row, col
+
+    def signature(self) -> int:
+        tiles = self.clone()
+        dimensions = self.dimension()
+        for row in range(dimensions[0]):
+            if 1 == row % 2:
+                tiles.tiles[row] = tiles.tiles[row].flip(0)
+        tiles = tiles.tiles.flatten()
+        tiles = tiles[tiles != 0]
+        total_unordered = 0
+        for index, value in enumerate(tiles):
+            total_unordered += sum(tiles[index + 1:] < value)
+        return total_unordered.item() % 2
+
+    def goal_signature(self):
+        goal = self.goal()
+        goal_dim = tuple(goal.dimension())
+        if goal_dim not in self.goal_signature_map:
+            self.goal_signature_map[goal_dim] = self.goal().signature()
+        return self.goal_signature_map[goal_dim]
     
 ########################################################################################################################

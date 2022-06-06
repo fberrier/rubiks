@@ -2,6 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
+from math import inf
 from numpy import isnan
 from pandas import concat, DataFrame, Series
 from time import time as snap
@@ -48,7 +49,26 @@ class Solver(Loggable, metaclass=ABCMeta):
     puzzle_type = 'puzzle_type'
     puzzle_dimension = 'puzzle_dimension'
     
-    def performance(self, max_nb_shuffles, nb_samples, time_out, min_nb_shuffles=None, step_nb_shuffles=1):
+    def performance(self,
+                    max_nb_shuffles,
+                    nb_samples,
+                    time_out,
+                    min_nb_shuffles=None,
+                    step_nb_shuffles=1,
+                    perfect_shuffle=False):
+        """
+        Runs the solver on a bunch of randomly generated puzzles (more or less shuffled from goal state)
+        and returns statistics of the various attemps to solve them.
+        params:
+            max_nb_shuffles:
+            nb_samples:
+            time_out:
+            min_nb_shuffles:
+            step_nb_shuffles:
+            perfect_shuffle:
+        returns:
+            blablabla tbc
+        """
         assert max_nb_shuffles > 0
         assert nb_samples > 0
         if min_nb_shuffles is None:
@@ -71,7 +91,12 @@ class Solver(Loggable, metaclass=ABCMeta):
                cls.pct_solved: [100]}
         performance = DataFrame(res)
         nan = float('nan')
-        for nb_shuffles in range(min_nb_shuffles, max_nb_shuffles + 1, step_nb_shuffles):
+        shuffles = list(range(min_nb_shuffles, max_nb_shuffles + 1, step_nb_shuffles))
+        if perfect_shuffle:
+            shuffles.append(inf)
+        ''' @todo: parallelize the solving of diff shuffles 
+        since I have so many cores on this machine, might as well '''
+        for nb_shuffles in shuffles:
             total_cost = 0
             max_cost = 0
             total_expanded_nodes = 0
@@ -90,7 +115,7 @@ class Solver(Loggable, metaclass=ABCMeta):
                     consecutive_timeout = 0
                 except Exception as error:
                     if error is not RecursionError:
-                        self.log_error(error)
+                        self.log_error(error, '. nb_shuffles = ', nb_shuffles)
                     run_time = time_out
                     expanded_nodes = 0
                     nb_timeout += 1
@@ -102,9 +127,9 @@ class Solver(Loggable, metaclass=ABCMeta):
                 max_expanded_nodes = max(max_expanded_nodes, expanded_nodes)
                 total_run_time += run_time
                 max_run_time = max(max_run_time, run_time)
-                if consecutive_timeout > self.max_consecutive_timeout:
+                if consecutive_timeout >= self.max_consecutive_timeout:
                     self.log_info('break out for nb_shuffles=', nb_shuffles,
-                                  'as timed-out/errored %d times' % self.max_consecutive_timeout)
+                                  'as timed-out/error-ed %d times' % self.max_consecutive_timeout)
                     break
             div = nb_samples - nb_timeout
             if 0 == div:
@@ -130,7 +155,7 @@ class Solver(Loggable, metaclass=ABCMeta):
         return performance
 
     def name(self):
-        return '%s|%s' %(self.__class__.__name__,
-                         self.puzzle_type.construct_puzzle(**self.kw_args).name())
+        return '%s|%s' % (self.__class__.__name__,
+                          self.puzzle_type.construct_puzzle(**self.kw_args).name())
 
 ########################################################################################################################

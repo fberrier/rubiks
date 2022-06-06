@@ -2,9 +2,9 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import ABCMeta, abstractmethod
-from math import factorial
+from math import factorial, isinf
 from numpy import prod
-from torch import Size, stack, Tensor
+from torch import Size, Tensor
 ########################################################################################################################
 
 
@@ -67,7 +67,7 @@ class Puzzle(metaclass=ABCMeta):
         return
 
     def name(self):
-        return '%s|%s' % (self.__class__.__name__, str(tuple(self.dimension())))
+        return '%s[%s]' % (self.__class__.__name__, str(tuple(self.dimension())))
 
     @abstractmethod
     def is_goal(self) -> bool:
@@ -75,13 +75,21 @@ class Puzzle(metaclass=ABCMeta):
         return
 
     @classmethod
-    def get_training_data(cls, nb_shuffles, nb_sequences, strict=True, one_list=False, **kw_args):
+    def get_training_data(cls,
+                          nb_shuffles,
+                          nb_sequences,
+                          strict=True,
+                          one_list=False,
+                          **kw_args):
         """
-        :param nb_shuffles: number of shuffles we do from goal state
-        :param nb_sequences: how many such sequences we produce
-        :param strict: make sure it s actually different puzzles for each sequence
-        :param kw_args: args to be passed to constructor of the puzzle
-        :returns: (list of puzzles, list of nb shuffles)
+        Produces training data.
+        params:
+            nb_shuffles: number of shuffles we do from goal state
+            nb_sequences: how many such sequences we produce
+            strict: make sure it s actually different puzzles for each sequence
+            one_list: results is a list, otherwise a list of lists
+        returns:
+            list of puzzles
         """
         goal = cls.construct_puzzle(**kw_args)
         max_size = factorial(prod(goal.dimension())) / 2
@@ -144,6 +152,14 @@ class Puzzle(metaclass=ABCMeta):
         """ return the set of possible moves from this configuration """
         return
 
+    very_large_nb_shuffle = 10000
+
+    def perfect_shuffle(self):
+        """ We apply a large number of shuffles, but this can be over-riden in derived classes
+        if there is a known way to actually get a perfectly shuffled instance of the puzzle in question.
+        """
+        return self.apply_random_moves(self.very_large_nb_shuffle)
+
     def apply_random_move(self):
         random_move = self.random_move()
         if random_move is None:
@@ -151,6 +167,8 @@ class Puzzle(metaclass=ABCMeta):
         return self.apply(random_move)
 
     def apply_random_moves(self, r):
+        if isinf(r):
+            return self.perfect_shuffle()
         move = self.clone()
         for _ in range(r):
             move = move.apply_random_move()

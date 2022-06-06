@@ -53,4 +53,8 @@ class Heuristic(metaclass=ABCMeta):
             return self.cost_to_go_from_tensor(puzzle, **kw_args)
         return self.cost_to_go_from_puzzle(puzzle)
 
+    def name(self):
+        return self.__class__.__name__
+
 ########################################################################################################################
+

@@ -2,8 +2,8 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from argparse import ArgumentParser
-from pandas import to_pickle
-from sys import argv, platform
+from pandas import to_pickle, read_pickle, concat
+from sys import argv
 ########################################################################################################################
 from rubiks.heuristics.manhattan import Manhattan
 from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
@@ -24,10 +24,12 @@ def main():
     parser.add_argument('-r_step', type=int, default=1)
     parser.add_argument('-s', type=int, default=1)
     parser.add_argument('-t', type=int, default=60)
+    parser.add_argument('-p', type=bool, default=False)
     parser.add_argument('-solver', type=str, default='bfs', choices=['bfs', 'dfs', 'a*'])
     parser.add_argument('-heuristic', type=str, default='manhattan', choices=['manhattan', 'deeplearning'])
     parser.add_argument('-model', type=str, default='not_a_file.pkl')
     parser.add_argument('-save', type=str, default=None)
+    parser.add_argument('-append', type=bool, default=False)
     parser = parser.parse_args()
     kw_args = {'n': parser.n,
                'm': parser.m}
@@ -58,17 +60,27 @@ def main():
                                     nb_samples=parser.s,
                                     time_out=parser.t,
                                     min_nb_shuffles=r_min,
-                                    step_nb_shuffles=r_step)
+                                    step_nb_shuffles=r_step,
+                                    perfect_shuffle=parser.p)
     pprint(perf_table)
     if parser.save:
+        if parser.append:
+            try:
+                perf_table = concat((read_pickle(parser.save), perf_table))
+            except FileNotFoundError:
+                pass
         to_pickle(perf_table, parser.save)
+        pprint('Saved ', len(perf_table), ' rows of perf table to ', parser.save)
+        pprint(perf_table)
 
 ########################################################################################################################
 
     
 if '__main__' == __name__:
     if is_windows():
-        command_line_args = "2 -m=2 -r_min=1 -r_max=10 -s=100"
+        command_line_args = "3 -m=3 -r_min=0 -r_max=100 -r_step=10 -s=50 -t=60 -p=1 -append=0 -save=C:/Users/franc/rubiks/perf/demo_9_puzzle_dl.pkl "
+        #command_line_args += "-solver=a*"
+        command_line_args += "-solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/demodrl_3_3_fully_connected_net.pkl"
         argv.extend(command_line_args.split(' '))
     main()
 

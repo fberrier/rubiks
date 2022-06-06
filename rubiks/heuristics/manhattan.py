@@ -11,7 +11,6 @@ class Manhattan(Heuristic):
 
     puzzle_type = SlidingPuzzle
 
-
     def __init__(self, n, m=None, verbose=False, **kw_args):
         if m is None:
             m = n
@@ -70,6 +69,5 @@ class Manhattan(Heuristic):
         self.debug('cost_to_go: ', cost_to_go)
         return cost_to_go
 
-    
-
 ########################################################################################################################
+

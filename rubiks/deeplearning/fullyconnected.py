@@ -29,6 +29,12 @@ class FullyConnected(DeepLearning):
         #                         BatchNorm1d(100),
                                  Linear(100, 1))
 
+    def name(self):
+        name = self.__class__.__name__
+        if hasattr(self, 'layers'):
+            name += '[%s]' % self.layers
+        return name
+
     def evaluate(self, puzzles):
         if isinstance(puzzles, Puzzle):
             x = puzzles.to_tensor().float().reshape(-1).unsqueeze(0)

@@ -17,6 +17,10 @@ class Loggable:
         self.logger.setLevel({'DEBUG': DEBUG, 'INFO': INFO, 'WARNING': WARNING, 'ERROR': ERROR}.get(log_level, INFO))
         coloredlogs.install(level=log_level, logger=self.logger)
 
+    @staticmethod
+    def process(arg):
+        return pformat(arg)
+
     def log_debug(self, *args):
         self.logger.debug(self.format(*args))
 
@@ -31,9 +35,6 @@ class Loggable:
 
     def format(self, *args):
         return ' '.join(str(self.process(arg)) for arg in args)
-
-    def process(self, arg):
-        return pformat(arg)
 
 ########################################################################################################################
 

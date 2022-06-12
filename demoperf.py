@@ -1,20 +1,19 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from multiprocessing import cpu_count
-from torch import cuda
-from unittest import TestCase
+########################################################################################################################
+from rubiks.solvers.solver import Solver
 ########################################################################################################################
 
 
-class TestCudaPytorch(TestCase):
+def main():
+    Solver.plot_performance('C:/Users/franc/rubiks/perf/demo_9_puzzle_dl.pkl',
+                            solver_name=None)
 
-    def test_cuda_available(self):
-        print('cuda.is_available():', cuda.is_available())
-        self.assertTrue(True)
+########################################################################################################################
 
-    def test_cpu_count(self):
-        print('cpu_count():', cpu_count())
-        self.assertTrue(True)
+    
+if '__main__' == __name__:
+    main()
 
 ########################################################################################################################

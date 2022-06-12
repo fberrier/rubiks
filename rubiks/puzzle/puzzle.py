@@ -4,6 +4,7 @@
 from abc import ABCMeta, abstractmethod
 from math import factorial, isinf
 from numpy import prod
+from numpy.random import permutation
 from torch import Size, Tensor
 ########################################################################################################################
 
@@ -78,7 +79,7 @@ class Puzzle(metaclass=ABCMeta):
     def get_training_data(cls,
                           nb_shuffles,
                           nb_sequences,
-                          strict=True,
+                          min_no_loop=1,
                           one_list=False,
                           **kw_args):
         """
@@ -86,34 +87,17 @@ class Puzzle(metaclass=ABCMeta):
         params:
             nb_shuffles: number of shuffles we do from goal state
             nb_sequences: how many such sequences we produce
-            strict: make sure it s actually different puzzles for each sequence
+            min_no_loop: (best effort) making sequences with no loop of length <= min_no_loop
             one_list: results is a list, otherwise a list of lists
         returns:
             list of puzzles
         """
         goal = cls.construct_puzzle(**kw_args)
-        max_size = factorial(prod(goal.dimension())) / 2
+        nb_shuffles = min(nb_shuffles, factorial(prod(goal.dimension())) / 2)
         training_data = []
-        hashes = set()
         for _ in range(nb_sequences):
-            puzzles = []
-            puzzle = goal.clone()
-            puzzles.append(puzzle)
-            if strict:
-                hashes.clear()
-                hashes.add(hash(puzzle))
-            for __ in range(nb_shuffles):
-                puzzle = puzzle.apply_random_move()
-                puzzle_hash = hash(puzzle)
-                while strict and puzzle_hash in hashes:
-                    puzzle = puzzle.apply_random_move()
-                    puzzle_hash = hash(puzzle)                    
-                hashes.add(puzzle_hash)
-                puzzles.append(puzzle)
-                if len(puzzles) >= max_size:
-                    break
-            while len(puzzles) < nb_shuffles:
-                puzzles.append(puzzles[-1])
+            moves = goal.random_moves(nb_shuffles, min_no_loop=min_no_loop)
+            puzzles = goal.get_puzzle_sequence(moves)
             if one_list:
                 training_data += puzzles
             else:
@@ -142,20 +126,52 @@ class Puzzle(metaclass=ABCMeta):
         """ return the puzzle resulting from applying move or raise exception if invalid """
         return
 
+    def get_puzzle_sequence(self, moves):
+        puzzles = [self.clone()]
+        for move in moves:
+            puzzles.append(puzzles[-1].apply(move))
+        return puzzles
+
+    def apply_moves(self, moves):
+        puzzle = self.clone()
+        for move in moves:
+            puzzle = puzzle.apply(move)
+        return puzzle
+
     @abstractmethod
     def random_move(self):
         """ return a random move from current state """
         return
 
+    def random_moves(self, nb_moves, min_no_loop=1):
+        """ return a sequence of r random moves from current state.
+        If possible choosing moves that do not create a cycle of length <= min_no_loop """
+        puzzle = self.clone()
+        last_puzzles = [hash(puzzle)] * min_no_loop
+        moves = []
+        for _ in range(nb_moves):
+            possible_moves = puzzle.possible_moves()
+            possible_moves = [possible_moves[p] for p in permutation(range(len(possible_moves)))]
+            hash_puzzle = None
+            for move in possible_moves:
+                candidate = puzzle.apply(move)
+                hash_puzzle = hash(candidate)
+                if hash(candidate) not in last_puzzles:
+                    break
+            puzzle = candidate
+            last_puzzles = last_puzzles[1:] + [hash_puzzle]
+            moves.append(move)
+        return moves
+
     @abstractmethod
-    def possible_moves(self) -> set:
+    def possible_moves(self) -> list:
         """ return the set of possible moves from this configuration """
         return
 
     very_large_nb_shuffle = 10000
 
     def perfect_shuffle(self):
-        """ We apply a large number of shuffles, but this can be over-riden in derived classes
+        """ We apply a large number of shuffles, but this can be over-ridden in derived classes
         if there is a known way to actually get a perfectly shuffled instance of the puzzle in question.
         """
         return self.apply_random_moves(self.very_large_nb_shuffle)
@@ -166,17 +182,36 @@ class Puzzle(metaclass=ABCMeta):
             return self.clone()
         return self.apply(random_move)
 
-    def apply_random_moves(self, r):
-        if isinf(r):
+    def apply_random_moves(self, nb_moves, min_no_loop=1):
+        if isinf(nb_moves):
             return self.perfect_shuffle()
-        move = self.clone()
-        for _ in range(r):
-            move = move.apply_random_move()
-        return move
+        puzzle = self.clone()
+        for _ in range(nb_moves):
+            puzzle = puzzle.apply_random_move()
+        return puzzle
 
     @abstractmethod
     def to_tensor(self) -> Tensor:
         """ return a torch.Tensor to represent internal state """
         return
+
+########################################################################################################################
+
+
+class Puzzled:
+
+    def __init__(self, puzzle_type, **kw_args):
+        self.puzzle_type = puzzle_type
+        self.kw_args = kw_args
+        self.goal = self.puzzle_type.construct_puzzle(**self.kw_args)
+
+    def get_puzzle_type(self):
+        """ returns the type of puzzle that this heuristic deals with """
+        assert issubclass(self.puzzle_type,
+                          Puzzle), 'Puzzle type for %s has not been setup properly' % self.__class__.__name__
+        return self.puzzle_type
+
+    def puzzle_dimension(self):
+        return self.goal.dimension()
 
 ########################################################################################################################

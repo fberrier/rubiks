@@ -9,12 +9,10 @@ from rubiks.puzzle.sliding import SlidingPuzzle
 class Manhattan(Heuristic):
     """ TBD """
 
-    puzzle_type = SlidingPuzzle
-
     def __init__(self, n, m=None, verbose=False, **kw_args):
         if m is None:
             m = n
-        super().__init__(n=n, m=m, **kw_args)
+        super().__init__(SlidingPuzzle, n=n, m=m, **kw_args)
         # build map of where each value should be
         self.goal_map = {}
         goal = 1

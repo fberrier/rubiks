@@ -4,30 +4,19 @@
 from abc import ABCMeta, abstractmethod
 from torch import Tensor
 ########################################################################################################################
-from rubiks.puzzle.puzzle import Puzzle
+from rubiks.puzzle.puzzle import Puzzled
 ########################################################################################################################
 
 
-class Heuristic(metaclass=ABCMeta):
+class Heuristic(Puzzled, metaclass=ABCMeta):
     """ Generic concept of a heuristic: a class that is able to give us an estimated cost-to-go for a particular
     type of Puzzle of a given dimension.
     e.g. could be typical heuristics used in A* searches such as those based on Manhattan distance or similar concepts
     or could be neural net based heuristics that have been trained by Deep Reinforcement Learning.
     """
-
-    puzzle_type = int
-
-    def get_puzzle_type(self):
-        """ returns the type of puzzle that this heuristic deals with """
-        assert issubclass(self.puzzle_type, Puzzle), 'Puzzle type for %s has not been setup properly' % self.__class__.__name__
-        return self.puzzle_type
-
-    def __init__(self, **kw_args):
+    def __init__(self, puzzle_type, **kw_args):
         """ the kw_args are passed to the underlying type of puzzle that this heuristic deals with """
-        self.goal = self.get_puzzle_type().construct_puzzle(**kw_args)
-
-    def puzzle_dimension(self):
-        return self.goal.dimension()
+        Puzzled.__init__(self, puzzle_type, **kw_args)
 
     @abstractmethod
     def cost_to_go_from_puzzle_impl(self, puzzle):

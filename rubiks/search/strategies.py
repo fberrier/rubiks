@@ -131,7 +131,7 @@ class AStar(SearchStrategy):
         """ Uncontroversial implementation of A* """
         node = self.initial_node
         g_plus_h = 0 + self.heuristic.cost_to_go(node.state) 
-        frontier = SortedDict({g_plus_h: set([node])})
+        frontier = SortedDict({g_plus_h: {node}})
         """ for efficient removing from the frontier, we use a reverse mapping """
         reverse_frontier = {node: g_plus_h}
         explored = set()
@@ -169,12 +169,12 @@ class AStar(SearchStrategy):
                         if g_plus_h_2 in frontier:
                             frontier[g_plus_h_2].add(node_2)
                         else:
-                            frontier[g_plus_h_2] = set([node_2])
+                            frontier[g_plus_h_2] = {node_2}
                 elif node_2.state not in explored:
                     reverse_frontier[node_2] = g_plus_h_2
                     if g_plus_h_2 in frontier:
                         frontier[g_plus_h_2].add(node_2)
                     else:
-                        frontier[g_plus_h_2] = set([node_2])
+                        frontier[g_plus_h_2] = {node_2}
 
 ########################################################################################################################

@@ -2,6 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from argparse import ArgumentParser
+from multiprocessing import cpu_count
 from pandas import to_pickle, read_pickle, concat
 from sys import argv
 ########################################################################################################################
@@ -30,6 +31,7 @@ def main():
     parser.add_argument('-model', type=str, default='not_a_file.pkl')
     parser.add_argument('-save', type=str, default=None)
     parser.add_argument('-append', type=bool, default=False)
+    parser.add_argument('-cpus', type=int, default=int(cpu_count() / 2))
     parser = parser.parse_args()
     kw_args = {'n': parser.n,
                'm': parser.m}
@@ -61,7 +63,8 @@ def main():
                                     time_out=parser.t,
                                     min_nb_shuffles=r_min,
                                     step_nb_shuffles=r_step,
-                                    perfect_shuffle=parser.p)
+                                    perfect_shuffle=parser.p,
+                                    nb_cpus=parser.cpus)
     pprint(perf_table)
     if parser.save:
         if parser.append:
@@ -78,7 +81,8 @@ def main():
     
 if '__main__' == __name__:
     if is_windows():
-        command_line_args = "3 -m=3 -r_min=0 -r_max=100 -r_step=10 -s=50 -t=60 -p=1 -append=0 -save=C:/Users/franc/rubiks/perf/demo_9_puzzle_dl.pkl "
+        command_line_args = "3 -m=3 -r_min=0 -r_max=100 -r_step=10 -s=100 -t=120 -cpus=12 -p=1 -append=1 -save=C:/Users/franc/rubiks/perf/demo_9_puzzle_dl.pkl "
+        #command_line_args += "-solver=bfs"
         #command_line_args += "-solver=a*"
         command_line_args += "-solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/demodrl_3_3_fully_connected_net.pkl"
         argv.extend(command_line_args.split(' '))

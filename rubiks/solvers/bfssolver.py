@@ -8,6 +8,10 @@ from rubiks.solvers.solver import Solver
 
 class BFSSolver(Solver):
 
+    def know_to_be_optimal(self):
+        """ if it does not time out, it is definitely optimal """
+        return True
+
     def solve_impl(self, puzzle, time_out, **kw_args):
         strat = BreadthFirstSearch(puzzle, time_out=time_out, **{**self.kw_args, **kw_args})
         strat.solve()

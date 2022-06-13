@@ -1,8 +1,9 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
+from os.path import split
+########################################################################################################################
 from rubiks.heuristics.heuristic import Heuristic
-from rubiks.puzzle.sliding import SlidingPuzzle
 from rubiks.deeplearning.deeplearning import DeepLearning
 ########################################################################################################################
 
@@ -10,13 +11,16 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 class DeepLearningHeuristic(Heuristic):
     """ Just a heuristic that's been learnt by a Deep Learning Network """
 
+    def known_to_be_admissible(self):
+        return False
+
     def __init__(self, model_file, **kw_args):
         self.model_file = model_file
         self.deep_learning = DeepLearning.restore(self.model_file)
         Heuristic.__init__(self, self.deep_learning.puzzle_type, **kw_args)
 
     def name(self):
-        return '%s[%s]' % (super().name(), self.model_file)
+        return '%s[%s]' % (super().name(), split(self.model_file)[1])
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
         assert isinstance(puzzle, self.puzzle_type), \

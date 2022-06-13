@@ -146,6 +146,7 @@ class Puzzle(metaclass=ABCMeta):
     def random_moves(self, nb_moves, min_no_loop=1):
         """ return a sequence of r random moves from current state.
         If possible choosing moves that do not create a cycle of length <= min_no_loop """
+        assert not isinf(nb_moves)
         puzzle = self.clone()
         last_puzzles = [hash(puzzle)] * min_no_loop
         moves = []
@@ -185,10 +186,8 @@ class Puzzle(metaclass=ABCMeta):
     def apply_random_moves(self, nb_moves, min_no_loop=1):
         if isinf(nb_moves):
             return self.perfect_shuffle()
-        puzzle = self.clone()
-        for _ in range(nb_moves):
-            puzzle = puzzle.apply_random_move()
-        return puzzle
+        return self.apply_moves(self.random_moves(nb_moves=nb_moves,
+                                                  min_no_loop=min_no_loop))
 
     @abstractmethod
     def to_tensor(self) -> Tensor:
@@ -213,5 +212,11 @@ class Puzzled:
 
     def puzzle_dimension(self):
         return self.goal.dimension()
+
+    def get_goal(self):
+        return self.goal.clone()
+
+    def puzzle_name(self):
+        return self.goal.name()
 
 ########################################################################################################################

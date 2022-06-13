@@ -7,7 +7,7 @@ from sys import argv
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.puzzle.sliding import SlidingPuzzle
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
-from rubiks.utils.utils import is_windows
+from rubiks.utils.utils import is_windows, g_not_a_pkl_file
 ########################################################################################################################
 
 
@@ -20,8 +20,10 @@ def main():
     parser.add_argument('-nb_shuffles', type=int, default=100)
     parser.add_argument('-nb_sequences', type=int, default=1)
     parser.add_argument('-verbose', type=bool, default=False)
+    parser.add_argument('-use_cuda', type=bool, default=True)
     parser.add_argument('-action', type=str, default='learn', choices=['learn', 'plot'])
-    parser.add_argument('-learning_file_name', type=str, default='not_a_file.pkl')
+    parser.add_argument('-model_file_name', type=str, default=g_not_a_pkl_file)
+    parser.add_argument('-learning_file_name', type=str, default=g_not_a_pkl_file)
     parser = parser.parse_args()
     network_type = DeepLearning.fully_connected_net
     nb_epochs = parser.e
@@ -37,10 +39,13 @@ def main():
                                        network_type=network_type,
                                        learning_rate=1e-3,
                                        update_target_network_frequency=update_target_network_frequency,
-                                       verbose=parser.verbose)
+                                       verbose=parser.verbose,
+                                       use_cuda=parser.use_cuda,
+                                       layers=(3**4, 9, 3),
+                                       )
     if 'learn' == parser.action:
         learner.learn()
-        learner.save(model_file='models/demodrl_%d_%d_%s.pkl' % (n, m, network_type),
+        learner.save(model_file_name=parser.model_file_name,
                      learning_file_name=parser.learning_file_name)
     elif 'plot' == parser.action:
         learner.plot_learning(learning_file_name=parser.learning_file_name)
@@ -52,9 +57,10 @@ def main():
 
 if '__main__' == __name__:
     if is_windows():
-        command_line_args = "3 -e=100 -u=20 -nb_sequences=25 -nb_shuffles=25"
-        command_line_args += " -action=plot"
-        command_line_args += " -learning_file_name=models/demodrl_3_3_fully_connected_net_convergence_data.pkl"
+        command_line_args = "3 -e=1500 -u=50 -nb_sequences=50 -nb_shuffles=30"
+        command_line_args += " -action=learn"
+        command_line_args += " -model_file_name=models/demodrl_8_puzzle_fully_connected_net.pkl"
+        command_line_args += " -learning_file_name=models/demodrl_8_puzzle_fully_connected_net_convergence_data.pkl"
         argv.extend(command_line_args.split(' '))
     main()
 

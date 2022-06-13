@@ -100,7 +100,7 @@ class SearchStrategy(Loggable, metaclass=ABCMeta):
     def check_time_out(self):
         if self.time_out is None:
             return
-        run_time =  int(snap() + self.run_time)
+        run_time = int(snap() + self.run_time)
         if run_time > self.time_out:
             error = 'Exceeded timeout[%ds]. Run time = %ds' \
                 % (self.time_out, int(run_time))

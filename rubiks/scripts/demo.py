@@ -9,10 +9,11 @@ from sys import argv
 from rubiks.heuristics.manhattan import Manhattan
 from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
 from rubiks.puzzle.sliding import SlidingPuzzle
+from rubiks.solvers.solver import Solver
 from rubiks.solvers.bfssolver import BFSSolver
 from rubiks.solvers.dfssolver import DFSSolver
 from rubiks.solvers.astarsolver import AStarSolver
-from rubiks.utils.utils import pprint, is_windows
+from rubiks.utils.utils import pprint, is_windows, g_not_a_pkl_file
 ########################################################################################################################
 
 
@@ -28,10 +29,11 @@ def main():
     parser.add_argument('-p', type=bool, default=False)
     parser.add_argument('-solver', type=str, default='bfs', choices=['bfs', 'dfs', 'a*'])
     parser.add_argument('-heuristic', type=str, default='manhattan', choices=['manhattan', 'deeplearning'])
-    parser.add_argument('-model', type=str, default='not_a_file.pkl')
+    parser.add_argument('-model', type=str, default=g_not_a_pkl_file)
     parser.add_argument('-save', type=str, default=None)
     parser.add_argument('-append', type=bool, default=False)
     parser.add_argument('-cpus', type=int, default=int(cpu_count() / 2))
+    parser.add_argument('-shuffles_file_name', type=str, default=g_not_a_pkl_file)
     parser = parser.parse_args()
     kw_args = {'n': parser.n,
                'm': parser.m}
@@ -64,7 +66,8 @@ def main():
                                     min_nb_shuffles=r_min,
                                     step_nb_shuffles=r_step,
                                     perfect_shuffle=parser.p,
-                                    nb_cpus=parser.cpus)
+                                    nb_cpus=parser.cpus,
+                                    shuffles_file_name=parser.shuffles_file_name)
     pprint(perf_table)
     if parser.save:
         if parser.append:
@@ -72,6 +75,11 @@ def main():
                 perf_table = concat((read_pickle(parser.save), perf_table))
             except FileNotFoundError:
                 pass
+        subset = [Solver.solver_name_tag,
+                  Solver.puzzle_type_tag,
+                  Solver.puzzle_dimension_tag,
+                  Solver.nb_shuffles_tag]
+        perf_table = perf_table.drop_duplicates(subset=subset).sort_values(subset)
         to_pickle(perf_table, parser.save)
         pprint('Saved ', len(perf_table), ' rows of perf table to ', parser.save)
         pprint(perf_table)
@@ -81,10 +89,13 @@ def main():
     
 if '__main__' == __name__:
     if is_windows():
-        command_line_args = "3 -m=3 -r_min=0 -r_max=100 -r_step=10 -s=100 -t=120 -cpus=12 -p=1 -append=1 -save=C:/Users/franc/rubiks/perf/demo_9_puzzle_dl.pkl "
-        #command_line_args += "-solver=bfs"
-        #command_line_args += "-solver=a*"
-        command_line_args += "-solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/demodrl_3_3_fully_connected_net.pkl"
+        command_line_args = "3 -m=3 -r_min=100 -r_max=100 -r_step=1 -s=500 -t=180 -cpus=12 -save=C:/Users/franc/rubiks/perf/demo_8_puzzle_dl.pkl"
+        command_line_args += " -p=1"
+        command_line_args += " -append=1"
+        #command_line_args += " -solver=bfs"
+        #command_line_args += " -solver=a*"
+        command_line_args += " -solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/demodrl_3_3_fully_connected_net.pkl"
+        command_line_args += " -shuffles_file_name=C:/Users/franc/rubiks/shuffles/shuffles_data.pkl"
         argv.extend(command_line_args.split(' '))
     main()
 

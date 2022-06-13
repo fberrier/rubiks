@@ -23,7 +23,7 @@ class Learner(Puzzled, Loggable, metaclass=ABCMeta):
     def learn(self):
         return
 
-    def save(self, model_file, **kwargs):
+    def save(self, model_file_name, **kwargs):
         """ overwrite where meaningful """
         return
 

@@ -18,6 +18,11 @@ class Heuristic(Puzzled, metaclass=ABCMeta):
         """ the kw_args are passed to the underlying type of puzzle that this heuristic deals with """
         Puzzled.__init__(self, puzzle_type, **kw_args)
 
+    @classmethod
+    @abstractmethod
+    def known_to_be_admissible(cls):
+        return False
+
     @abstractmethod
     def cost_to_go_from_puzzle_impl(self, puzzle):
         """ this is where derived concrete classes should implement the actual heuristic """

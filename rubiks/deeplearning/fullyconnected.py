@@ -18,16 +18,17 @@ class FullyConnected(DeepLearning):
     def __init__(self, puzzle_type, **kw_args):
         DeepLearning.__init__(self, puzzle_type, **kw_args)
         in_channels = prod(self.puzzle_dimension) ** 2
-        self.layers = Sequential(Linear(in_channels, 1000),
-                                 ReLU(),
-        #                         BatchNorm1d(1000),
-                                 Linear(1000, 500),
-                                 ReLU(),
-        #                         BatchNorm1d(500),
-                                 Linear(500, 100),
-                                 ReLU(),
-        #                         BatchNorm1d(100),
-                                 Linear(100, 1))
+        layers = kw_args.get('layers', (1000, 500, 100))
+        if layers[-1] != 1:
+            layers = (*tuple(layers), 1)
+        if layers[0] != in_channels:
+            layers = (in_channels, *tuple(layers))
+        modules = []
+        for x, y in zip(layers[:-1], layers[1:]):
+            modules.append(Linear(x, y))
+            modules.append(ReLU())
+        modules = modules[:-1]
+        self.layers = Sequential(*modules)
 
     def name(self):
         name = self.__class__.__name__
@@ -35,14 +36,14 @@ class FullyConnected(DeepLearning):
             name += '[%s]' % self.layers
         return name
 
-    def evaluate(self, puzzles):
+    def massage_puzzles(self, puzzles):
         if isinstance(puzzles, Puzzle):
-            x = puzzles.to_tensor().float().reshape(-1).unsqueeze(0)
+            puzzles = puzzles.to_tensor().float().reshape(-1).unsqueeze(0)
         elif isinstance(puzzles, list):
-            x = stack([puzzle.to_tensor().float().reshape(-1) for puzzle in puzzles])
+            puzzles = stack([puzzle.to_tensor().float().reshape(-1) for puzzle in puzzles])
         else:
             raise NotImplementedError
-        return self.forward(x)
+        return puzzles
 
     def forward(self, x):
         return self.layers(x).squeeze()

@@ -7,9 +7,16 @@ from rubiks.puzzle.sliding import SlidingPuzzle
 
 
 class Manhattan(Heuristic):
-    """ TBD """
+    """ This heuristic if admissible. The reason is that each non (zero==empty) tile
+    has to move by at least its manhattan distance to solve the puzzle, and each move is only moving one tile
+    at each step
+    """
 
-    def __init__(self, n, m=None, verbose=False, **kw_args):
+    @classmethod
+    def known_to_be_admissible(cls):
+        return True
+
+    def __init__(self, n, m=None, **kw_args):
         if m is None:
             m = n
         super().__init__(SlidingPuzzle, n=n, m=m, **kw_args)
@@ -23,48 +30,22 @@ class Manhattan(Heuristic):
                 goal = goal + 1
                 goal %= size
         (self.n, self.m) = tuple(self.puzzle_dimension())
-        self.verbose = verbose
-
-    def debug(self, *what):
-        if self.verbose:
-            print(*what)
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
-        self.debug('cost of ', puzzle)
         puzzle = puzzle.clone()
         cost_to_go = 0
         row = 0
         col = 0
-        max_cost = 0
         while row < self.n:
-            self.debug('#####')
-            self.debug('row:', row)
-            self.debug('col:', col)
             val = puzzle.tiles[row][col].item()
             goal = self.goal_map[val]
             cost = abs(row - goal[0]) + abs(col - goal[1])
-            self.debug('val ', val, ' should be in position ', goal, ' at distance ', cost)
-            if cost > 0:
-                # swap
-                puzzle.tiles[row][col] = puzzle.tiles[goal[0]][goal[1]]
-                puzzle.tiles[goal[0]][goal[1]] = val
-                # stay there
-                max_cost = max(cost, max_cost)
-                self.debug('after move: ', puzzle)
-                self.debug('cost: ', cost)
-                self.debug('max_cost: ', max_cost)
-                self.debug('cost_to_go: ', cost_to_go)
-            else:
-                # move on
-                self.debug('ok')
-                col += 1
-                if col == self.m:
-                    col = 0
-                    row += 1
-                cost_to_go += max_cost
-                max_cost = 0
-        self.debug('########')
-        self.debug('cost_to_go: ', cost_to_go)
+            if val != 0:
+                cost_to_go += cost
+            col += 1
+            if col == self.m:
+                col = 0
+                row += 1
         return cost_to_go
 
 ########################################################################################################################

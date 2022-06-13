@@ -6,7 +6,7 @@ from itertools import product
 from matplotlib import pyplot as plt
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
-from torch import tensor
+from torch import cuda, tensor
 from torch.nn import MSELoss
 from torch.optim import RMSprop
 ########################################################################################################################
@@ -32,6 +32,7 @@ class DeepReinforcementLearner(Learner):
         self.target_network = DeepLearning.factory(puzzle_type, **kw_args)
         self.current_network = self.target_network.clone()
         self.update_target_network_frequency = kw_args.pop('update_target_network_frequency', 100)
+        self.use_cuda = kw_args.pop('use_cuda', False) and cuda.is_available()
         self.loss_function = MSELoss()
         self.learning_rate = kw_args.pop('learning_rate', 1e-6)
         self.verbose = kw_args.pop('verbose', False)
@@ -48,7 +49,8 @@ class DeepReinforcementLearner(Learner):
                                                    cls.puzzle_dimension_tag,
                                                    cls.decision_tag,
                                                    cls.nb_shuffles_tag,
-                                                   cls.nb_sequences_tag])
+                                                   cls.nb_sequences_tag,
+                                                   cls.cuda_tag])
 
     epoch_tag = 'epoch'
     loss_tag = 'loss'
@@ -63,6 +65,7 @@ class DeepReinforcementLearner(Learner):
     nb_shuffles_tag = 'nb_shuffles'
     nb_sequences_tag = 'nb_sequences'
     nb_epochs_tag = 'nb_epochs'
+    cuda_tag = 'cuda'
 
     class Decision(Enum):
         TBD = 'TBD'
@@ -126,30 +129,39 @@ class DeepReinforcementLearner(Learner):
                         self.log_debug('  -> target=', target)
                 targets.append(target)
             targets = tensor(targets).float()
+            if self.use_cuda:
+                targets = targets.to()
             if self.verbose:
                 puzzles_strings = [str(p) for p in puzzles]
             y_hat = self.current_network.evaluate(puzzles)
+            if self.use_cuda and self.current_network.cuda_device:
+                targets = targets.to(self.current_network.cuda_device)
             loss = self.loss_function(y_hat, targets)
             latency += snap()
             self.current_network.zero_grad()
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            self.convergence_data = concat([self.convergence_data,
-                                           Series({cls.epoch_tag: epoch,
-                                                   cls.nb_epochs_tag: self.nb_epochs,
-                                                   cls.loss_tag: loss.item(),
-                                                   cls.latency_tag: ms_format(latency),
-                                                   cls.min_target_tag: min(targets),
-                                                   cls.max_target_tag: max(targets),
-                                                   cls.target_network_count_tag: target_network_count,
-                                                   cls.puzzle_type_tag: self.get_puzzle_type(),
-                                                   cls.puzzle_dimension_tag: self.puzzle_dimension(),
-                                                   cls.network_name_tag: self.target_network.name(),
-                                                   cls.decision_tag: self.Decision.TBD,
-                                                   cls.nb_shuffles_tag: self.nb_shuffles,
-                                                   cls.nb_sequences_tag: self.nb_sequences}).to_frame().transpose(),
-                                            ],
+            loss = loss.item()
+            min_targets = min(targets).item()
+            max_targets = max(targets).item()
+            convergence_data = Series({cls.epoch_tag: epoch,
+                                       cls.nb_epochs_tag: self.nb_epochs,
+                                       cls.loss_tag: loss,
+                                       cls.latency_tag: ms_format(latency),
+                                       cls.min_target_tag: min_targets,
+                                       cls.max_target_tag: max_targets,
+                                       cls.target_network_count_tag: target_network_count,
+                                       cls.puzzle_type_tag: self.get_puzzle_type(),
+                                       cls.puzzle_dimension_tag: self.puzzle_dimension(),
+                                       cls.network_name_tag: self.target_network.name(),
+                                       cls.decision_tag: self.Decision.TBD,
+                                       cls.nb_shuffles_tag: self.nb_shuffles,
+                                       cls.nb_sequences_tag: self.nb_sequences,
+                                       cls.cuda_tag: self.use_cuda})
+            convergence_data = convergence_data.to_frame()
+            convergence_data = convergence_data.transpose()
+            self.convergence_data = concat([self.convergence_data, convergence_data],
                                            ignore_index=True)
             decision = self.decision(self.convergence_data)
             if self.Decision.STOP == decision:
@@ -167,10 +179,10 @@ class DeepReinforcementLearner(Learner):
                 target_network_count += 1
 
     def save(self,
-             model_file,
+             model_file_name,
              learning_file_name=None):
-        self.current_network.save(model_file)
-        self.log_info('Saved learner state in ', model_file)
+        self.current_network.save(model_file_name)
+        self.log_info('Saved learner state in ', model_file_name)
         if learning_file_name is not None:
             self.convergence_data.to_pickle(learning_file_name)
             self.log_info('Saved convergence data to ', learning_file_name)

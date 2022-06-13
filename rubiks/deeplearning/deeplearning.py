@@ -4,6 +4,7 @@
 from abc import abstractmethod, ABCMeta
 from copy import deepcopy as copy
 from pandas import to_pickle, read_pickle
+from torch import device
 from torch.nn import Module
 ########################################################################################################################
 from rubiks.utils.loggable import Loggable
@@ -22,6 +23,8 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
         self.puzzle_dimension = self.puzzle_type.construct_puzzle(**kw_args).dimension()
         Module.__init__(self)
         assert self.network_type is not None, 'Concrete DeepLearning should have a proper network_type'
+        self.use_cuda = self.kw_args.get('use_cuda', False)
+        self.cuda_device = None
 
     puzzle_type = 'puzzle_type'
     puzzle_dimension = 'puzzle_dimension'
@@ -29,6 +32,11 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
     kw_args = 'kw_args'
     fully_connected_net = 'fully_connected_net'
     state_dict_tag = 'state_dict_tag'
+
+    def set_cuda(self):
+        if self.use_cuda and not self.cuda_device:
+            self.cuda()
+            self.cuda_device = device('cuda:0')
         
     @classmethod
     def factory(cls, puzzle_type, network_type, **kw_args):
@@ -59,8 +67,15 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
     def name(self):
         return self.__class__.__name__
 
+    def evaluate(self, puzzles):
+        self.set_cuda()
+        puzzles = self.massage_puzzles(puzzles)
+        if self.use_cuda:
+            puzzles = puzzles.to(self.cuda_device)
+        return self.forward(puzzles)
+
     @abstractmethod
-    def evaluate(self, puzzle):
+    def massage_puzzles(self, puzzle):
         """ need to specify in concrete implementations. Can e.g. get tensor from puzzle and manipulate it, etc...
         """
         return

@@ -84,7 +84,7 @@ class SlidingPuzzle(Puzzle):
         dimension = tuple(self.dimension())
         if dimension not in self.goal_map:
             self.goal_map[dimension] = self.construct_puzzle(*self.tiles.shape)
-        return self.goal_map[dimension].clone()
+        return self.goal_map[dimension]
 
     def apply(self, move: Slide):
         """ moved tile must either be same row or same col as the empty tile 

@@ -32,11 +32,13 @@ def main():
     parser.add_argument('-model', type=str, default=g_not_a_pkl_file)
     parser.add_argument('-save', type=str, default=None)
     parser.add_argument('-append', type=bool, default=False)
-    parser.add_argument('-cpus', type=int, default=int(cpu_count() / 2))
+    parser.add_argument('-nb_cpus', type=int, default=int(cpu_count() / 2))
     parser.add_argument('-shuffles_file_name', type=str, default=g_not_a_pkl_file)
+    parser.add_argument('-max_consecutive_timeout', type=int, default=0)
     parser = parser.parse_args()
     kw_args = {'n': parser.n,
-               'm': parser.m}
+               'm': parser.m,
+               'max_consecutive_timeout': parser.max_consecutive_timeout}
     if parser.solver == 'bfs':
         solver = BFSSolver
     elif parser.solver == 'dfs':
@@ -66,7 +68,7 @@ def main():
                                     min_nb_shuffles=r_min,
                                     step_nb_shuffles=r_step,
                                     perfect_shuffle=parser.p,
-                                    nb_cpus=parser.cpus,
+                                    nb_cpus=parser.nb_cpus,
                                     shuffles_file_name=parser.shuffles_file_name)
     pprint(perf_table)
     if parser.save:
@@ -89,12 +91,13 @@ def main():
     
 if '__main__' == __name__:
     if is_windows():
-        command_line_args = "3 -m=3 -r_min=100 -r_max=100 -r_step=1 -s=500 -t=180 -cpus=12 -save=C:/Users/franc/rubiks/perf/demo_8_puzzle_dl.pkl"
+        command_line_args = "3 -m=3 -r_min=0 -r_max=100 -r_step=10 -s=250 -t=120 -nb_cpus=12 -save=C:/Users/franc/rubiks/perf/demo_8_puzzle_dl.pkl"
         command_line_args += " -p=1"
         command_line_args += " -append=1"
         #command_line_args += " -solver=bfs"
-        #command_line_args += " -solver=a*"
-        command_line_args += " -solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/demodrl_3_3_fully_connected_net.pkl"
+        command_line_args += " -max_consecutive_timeout=50"
+        #command_line_args += " -solver=a* -heuristic=manhattan"
+        command_line_args += " -solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/8_puzzle_fully_connected_net_600_300_100.pkl"
         command_line_args += " -shuffles_file_name=C:/Users/franc/rubiks/shuffles/shuffles_data.pkl"
         argv.extend(command_line_args.split(' '))
     main()

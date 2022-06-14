@@ -23,6 +23,7 @@ class FullyConnected(DeepLearning):
             layers = (*tuple(layers), 1)
         if layers[0] != in_channels:
             layers = (in_channels, *tuple(layers))
+        self.layers_str = str(layers)
         modules = []
         for x, y in zip(layers[:-1], layers[1:]):
             modules.append(Linear(x, y))
@@ -33,7 +34,7 @@ class FullyConnected(DeepLearning):
     def name(self):
         name = self.__class__.__name__
         if hasattr(self, 'layers'):
-            name += '[%s]' % self.layers
+            name += '[%s]' % self.layers_str
         return name
 
     def massage_puzzles(self, puzzles):

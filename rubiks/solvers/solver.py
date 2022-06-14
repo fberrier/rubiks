@@ -161,8 +161,9 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
                                    len(self.shuffles_data[nb_shuffles]),
                                    self.puzzle_name(),
                                    nb_shuffles))
+        early_breakout = False
         for nb_shuffles in shuffles:
-            if nb_shuffles <= 0:
+            if nb_shuffles <= 0 or early_breakout:
                 continue
             total_cost = 0
             max_cost = 0
@@ -196,11 +197,11 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
                                                                           cost)
                             optimal_cost = cost
                             self.log_debug('Setting up optimal cost for nb_shuffles=',
-                                          nb_shuffles,
-                                          ' and index=',
-                                          index,
-                                          ': optimal cost=',
-                                          optimal_cost)
+                                           nb_shuffles,
+                                           ' and index=',
+                                           index,
+                                           ': optimal cost=',
+                                           optimal_cost)
                         if self.shuffles_data:
                             optimal_cost = self.shuffles_data[nb_shuffles][index][1]
                         if cost > optimal_cost:
@@ -218,6 +219,7 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
                     if self.max_consecutive_timeout and consecutive_timeout >= self.max_consecutive_timeout:
                         self.log_debug('break out for nb_shuffles=', nb_shuffles,
                                        'as timed-out/error-ed %d times' % self.max_consecutive_timeout)
+                        early_breakout = True
                         break
                 div = nb_samples - nb_timeout
                 if 0 == div:

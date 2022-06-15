@@ -71,11 +71,11 @@ if '__main__' == __name__:
         command_line_args += " -nb_epochs=3000"
         command_line_args += " -nb_sequences=100 -nb_shuffles=100"
         command_line_args += " -update_target_network_frequency=100"
-        command_line_args += " -update_target_network_threshold=0.005"
-        command_line_args += " -max_nb_target_network_update=32"
+        command_line_args += " -update_target_network_threshold=0.002"
+        command_line_args += " -max_nb_target_network_update=50"
         command_line_args += " -max_target_not_increasing_epochs_pct=0.25"
         command_line_args += " -max_target_uptick=0.01"
-        command_line_args += " -action=learn"
+        command_line_args += " -action=plot"
         command_line_args += " -nb_cpus=12"
         models_folder = 'C:/Users/franc/rubiks/models/'
         layers = ('1000', '500', '100')  # ('600', '300', '100')

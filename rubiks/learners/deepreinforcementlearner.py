@@ -119,7 +119,7 @@ class DeepReinforcementLearner(Learner):
         elif n - self.last_network_update >= self.update_target_network_frequency:
             decision = self.Decision.TARGET_NET_REGULAR_UPDATE
             self.last_network_update = n
-        elif abs(top[cls.loss_tag] / top[cls.max_target_tag]) <= self.update_target_network_threshold:
+        elif abs(top[cls.loss_tag] / top[cls.max_max_target_tag]) <= self.update_target_network_threshold:
             decision = self.Decision.TARGET_NET_CONVERGENCE_UPDATE
             self.last_network_update = n
         else:
@@ -129,7 +129,12 @@ class DeepReinforcementLearner(Learner):
         self.log_info(top)
         total_run_time = self.epoch_latency / top[cls.epoch_tag]
         total_run_time *= top[cls.nb_epochs_tag] - top[cls.epoch_tag]
-        self.log_info('Estimated run time left: ', h_format(total_run_time))
+        self.log_info('Estimated max run time left: ', h_format(total_run_time),
+                      '. Convergence update at loss <= ',
+                      top[cls.max_max_target_tag] * self.update_target_network_threshold,
+                      '. Regular update in ',
+                      self.last_network_update + self.update_target_network_frequency - n,
+                      ' epochs')
         return decision
 
     def __construct_target__(self, known_values, puzzle):
@@ -297,11 +302,10 @@ class DeepReinforcementLearner(Learner):
             title = 'Learning data plot\n\n%s' % title
             fig.suptitle(title)
             x = drl.epoch_tag
-            gs = fig.add_gridspec(4, 1)
+            gs = fig.add_gridspec(3, 1)
             ax1 = fig.add_subplot(gs[0])
             ax2 = fig.add_subplot(gs[1])
             ax3 = fig.add_subplot(gs[2])
-            ax4 = fig.add_subplot(gs[3])
 
             def add_plot(ax, y, c):
                 ax.scatter(x,
@@ -314,8 +318,7 @@ class DeepReinforcementLearner(Learner):
                     ax.set_yscale('log')
             add_plot(ax1, drl.target_network_count_tag, 'b')
             add_plot(ax2, drl.max_target_tag, 'r')
-            add_plot(ax3, drl.max_max_target_tag, 'k')
-            add_plot(ax4, drl.loss_tag, 'g')
+            add_plot(ax3, drl.loss_tag, 'g')
         plt.show()
 
 ########################################################################################################################

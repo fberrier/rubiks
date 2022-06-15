@@ -97,7 +97,7 @@ if '__main__' == __name__:
         #command_line_args += " -solver=bfs"
         command_line_args += " -max_consecutive_timeout=50"
         #command_line_args += " -solver=a* -heuristic=manhattan"
-        command_line_args += " -solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/8_puzzle_fully_connected_net_600_300_100.pkl"
+        command_line_args += " -solver=a* -heuristic=deeplearning -model=C:/Users/franc/rubiks/models/8_puzzle_fully_connected_net_1000_500_100.pkl"
         command_line_args += " -shuffles_file_name=C:/Users/franc/rubiks/shuffles/shuffles_data.pkl"
         argv.extend(command_line_args.split(' '))
     main()

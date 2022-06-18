@@ -14,13 +14,13 @@ class DeepLearningHeuristic(Heuristic):
     def known_to_be_admissible(self):
         return False
 
-    def __init__(self, model_file, **kw_args):
-        self.model_file = model_file
-        self.deep_learning = DeepLearning.restore(self.model_file)
+    def __init__(self, model_file_name, **kw_args):
+        self.model_file_name = model_file_name
+        self.deep_learning = DeepLearning.restore(self.model_file_name)
         Heuristic.__init__(self, self.deep_learning.puzzle_type, **kw_args)
 
     def name(self):
-        return '%s[%s]' % (super().name(), split(self.model_file)[1])
+        return '%s[%s]' % (super().name(), split(self.model_file_name)[1])
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
         assert isinstance(puzzle, self.puzzle_type), \

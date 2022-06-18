@@ -3,7 +3,11 @@
 ########################################################################################################################
 from locale import format_string, LC_ALL, setlocale
 import numpy as np
+from os import makedirs
+from os.path import exists, dirname
 from pandas import DataFrame, Series
+from pathlib import Path
+from re import sub
 from sys import platform
 from tabulate import tabulate
 ########################################################################################################################
@@ -12,6 +16,43 @@ setlocale(LC_ALL, '')
 
 
 g_not_a_pkl_file = 'not_a_file.pkl'
+
+########################################################################################################################
+
+
+def touch(what):
+    if what is not None and not exists(dirname(what)):
+        makedirs(dirname(what))
+
+########################################################################################################################
+
+
+def snake_case(s):
+    return '_'.join(sub('([A-Z][a-z]+)', r' \1',
+                    sub('([A-Z]+)', r' \1',
+                    s.replace('-', ' '))).split()).lower()
+
+########################################################################################################################
+
+
+def file_name(puzzle_type,
+              dimension,
+              file_type,
+              extension='pkl',
+              name=None):
+    home = str(Path.home()) + '/rubiks'
+    possible_file_types = ['models', 'perf', 'shuffles', 'training']
+    assert file_type in possible_file_types, 'Unknown file_type [%s]. Choose from %s' % (file_type, possible_file_types)
+    assert name, 'Empty name'
+    if isinstance(puzzle_type, type):
+        puzzle_type = snake_case(puzzle_type.__name__)
+    if not isinstance(dimension, tuple):
+        dimension = tuple(dimension)
+    dimension = '_'.join((str(d) for d in dimension))
+    extension = '.%s' % (extension.replace('.', ''))
+    fn = '/'.join([home, file_type, puzzle_type, dimension, name]) + extension
+    fn = fn.replace('//', '/').replace('\\', '/')
+    return fn
 
 ########################################################################################################################
 

@@ -8,7 +8,7 @@ from sys import argv
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.puzzle.sliding import SlidingPuzzle
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
-from rubiks.utils.utils import is_windows, g_not_a_pkl_file
+from rubiks.utils.utils import is_windows, g_not_a_pkl_file, file_name
 ########################################################################################################################
 
 
@@ -26,7 +26,7 @@ def main():
     parser.add_argument('-nb_sequences', type=int, default=1)
     parser.add_argument('-verbose', type=bool, default=False)
     parser.add_argument('-use_cuda', type=bool, default=False)
-    parser.add_argument('-action', type=str, default='learn', choices=['learn', 'plot'])
+    parser.add_argument('-action', type=str, default='learn', choices=['learn', 'train', 'plot'])
     parser.add_argument('-model_file_name', type=str, default=g_not_a_pkl_file)
     parser.add_argument('-learning_file_name', type=str, default=g_not_a_pkl_file)
     parser.add_argument('--layers', type=int, nargs='+')
@@ -53,7 +53,7 @@ def main():
                                        layers=tuple(parser.layers),
                                        nb_cpus=parser.nb_cpus,
                                        )
-    if 'learn' == parser.action:
+    if parser.action in ['learn', 'train']:
         learner.learn()
         learner.save(model_file_name=parser.model_file_name,
                      learning_file_name=parser.learning_file_name)
@@ -66,8 +66,10 @@ def main():
 
 
 if '__main__' == __name__:
+    PuzzleType = SlidingPuzzle
+    dimension = (3, 3)
     if is_windows():
-        command_line_args = "3 -m=3"
+        command_line_args = "%d -m=%d" % dimension
         command_line_args += " -nb_epochs=3000"
         command_line_args += " -nb_sequences=100 -nb_shuffles=100"
         command_line_args += " -update_target_network_frequency=100"
@@ -75,13 +77,19 @@ if '__main__' == __name__:
         command_line_args += " -max_nb_target_network_update=50"
         command_line_args += " -max_target_not_increasing_epochs_pct=0.25"
         command_line_args += " -max_target_uptick=0.01"
-        command_line_args += " -action=plot"
-        command_line_args += " -nb_cpus=12"
-        models_folder = 'C:/Users/franc/rubiks/models/'
-        layers = ('1000', '500', '100')  # ('600', '300', '100')
-        model_name = '8_puzzle_fully_connected_net_' + '_'.join(layers)
-        command_line_args += " -model_file_name=%s%s.pkl" % (models_folder, model_name)
-        learning_file_name = '%s%s_learning_data.pkl' % (models_folder, model_name)
+        command_line_args += " -action=learn"
+        command_line_args += " -nb_cpus=1"
+        layers = ('600', '300', '100')
+        model_name = 'fully_connected_net_' + '_'.join(layers)
+        model_file_name = file_name(puzzle_type=PuzzleType,
+                                    dimension=dimension,
+                                    file_type='models',
+                                    name=model_name)
+        command_line_args += " -model_file_name=%s" % model_file_name
+        learning_file_name = file_name(puzzle_type=PuzzleType,
+                                       dimension=dimension,
+                                       file_type='training',
+                                       name=model_name)
         command_line_args += " -learning_file_name=%s" % learning_file_name
         command_line_args += " --layers %s" % ' '.join(layers)
         argv.extend(command_line_args.split(' '))

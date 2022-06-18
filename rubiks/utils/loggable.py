@@ -11,7 +11,7 @@ from rubiks.utils.utils import pformat
 class Loggable:
     """ This class is a thin wrapper around Python's logger """
 
-    def __init__(self, name: str, log_level: str='INFO'):
+    def __init__(self, name: str, log_level: str = 'INFO'):
         self.logger = getLogger(name)
         assert log_level in {'DEBUG', 'INFO', 'WARNING', 'ERROR'}
         self.logger.setLevel({'DEBUG': DEBUG, 'INFO': INFO, 'WARNING': WARNING, 'ERROR': ERROR}.get(log_level, INFO))
@@ -26,7 +26,7 @@ class Loggable:
 
     def log_info(self, *args):
         self.logger.info(self.format(*args))
-        
+
     def log_warning(self, *args):
         self.logger.warning(self.format(*args))
 
@@ -37,4 +37,3 @@ class Loggable:
         return ' '.join(str(self.process(arg)) for arg in args)
 
 ########################################################################################################################
-

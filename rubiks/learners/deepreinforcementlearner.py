@@ -5,6 +5,7 @@ from enum import Enum
 from functools import partial
 from itertools import product
 from matplotlib import pyplot as plt
+from math import inf
 from multiprocessing import Pool
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
@@ -14,7 +15,7 @@ from torch.optim import RMSprop
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.learner import Learner
-from rubiks.utils.utils import ms_format, h_format, pformat
+from rubiks.utils.utils import ms_format, h_format, pformat, touch
 ########################################################################################################################
 
 
@@ -130,8 +131,8 @@ class DeepReinforcementLearner(Learner):
         total_run_time = self.epoch_latency / top[cls.epoch_tag]
         total_run_time *= top[cls.nb_epochs_tag] - top[cls.epoch_tag]
         self.log_info('Estimated max run time left: ', h_format(total_run_time),
-                      '. Convergence update at loss <= ',
-                      top[cls.max_max_target_tag] * self.update_target_network_threshold,
+                      '. Convergence update at loss <= %.4f' % (top[cls.max_max_target_tag] *
+                                                                self.update_target_network_threshold),
                       '. Regular update in ',
                       self.last_network_update + self.update_target_network_frequency - n,
                       ' epochs')
@@ -141,7 +142,7 @@ class DeepReinforcementLearner(Learner):
         if puzzle.is_goal():
             target = 0
         else:
-            target = float('inf')
+            target = inf
             one_away_puzzles = [puzzle.apply(move) for move in puzzle.possible_moves()]
             for one_away_puzzle in one_away_puzzles:
                 candidate_target = self.target_network.evaluate(one_away_puzzle).item()
@@ -160,6 +161,7 @@ class DeepReinforcementLearner(Learner):
         epoch = 0
         target_network_count = 1
         pool = Pool(self.pool_size)
+        best_current = (inf, self.current_network.clone())
         while True:
             epoch += 1
             self.epoch_latency -= snap()
@@ -210,6 +212,8 @@ class DeepReinforcementLearner(Learner):
             self.back_prop_latency += snap()
             optimizer.step()
             loss = loss.item()
+            if loss < best_current[0]:
+                best_current = (loss, self.current_network.clone())
             min_targets = min(targets).item()
             max_targets = max(targets).item()
             old_max_targets = 0 if self.convergence_data.empty else \
@@ -255,7 +259,8 @@ class DeepReinforcementLearner(Learner):
                                       'target': list(targets.flatten().tolist())}).sort_values(['target', 'hash'])
                     self.log_debug('/n', data)
                 self.log_info('Updating target network [%s]' % decision)
-                self.target_network = self.current_network.clone()
+                self.target_network = best_current[1]
+                best_current = (inf, self.target_network)
                 target_network_count += 1
         pool.close()
         pool.join()
@@ -263,6 +268,8 @@ class DeepReinforcementLearner(Learner):
     def save(self,
              model_file_name,
              learning_file_name=None):
+        touch(model_file_name)
+        touch(learning_file_name)
         self.current_network.save(model_file_name)
         self.log_info('Saved learner state in ', model_file_name)
         if learning_file_name is not None:

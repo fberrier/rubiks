@@ -52,10 +52,11 @@ class SlidingPuzzle(Puzzle):
     def __repr__(self):
         tiles = array(self.tiles.numpy(), dtype=str)
         tiles = where(tiles == '0', '', tiles)
-        return '\n'.join(tabulate(DataFrame(tiles),
-                                  headers='keys',
-                                  tablefmt='grid',
-                                  showindex=False).split('\n')[2:])
+        tiles = '\n'.join(tabulate(DataFrame(tiles),
+                                   headers='keys',
+                                   tablefmt='grid',
+                                   showindex=False).split('\n')[2:])
+        return '\n' + tiles
 
     def __eq__(self, other):
         return equal(self.tiles, other.tiles)

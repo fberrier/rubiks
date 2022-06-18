@@ -19,6 +19,17 @@ class Heuristic(Puzzled, metaclass=ABCMeta):
         Puzzled.__init__(self, puzzle_type, **kw_args)
 
     @classmethod
+    def factory(cls, heuristic_type, **kw_args):
+        heuristic_type = str(heuristic_type).lower()
+        if any(heuristic_type.find(what) >= 0 for what in ['manhattan']):
+            from rubiks.heuristics.manhattan import Manhattan as HeuristicType
+        elif any(heuristic_type.find(what) >= 0 for what in ['deep', 'dl']):
+            from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic as HeuristicType
+        else:
+            raise NotImplementedError('Unknown heuristic_type [%s]' % heuristic_type)
+        return HeuristicType(**kw_args)
+
+    @classmethod
     @abstractmethod
     def known_to_be_admissible(cls):
         return False

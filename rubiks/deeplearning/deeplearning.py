@@ -8,6 +8,7 @@ from torch import device
 from torch.nn import Module
 ########################################################################################################################
 from rubiks.utils.loggable import Loggable
+from rubiks.utils.utils import touch
 ########################################################################################################################
 
 
@@ -47,13 +48,14 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
             raise NotImplementedError('DeepLearning.factory cannot construct network of type %s' % network_type)
         return network(puzzle_type, **kw_args)
 
-    def save(self, model_file):
+    def save(self, model_file_name):
         cls = self.__class__
         data = {cls.puzzle_type: self.puzzle_type,
                 cls.network_type_tag: self.network_type,
                 cls.kw_args: self.kw_args,
                 cls.state_dict_tag: self.state_dict()}
-        to_pickle(data, model_file)
+        touch(model_file_name)
+        to_pickle(data, model_file_name)
 
     @classmethod
     def restore(cls, model_file):

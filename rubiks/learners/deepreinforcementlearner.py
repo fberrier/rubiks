@@ -20,7 +20,9 @@ from rubiks.utils.utils import ms_format, h_format, pformat, touch
 
 
 class DeepReinforcementLearner(Learner):
-    """ This learner will learn the cost-to-go via deep reinforcement learning """
+    """ This learner will learn the cost-to-go via deep reinforcement learning
+    @todo FB: maybe add ability to restore from a previous model and continue improving on it
+    """
 
     def __init__(self,
                  puzzle_type,

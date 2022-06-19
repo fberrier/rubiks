@@ -176,3 +176,35 @@ def is_inf(what):
 
 ########################################################################################################################
 
+
+def out_of_order(some_permutation):
+    some_permutation = np.array(some_permutation)
+    total = 0
+    assert len(some_permutation) == len(set(some_permutation)), 'Duplicates in inputs'
+    for index, value in enumerate(some_permutation):
+        total += sum(some_permutation[index + 1:] < value)
+    return total
+
+########################################################################################################################
+
+
+def bubble_sort_swaps_count(some_permutation):
+    """ return number of swap operations of the bubble sort """
+    some_permutation = np.array(some_permutation)
+    assert len(some_permutation) == len(set(some_permutation)), 'Duplicates in inputs'
+    if len(some_permutation) <= 1:
+        return 0
+    total = 0
+    swapped = True
+    while swapped:
+        swapped = False
+        for index in range(len(some_permutation) - 1):
+            if some_permutation[index] > some_permutation[index + 1]:
+                swapped = True
+                total += 1
+                left, right = some_permutation[index], some_permutation[index + 1]
+                some_permutation[index], some_permutation[index + 1] = right, left
+    return total
+
+########################################################################################################################
+

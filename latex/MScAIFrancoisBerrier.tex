@@ -40,14 +40,14 @@ headsepline, % Uncomment to get a line under the header
 
 \usepackage[utf8]{inputenc} % Required for inputting international characters
 \usepackage[T1]{fontenc} % Output font encoding for international characters
-
 \usepackage{mathpazo} % Use the Palatino font by default
 
 \usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} % Use the bibtex backend with the authoryear citation style (which resembles APA)
 
-\addbibresource{example.bib} % The filename of the bibliography
+\addbibresource{references.bib} % The filename of the bibliography
 
 \usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
+\usepackage{hyperref}
 
 %----------------------------------------------------------------------------------------
 %	MARGIN SETTINGS
@@ -206,9 +206,9 @@ blabla BofA, ST, MD, SK, CW, Vo
 
 \begin{abbreviations}{ll} % Include a list of abbreviations (a table of two columns)
 
-\textbf{AIPnT} & \textbf{A}rtificial \textbf{I}netelligence \textbf{P}rinciples and \textbf{T}echniques\\
-\textbf{CS} & \textbf{C}computer \textbf{S}cience\\
-\textbf{CV} & \textbf{C}computer \textbf{V}ision\\
+\textbf{AIPnT} & \textbf{A}rtificial \textbf{I}ntelligence \textbf{P}rinciples and \textbf{T}echniques\\
+\textbf{CS} & \textbf{C}omputer \textbf{S}cience\\
+\textbf{CV} & \textbf{C}omputer \textbf{V}ision\\
 \textbf{DL} & \textbf{D}eep \textbf{L}earning\\
 \textbf{DRL} & \textbf{D}eep \textbf{R}einforcment \textbf{L}earning\\
 \textbf{ML} & \textbf{M}achine \textbf{L}earning\\
@@ -294,7 +294,20 @@ blabla BofA, ST, MD, SK, CW, Vo
 %	BIBLIOGRAPHY
 %----------------------------------------------------------------------------------------
 
-\printbibliography[heading=bibintoc]
+
+%\begin{thebibliography}{widest entry}
+
+%\bibitem{sliddingpuzzle} Whatever
+%{\href{https://en.wikipedia.org/wiki/Sliding\_puzzle}{wikipedia}} Sliding Puzzle Wikipedia article, accessed 19th June 2022
+
+%\end{thebibliography}
+
+
+%\printbibliography[heading=bibintoc]
+\printbibheading
+\printbibliography[type=article,heading=subbibliography,title={Journal Papers}]
+\printbibliography[type=book,heading=subbibliography,title={Books}]
+\printbibliography[type=misc,heading=subbibliography,title={Misc}]
 
 %----------------------------------------------------------------------------------------
 

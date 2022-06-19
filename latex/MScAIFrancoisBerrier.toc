@@ -1,0 +1,24 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Abstract}{v}{section*.1}%
+\contentsline {chapter}{Acknowledgements}{vii}{section*.2}%
+\contentsline {chapter}{\numberline {1}Objectives}{1}{chapter.6}%
+\contentsline {section}{\numberline {1.1}Learning Objectives}{1}{section.7}%
+\contentsline {section}{\numberline {1.2}Project's Objectives}{2}{section.8}%
+\contentsline {chapter}{\numberline {2}Deep Reinforcement Learning}{3}{chapter.9}%
+\contentsline {section}{\numberline {2.1}Reinforcement Learning}{3}{section.10}%
+\contentsline {section}{\numberline {2.2}Deep Learning}{3}{section.11}%
+\contentsline {section}{\numberline {2.3}Deep Reinforcement Learning}{3}{section.12}%
+\contentsline {chapter}{\numberline {3}Games}{5}{chapter.13}%
+\contentsline {section}{\numberline {3.1}Sliding Puzzle}{5}{section.14}%
+\contentsline {section}{\numberline {3.2}Rubiks' Cube}{5}{section.15}%
+\contentsline {chapter}{\numberline {4}Code}{7}{chapter.16}%
+\contentsline {section}{\numberline {4.1}Code organisation}{7}{section.17}%
+\contentsline {section}{\numberline {4.2}DRL Training}{7}{section.18}%
+\contentsline {section}{\numberline {4.3}Solvers Comparison}{7}{section.19}%
+\contentsline {chapter}{\numberline {5}Sliding Puzzle}{9}{chapter.20}%
+\contentsline {section}{\numberline {5.1}2x2}{9}{section.21}%
+\contentsline {section}{\numberline {5.2}3x3}{9}{section.22}%
+\contentsline {section}{\numberline {5.3}4x4}{9}{section.23}%
+\contentsline {chapter}{\numberline {6}Rubiks' Cube}{11}{chapter.24}%
+\contentsline {section}{\numberline {6.1}2x2x2}{11}{section.25}%
+\contentsline {section}{\numberline {6.2}3x3x3}{11}{section.26}%

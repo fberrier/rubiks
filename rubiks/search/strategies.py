@@ -114,14 +114,14 @@ class AStar(SearchStrategy):
     in the __init__ method at construction time.
     """
 
-    def __init__(self, initial_state, heuristic, **kw_args):
-        if isinstance(heuristic, type):
-            assert issubclass(heuristic, Heuristic), \
+    def __init__(self, initial_state, heuristic_type, **kw_args):
+        if isinstance(heuristic_type, type):
+            assert issubclass(heuristic_type, Heuristic), \
                 'SearchStrategy: heuristic should be a subclass of Heuristic'
-            self.heuristic = heuristic(**kw_args)
+            self.heuristic = heuristic_type(**kw_args)
         else:
-            assert isinstance(heuristic, Heuristic)
-            self.heuristic = heuristic
+            assert isinstance(heuristic_type, Heuristic)
+            self.heuristic = heuristic_type
         SearchStrategy.__init__(self, initial_state, **kw_args)
 
     def name(self):

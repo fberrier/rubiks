@@ -11,13 +11,16 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 
 
 class FullyConnected(DeepLearning):
-    """ TBD """
+    """ A fully connected network """
 
     network_type = DeepLearning.fully_connected_net
 
     def __init__(self, puzzle_type, **kw_args):
         DeepLearning.__init__(self, puzzle_type, **kw_args)
-        in_channels = prod(self.puzzle_dimension) ** 2
+        in_channels = prod(self.puzzle_dimension)
+        self.one_hot_encoding = kw_args.get('one_hot_encoding', True)
+        if self.one_hot_encoding:
+            in_channels *= in_channels
         layers = kw_args.get('layers', (1000, 500, 100))
         if layers[-1] != 1:
             layers = (*tuple(layers), 1)
@@ -33,15 +36,18 @@ class FullyConnected(DeepLearning):
 
     def name(self):
         name = self.__class__.__name__
-        if hasattr(self, 'layers'):
-            name += '[%s]' % self.layers_str
+        name += '[%s]' % self.layers_str
+        if self.one_hot_encoding:
+            name += '[one_hot_encoding]'
         return name
 
     def massage_puzzles(self, puzzles):
         if isinstance(puzzles, Puzzle):
-            puzzles = puzzles.to_tensor().float().reshape(-1).unsqueeze(0)
+            puzzles = puzzles.to_tensor(one_hot_encoding=self.one_hot_encoding).float().\
+                reshape(-1).unsqueeze(0)
         elif isinstance(puzzles, list):
-            puzzles = stack([puzzle.to_tensor().float().reshape(-1) for puzzle in puzzles])
+            puzzles = stack([puzzle.to_tensor(one_hot_encoding=self.one_hot_encoding).float().
+                            reshape(-1) for puzzle in puzzles])
         else:
             raise NotImplementedError
         return puzzles

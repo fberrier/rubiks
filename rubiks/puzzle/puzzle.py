@@ -2,10 +2,12 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import ABCMeta, abstractmethod
-from math import factorial, isinf
+from math import factorial
 from numpy import prod
 from numpy.random import permutation
 from torch import Size, Tensor
+########################################################################################################################
+from rubiks.utils.utils import snake_case, is_inf
 ########################################################################################################################
 
 
@@ -104,6 +106,24 @@ class Puzzle(metaclass=ABCMeta):
                 training_data.append(puzzles)
         return training_data
 
+    sliding_puzzle = 'sliding_puzzle'
+    sliding = 'sliding'
+    rubiks_cube = 'rubiks_cube'
+    rubiks = 'rubiks'
+
+    @classmethod
+    def factory(cls, puzzle_type, **kw_args):
+        puzzle_type = snake_case(str(puzzle_type))
+        if any(puzzle_type.find(what) >= 0 for what in [cls.sliding,
+                                                        cls.sliding_puzzle]):
+            from rubiks.puzzle.sliding import SlidingPuzzle as PuzzleType
+        elif any(puzzle_type.find(what) >= 0 for what in [cls.rubiks,
+                                                          cls.rubiks_cube]):
+            from rubiks.puzzle.rubiks import RubiksCube as PuzzleType
+        else:
+            raise NotImplementedError('Unknown puzzle_type [%s]' % puzzle_type)
+        return PuzzleType.construct_puzzle(**kw_args)
+
     @classmethod
     @abstractmethod
     def construct_puzzle(cls, **kw_args):
@@ -146,7 +166,7 @@ class Puzzle(metaclass=ABCMeta):
     def random_moves(self, nb_moves, min_no_loop=1):
         """ return a sequence of r random moves from current state.
         If possible choosing moves that do not create a cycle of length <= min_no_loop """
-        assert not isinf(nb_moves)
+        assert not is_inf(nb_moves)
         puzzle = self.clone()
         last_puzzles = [hash(puzzle)] * min_no_loop
         moves = []
@@ -184,13 +204,16 @@ class Puzzle(metaclass=ABCMeta):
         return self.apply(random_move)
 
     def apply_random_moves(self, nb_moves, min_no_loop=1):
-        if isinf(nb_moves):
+        if is_inf(nb_moves):
             return self.perfect_shuffle()
+        nb_moves = int(nb_moves)
+        if min_no_loop:
+            min_no_loop = int(min_no_loop)
         return self.apply_moves(self.random_moves(nb_moves=nb_moves,
                                                   min_no_loop=min_no_loop))
 
     @abstractmethod
-    def to_tensor(self) -> Tensor:
+    def to_tensor(self, one_hot_encoding=False) -> Tensor:
         """ return a torch.Tensor to represent internal state """
         return
 
@@ -200,9 +223,10 @@ class Puzzle(metaclass=ABCMeta):
 class Puzzled:
 
     def __init__(self, puzzle_type, **kw_args):
-        self.puzzle_type = puzzle_type
         self.kw_args = kw_args
-        self.goal = self.puzzle_type.construct_puzzle(**self.kw_args)
+        self.goal = Puzzle.factory(puzzle_type=puzzle_type,
+                                   **self.kw_args)
+        self.puzzle_type = type(self.goal)
 
     def get_puzzle_type(self):
         """ returns the type of puzzle that this heuristic deals with """

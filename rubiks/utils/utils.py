@@ -2,6 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from locale import format_string, LC_ALL, setlocale
+from math import isinf
 import numpy as np
 from os import makedirs
 from os.path import exists, dirname
@@ -40,7 +41,7 @@ def file_name(puzzle_type,
               file_type,
               extension='pkl',
               name=None):
-    home = str(Path.home()) + '/rubiks'
+    home = str(Path.home()) + '/rubiks/data'
     possible_file_types = ['models', 'perf', 'shuffles', 'training']
     assert file_type in possible_file_types, 'Unknown file_type [%s]. Choose from %s' % (file_type, possible_file_types)
     assert name, 'Empty name'
@@ -53,6 +54,56 @@ def file_name(puzzle_type,
     fn = '/'.join([home, file_type, puzzle_type, dimension, name]) + extension
     fn = fn.replace('//', '/').replace('\\', '/')
     return fn
+
+########################################################################################################################
+
+
+def perf_file_name(puzzle_type,
+                   dimension,
+                   extension='pkl'):
+    return file_name(puzzle_type=puzzle_type,
+                     dimension=dimension,
+                     file_type='perf',
+                     extension=extension,
+                     name='perf')
+
+########################################################################################################################
+
+
+def training_file_name(puzzle_type,
+                       dimension,
+                       model_name,
+                       extension='pkl'):
+    return file_name(puzzle_type=puzzle_type,
+                     dimension=dimension,
+                     file_type='training',
+                     extension=extension,
+                     name=model_name)
+
+########################################################################################################################
+
+
+def model_file_name(puzzle_type,
+                    dimension,
+                    model_name,
+                    extension='pkl'):
+    return file_name(puzzle_type=puzzle_type,
+                     dimension=dimension,
+                     file_type='models',
+                     extension=extension,
+                     name=model_name)
+
+########################################################################################################################
+
+
+def shuffles_file_name(puzzle_type,
+                       dimension,
+                       extension='pkl'):
+    return file_name(puzzle_type=puzzle_type,
+                     dimension=dimension,
+                     file_type='shuffles',
+                     extension=extension,
+                     name='shuffles')
 
 ########################################################################################################################
 
@@ -86,6 +137,12 @@ def ms_format(run_time):
 ########################################################################################################################
 
 
+def s_format(run_time):
+    return '%s s' % format_string('%d', run_time, grouping=True)
+
+########################################################################################################################
+
+
 def h_format(run_time):
     hour = int(run_time / 3600)
     minute = int((run_time - hour * 3600) / 60)
@@ -110,3 +167,12 @@ def is_linux():
     return platform in {'linux', 'linux2'}
 
 ########################################################################################################################
+
+
+def is_inf(what):
+    if isinstance(what, str):
+        return what.lower() == 'inf'
+    return isinf(what)
+
+########################################################################################################################
+

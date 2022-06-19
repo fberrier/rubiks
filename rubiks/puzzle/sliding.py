@@ -26,7 +26,6 @@ class Slide(Move):
     def cost(self):
         return 1
 
-
 ########################################################################################################################
 
     
@@ -152,8 +151,11 @@ class SlidingPuzzle(Puzzle):
     def from_tensor(self):
         raise NotImplementedError('Please implement this ... need to de-one_hot then call init')
     
-    def to_tensor(self):
-        return one_hot(self.tiles).flatten(1)
+    def to_tensor(self, one_hot_encoding=False):
+        tiles = self.tiles
+        if one_hot_encoding:
+            tiles = one_hot(tiles)
+        return tiles.flatten(1)
 
     def perfect_shuffle(self):
         """ We set up the tiles randomly, and then just swap the first two if the signature is not right """

@@ -59,7 +59,7 @@ class SearchStrategy(Loggable, metaclass=ABCMeta):
         self.cost = 0
         self.time_out = int(time_out) if time_out is not None else time_out
         self.expanded_nodes = 1
-        Loggable.__init__(self, self.name(), kw_args.pop('log_level', 'INFO'))
+        Loggable.__init__(self, log_level=kw_args.pop('log_level', 'INFO'))
 
     def get_run_time(self):
         return self.run_time

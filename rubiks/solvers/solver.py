@@ -13,31 +13,21 @@ from time import time as snap
 ########################################################################################################################
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.puzzle.puzzle import Puzzled
+from rubiks.solvers.solution import Solution
 from rubiks.utils.loggable import Loggable
-from rubiks.utils.utils import pprint, g_not_a_pkl_file
-########################################################################################################################
-
-
-class Solution:
-
-    def __init__(self,
-                 cost,
-                 path,
-                 expanded_nodes):
-        self.cost = cost
-        self.path = path
-        self.expanded_nodes = expanded_nodes
-
+from rubiks.utils.utils import pprint, g_not_a_pkl_file, touch
 ########################################################################################################################
 
 
 class Solver(Puzzled, Loggable, metaclass=ABCMeta):
-    """ TBD """
+    """ Base class for a puzzle solver. How it actually solves its puzzle type is
+    left to derived classes implementations by overwriting the  'solve_impl' method
+     """
 
     def __init__(self, puzzle_type, **kw_args):
         self.max_consecutive_timeout = kw_args.pop('max_consecutive_timeout', 0)
         Puzzled.__init__(self, puzzle_type, **kw_args)
-        Loggable.__init__(self, self.name(), kw_args.pop('log_level', 'INFO'))
+        Loggable.__init__(self, log_level=kw_args.pop('log_level', 'INFO'))
         self.all_shuffles_data = None
         self.shuffles_data = None
 
@@ -51,7 +41,7 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
             kw_args.update({'limit': kw_args.get('limit', 100)})
         elif any(solver_type.find(what) >= 0 for what in ['astar', 'a*']):
             from rubiks.solvers.astarsolver import AStarSolver as SolverType
-            kw_args.update({'heuristic': Heuristic.factory(**kw_args)})
+            kw_args.update({'heuristic_type': Heuristic.factory(**kw_args)})
         else:
             raise NotImplementedError('Unknown solver_type [%s]' % solver_type)
         return SolverType(puzzle_type, **kw_args)
@@ -88,7 +78,7 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
             if error is not RecursionError:
                 self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
             run_time = time_out
-            solution = Solution(0, [], -1)
+            solution = Solution(0, [], -1, puzzle=puzzle)
             timed_out = True
         return solution.cost, solution.path, solution.expanded_nodes, run_time, timed_out, index
 
@@ -281,6 +271,7 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
                                  ignore_index=True)
             self.log_info(performance)
         if shuffles_file_name and shuffles_file_name != g_not_a_pkl_file:
+            touch(shuffles_file_name)
             to_pickle(self.all_shuffles_data, shuffles_file_name)
             self.log_info('Saved all shuffles data to \'%s\'' % shuffles_file_name)
         pool.close()
@@ -298,7 +289,12 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
                          puzzle_dimension=None):
         performance = read_pickle(performance_file_name)
         if solver_name:
-            performance = performance[performance.solver_name.apply(lambda sn: sn.find(solver_name) >= 0)]
+            if not isinstance(solver_name, list):
+                solver_name = [solver_name]
+
+            def filter_sn(s_name):
+                return any(s_name.lower().find(w.lower()) >= 0 for w in solver_name)
+            performance = performance[performance.solver_name.apply(filter_sn)]
         if puzzle_type:
             performance = performance[performance.puzzle_type == puzzle_type]
         if puzzle_dimension:

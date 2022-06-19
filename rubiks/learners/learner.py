@@ -17,7 +17,7 @@ class Learner(Puzzled, Loggable, metaclass=ABCMeta):
 
     def __init__(self, puzzle_type, **kw_args):
         Puzzled.__init__(self, puzzle_type, **kw_args)
-        Loggable.__init__(self, self.name(), kw_args.pop('log_level', 'INFO'))
+        Loggable.__init__(self, log_level=kw_args.pop('log_level', 'INFO'))
 
     @abstractmethod
     def learn(self):

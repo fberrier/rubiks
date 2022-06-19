@@ -18,7 +18,7 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
     network_type = None
 
     def __init__(self, puzzle_type, **kw_args):
-        Loggable.__init__(self, self.name())
+        Loggable.__init__(self, log_level=kw_args.pop('log_level', 'INFO'))
         self.puzzle_type = puzzle_type
         self.kw_args = kw_args
         self.puzzle_dimension = self.puzzle_type.construct_puzzle(**kw_args).dimension()

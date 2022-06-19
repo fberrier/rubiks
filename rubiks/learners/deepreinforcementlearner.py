@@ -301,7 +301,6 @@ class DeepReinforcementLearner(Learner):
             assert 1 == len(set(data[drl.network_name_tag]))
             if not network_name:
                 network_name = data[drl.network_name_tag].iloc[0]
-                network_name = network_name[:network_name.find('[')]
             title = '%s | %s | %s' % (network_name,
                                       puzzle_type,
                                       puzzle_dimension)
@@ -309,23 +308,29 @@ class DeepReinforcementLearner(Learner):
             title = 'Learning data plot\n\n%s' % title
             fig.suptitle(title)
             x = drl.epoch_tag
-            gs = fig.add_gridspec(3, 1)
+            gs = fig.add_gridspec(4, 1)
             ax1 = fig.add_subplot(gs[0])
             ax2 = fig.add_subplot(gs[1])
             ax3 = fig.add_subplot(gs[2])
+            ax4 = fig.add_subplot(gs[3])
+            loss_over_max_target_tag = 'loss_over_max_target'
 
             def add_plot(ax, y, c):
                 ax.scatter(x,
                            y=y,
                            data=data,
-                           color=c)
+                           color=c,
+                           s=10,
+                           marker='.')
                 ax.set_xlabel(x)
                 ax.set_ylabel(y)
-                if drl.loss_tag == y:
+                if y in [drl.loss_tag, loss_over_max_target_tag]:
                     ax.set_yscale('log')
+            data[loss_over_max_target_tag] = data[drl.loss_tag] /  data[drl.max_target_tag]
             add_plot(ax1, drl.target_network_count_tag, 'b')
             add_plot(ax2, drl.max_target_tag, 'r')
             add_plot(ax3, drl.loss_tag, 'g')
+            add_plot(ax4, loss_over_max_target_tag, 'm')
         plt.show()
 
 ########################################################################################################################

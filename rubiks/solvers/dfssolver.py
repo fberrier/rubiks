@@ -17,6 +17,10 @@ class DFSSolver(Solver):
         strat.solve()
         return Solution(strat.get_path_cost(),
                         strat.get_path(),
-                        strat.get_node_counts())
+                        strat.get_node_counts(),
+                        puzzle)
+
+    def name(self):
+        return self.__class__.__name__ + '[limit=%d]' % self.kw_args.get('limit')
 
 ########################################################################################################################

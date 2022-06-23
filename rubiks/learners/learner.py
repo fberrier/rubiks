@@ -27,8 +27,8 @@ class Learner(Puzzled, Loggable, metaclass=ABCMeta):
         """ overwrite where meaningful """
         return
 
-    @staticmethod
-    def restore(model_file):
+    @classmethod
+    def restore(cls, model_file):
         """ overwrite where meaningful """
         return
 

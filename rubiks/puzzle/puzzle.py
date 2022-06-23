@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import ABCMeta, abstractmethod
-from math import factorial
+from math import factorial, inf
 from numpy import prod
 from numpy.random import permutation
 from torch import Size, Tensor
@@ -49,6 +49,10 @@ class Puzzle(metaclass=ABCMeta):
     @abstractmethod
     def __eq__(self, other):
         pass
+
+    @classmethod
+    def generate_all_puzzles(cls, **kw_args):
+        raise NotImplementedError('Implement that when/if possible in concrete Puzzles')
 
     @classmethod
     def get_move_type(cls):
@@ -106,19 +110,22 @@ class Puzzle(metaclass=ABCMeta):
                 training_data.append(puzzles)
         return training_data
 
-    sliding_puzzle = 'sliding_puzzle'
-    sliding = 'sliding'
-    rubiks_cube = 'rubiks_cube'
-    rubiks = 'rubiks'
+    sliding_puzzle_tag = 'sliding_puzzle'
+    sliding_tag = 'sliding'
+    rubiks_cube_tag = 'rubiks_cube'
+    rubiks_tag = 'rubiks'
+
+    known_puzzle_types = [sliding_puzzle_tag, sliding_tag,
+                          rubiks_cube_tag, rubiks_tag]
 
     @classmethod
     def factory(cls, puzzle_type, **kw_args):
         puzzle_type = snake_case(str(puzzle_type))
-        if any(puzzle_type.find(what) >= 0 for what in [cls.sliding,
-                                                        cls.sliding_puzzle]):
+        if any(puzzle_type.find(what) >= 0 for what in [cls.sliding_tag,
+                                                        cls.sliding_puzzle_tag]):
             from rubiks.puzzle.sliding import SlidingPuzzle as PuzzleType
-        elif any(puzzle_type.find(what) >= 0 for what in [cls.rubiks,
-                                                          cls.rubiks_cube]):
+        elif any(puzzle_type.find(what) >= 0 for what in [cls.rubiks_tag,
+                                                          cls.rubiks_cube_tag]):
             from rubiks.puzzle.rubiks import RubiksCube as PuzzleType
         else:
             raise NotImplementedError('Unknown puzzle_type [%s]' % puzzle_type)
@@ -184,6 +191,10 @@ class Puzzle(metaclass=ABCMeta):
             moves.append(move)
         return moves
 
+    def possible_puzzles_nb(self):
+        """ If known, can overwrite """
+        return inf
+
     @abstractmethod
     def possible_moves(self) -> list:
         """ return the set of possible moves from this configuration """
@@ -223,10 +234,10 @@ class Puzzle(metaclass=ABCMeta):
 class Puzzled:
 
     def __init__(self, puzzle_type, **kw_args):
-        self.kw_args = kw_args
-        self.goal = Puzzle.factory(puzzle_type=puzzle_type,
-                                   **self.kw_args)
+        self.kw_args = {**kw_args, 'puzzle_type': puzzle_type}
+        self.goal = Puzzle.factory(**self.kw_args)
         self.puzzle_type = type(self.goal)
+        self.pp_nb = self.goal.possible_puzzles_nb()
 
     def get_puzzle_type(self):
         """ returns the type of puzzle that this heuristic deals with """
@@ -242,5 +253,8 @@ class Puzzled:
 
     def puzzle_name(self):
         return self.goal.name()
+
+    def possible_puzzles_nb(self):
+        return self.pp_nb
 
 ########################################################################################################################

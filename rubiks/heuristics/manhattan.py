@@ -19,6 +19,7 @@ class Manhattan(Heuristic):
     def __init__(self, n, m=None, **kw_args):
         if m is None:
             m = n
+        kw_args.pop('puzzle_type', None)
         super().__init__(SlidingPuzzle, n=n, m=m, **kw_args)
         # build map of where each value should be
         self.goal_map = {}

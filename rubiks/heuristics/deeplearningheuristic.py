@@ -17,7 +17,7 @@ class DeepLearningHeuristic(Heuristic):
     def __init__(self, model_file_name, **kw_args):
         self.model_file_name = model_file_name
         self.deep_learning = DeepLearning.restore(self.model_file_name)
-        Heuristic.__init__(self, self.deep_learning.puzzle_type, **kw_args)
+        Heuristic.__init__(self, **kw_args)
 
     def name(self):
         return '%s[%s]' % (super().name(), split(self.model_file_name)[1])

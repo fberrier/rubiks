@@ -6,7 +6,7 @@ from math import isinf
 import numpy as np
 from os import makedirs
 from os.path import exists, dirname
-from pandas import DataFrame, Series
+from pandas import DataFrame, Series, to_pickle as pandas_to_pickle
 from pathlib import Path
 from re import sub
 from sys import platform
@@ -24,6 +24,13 @@ g_not_a_pkl_file = 'not_a_file.pkl'
 def touch(what):
     if what is not None and not exists(dirname(what)):
         makedirs(dirname(what))
+
+########################################################################################################################
+
+
+def to_pickle(what, file_name):
+    touch(file_name)
+    pandas_to_pickle(what, file_name)
 
 ########################################################################################################################
 
@@ -109,7 +116,9 @@ def shuffles_file_name(puzzle_type,
 
 
 def pformat(what):
-    if isinstance(what, DataFrame):
+    if isinstance(what, int):
+        what = format_string('%d', what, grouping=True)
+    elif isinstance(what, DataFrame):
         what = what.to_dict(orient='list')
     elif isinstance(what, Series):
         what = what.to_dict()

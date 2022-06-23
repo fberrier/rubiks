@@ -5,7 +5,10 @@ from abc import abstractmethod, ABCMeta
 from functools import partial
 from itertools import product
 from math import inf
+from brokenaxes import brokenaxes
+from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
+from matplotlib import ticker
 from multiprocessing import Pool
 from numpy import isnan, isinf
 from pandas import concat, DataFrame, Series, read_pickle, to_pickle
@@ -31,20 +34,33 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
         self.all_shuffles_data = None
         self.shuffles_data = None
 
+    bfs_tag = 'bfs'
+    breathfirst_tag = 'breathfirst'
+    dfs_tag = 'dfs'
+    depthfirst_tag = 'depthfirst'
+    astar_tags = ['astar', 'a*']
+
+    known_solver_types = [bfs_tag, breathfirst_tag,
+                          dfs_tag, depthfirst_tag,
+                          *astar_tags]
+
     @classmethod
     def factory(cls, solver_type, puzzle_type, **kw_args):
         solver_type = str(solver_type).lower()
-        if any(solver_type.find(what) >= 0 for what in ['bfs', 'breathfirst']):
+        kw_args.update({'puzzle_type': puzzle_type})
+        if any(solver_type.find(what) >= 0 for what in [cls.breathfirst_tag,
+                                                        cls.bfs_tag]):
             from rubiks.solvers.bfssolver import BFSSolver as SolverType
-        elif any(solver_type.find(what) >= 0 for what in ['dfs', 'depthfirst']):
+        elif any(solver_type.find(what) >= 0 for what in [cls.dfs_tag,
+                                                          cls.depthfirst_tag]):
             from rubiks.solvers.dfssolver import DFSSolver as SolverType
             kw_args.update({'limit': kw_args.get('limit', 100)})
-        elif any(solver_type.find(what) >= 0 for what in ['astar', 'a*']):
+        elif any(solver_type.find(what) >= 0 for what in cls.astar_tags):
             from rubiks.solvers.astarsolver import AStarSolver as SolverType
             kw_args.update({'heuristic_type': Heuristic.factory(**kw_args)})
         else:
             raise NotImplementedError('Unknown solver_type [%s]' % solver_type)
-        return SolverType(puzzle_type, **kw_args)
+        return SolverType(**kw_args)
 
     @abstractmethod
     def know_to_be_optimal(self):
@@ -279,15 +295,18 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
         return performance
 
     def name(self):
-        return '%s|%s' % (self.__class__.__name__,
-                          self.puzzle_type.construct_puzzle(**self.kw_args).name())
+        return '%s[%s]' % (self.__class__.__name__, self.puzzle_name())
 
-    @staticmethod
-    def plot_performance(performance_file_name,
+    def plot_performance(self,
+                         performance_file_name,
                          solver_name=None,
                          puzzle_type=None,
                          puzzle_dimension=None):
-        performance = read_pickle(performance_file_name)
+        try:
+            performance = read_pickle(performance_file_name)
+        except FileNotFoundError:
+            self.log_error('Cannot find \'%s\'. Did you really want to plot rather than solve?' % performance_file_name)
+            return
         if solver_name:
             if not isinstance(solver_name, list):
                 solver_name = [solver_name]
@@ -299,6 +318,8 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
             performance = performance[performance.puzzle_type == puzzle_type]
         if puzzle_dimension:
             performance = performance[performance.puzzle_dimension == puzzle_dimension]
+        print(performance[Solver.nb_shuffles_tag])
+        assert inf in performance[Solver.nb_shuffles_tag].values, 'Fix code so it uses normal axes if not inf in there'
         shuffle_max = performance[Solver.nb_shuffles_tag].replace(inf, -1).max() * 2
         performance.loc[:, Solver.nb_shuffles_tag] = \
             performance[Solver.nb_shuffles_tag].replace(inf, shuffle_max)
@@ -308,20 +329,29 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
              Solver.avg_expanded_nodes_tag,
              Solver.pct_solved_tag]
         n = int(len(y)/2)
-        fig, axes = plt.subplots(2, n)
+        fig = plt.figure(performance_file_name)
+        sps = GridSpec(n, 2, figure=fig)
         gb = performance.groupby(Solver.solver_name_tag)
+        max_shuffle = max(performance[Solver.nb_shuffles_tag])
         for r, c in product(range(2), range(n)):
             what = y[r * 2 + c]
-            ax = axes[r, c]
+            bax = brokenaxes(xlims=((0, max_shuffle/2 + 1),
+                                    (max_shuffle - 1.5, max_shuffle + 1.5)),
+                             subplot_spec=sps[r, c])
+            bax.set_title('%s vs %s' % (what, Solver.nb_shuffles_tag))
+            if r == 1:
+                bax.set_xlabel(Solver.nb_shuffles_tag)
+            bax.set_ylabel(what)
+            ticks = bax.get_xticks()
+            labels = [['%d' % t for t in ticks[0]],
+                      ['\u221e' for _ in ticks[1]]]
+            bax.set_xticks('whatahorriblehack', 2, ticks, labels)
             for sn, grp in gb:
-                ax.scatter(x=Solver.nb_shuffles_tag,
-                           y=what,
-                           data=grp,
-                           label=sn)
-            ax.title.set_text('%s vs %s' % (what, Solver.nb_shuffles_tag))
-            ax.set_xlabel(Solver.nb_shuffles_tag)
-            ax.set_ylabel(what)
-            handles, labels = ax.get_legend_handles_labels()
+                bax.scatter(x=Solver.nb_shuffles_tag,
+                            y=what,
+                            data=grp,
+                            label=sn)
+            (handles, labels) = bax.get_legend_handles_labels()[0]
         fig.legend(handles, labels, loc='upper center')
         plt.show()
 

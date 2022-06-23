@@ -1,6 +1,8 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
+from itertools import permutations
+from math import factorial
 from numpy import argwhere, array, where
 from pandas import DataFrame
 from random import randint
@@ -31,6 +33,20 @@ class Slide(Move):
     
 class SlidingPuzzle(Puzzle):
     """ Game of the sliding Puzzle, e.g. the 8-puzzle, 15-puzzle, etc """
+
+    def possible_puzzles_nb(self):
+        dimension = self.dimension()
+        return int(factorial(dimension[0] * dimension[1]) / 2)
+
+    @classmethod
+    def generate_all_puzzles(cls, **kw_args):
+        goal = SlidingPuzzle.construct_puzzle(**kw_args)
+        goal_signature = goal.signature()
+        (n, m) = goal.dimension()
+        for perm in permutations(range(n * m)):
+            puzzle = SlidingPuzzle(tensor(perm).reshape((n, m)))
+            if puzzle.signature() == goal_signature:
+                yield puzzle
 
     move_type = Slide
 

@@ -44,6 +44,15 @@ headsepline, % Uncomment to get a line under the header
 \usepackage[T5,T1]{fontenc}
 \usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} % Use the bibtex backend with the authoryear citation style (which resembles APA)
 
+\usepackage{logicpuzzle}
+\newenvironment{fifteen}[1][]{%
+\begin{logicpuzzle}[rows=4,columns=4,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+
 \addbibresource{references.bib} % The filename of the bibliography
 
 \usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
@@ -277,16 +286,12 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 % Include the chapters of the thesis as separate files from the Chapters folder
 % Uncomment the lines as you write the chapters
 
-\include{Chapters/Chapter0}
-\include{Chapters/Chapter1}
-\include{Chapters/Chapter2}
-\include{Chapters/Chapter3}
-\include{Chapters/Chapter4}
-\include{Chapters/Chapter5}
-%\include{Chapters/Chapter2} 
-%\include{Chapters/Chapter3}
-%\include{Chapters/Chapter4} 
-%\include{Chapters/Chapter5} 
+\include{Chapters/Objectives}
+\include{Chapters/DRLSearch}
+\include{Chapters/Puzzles}
+\include{Chapters/Code}
+\include{Chapters/SlidingPuzzle}
+\include{Chapters/Rubiks}
 
 %----------------------------------------------------------------------------------------
 %	THESIS CONTENT - APPENDICES

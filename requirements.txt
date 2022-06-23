@@ -6,3 +6,4 @@ coloredlogs~=15.0.1
 sortedcontainers~=2.4.0
 torch~=1.10.2
 matplotlib~=3.5.1
+brokenaxes~=0.4.2

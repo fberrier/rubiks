@@ -18,13 +18,29 @@ class Heuristic(Puzzled, metaclass=ABCMeta):
         """ the kw_args are passed to the underlying type of puzzle that this heuristic deals with """
         Puzzled.__init__(self, puzzle_type, **kw_args)
 
+    manhattan_tag = 'manhattan'
+    deep_tag = 'deep'
+    deep_learning_tag = 'deep_learning'
+    dl_tag = 'dl'
+    perfect_tag = 'perfect'
+
+    known_heuristics = [manhattan_tag,
+                        deep_tag,
+                        deep_learning_tag,
+                        dl_tag,
+                        perfect_tag]
+
     @classmethod
     def factory(cls, heuristic_type, **kw_args):
         heuristic_type = str(heuristic_type).lower()
-        if any(heuristic_type.find(what) >= 0 for what in ['manhattan']):
+        if any(heuristic_type.find(what) >= 0 for what in [cls.manhattan_tag]):
             from rubiks.heuristics.manhattan import Manhattan as HeuristicType
-        elif any(heuristic_type.find(what) >= 0 for what in ['deep', 'dl']):
+        elif any(heuristic_type.find(what) >= 0 for what in [cls.deep_tag,
+                                                             cls.deep_learning_tag,
+                                                             cls.dl_tag]):
             from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic as HeuristicType
+        elif any(heuristic_type.find(what) >= 0 for what in [cls.perfect_tag]):
+            from rubiks.heuristics.perfectheuristic import PerfectHeuristic as HeuristicType
         else:
             raise NotImplementedError('Unknown heuristic_type [%s]' % heuristic_type)
         return HeuristicType(**kw_args)

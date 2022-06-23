@@ -5,6 +5,7 @@ from abc import abstractmethod, ABCMeta
 from time import time as snap
 ########################################################################################################################
 from rubiks.utils.loggable import Loggable
+from rubiks.utils.utils import is_inf
 ########################################################################################################################
 
 
@@ -57,7 +58,7 @@ class SearchStrategy(Loggable, metaclass=ABCMeta):
         self.run_time = 0
         self.actions = []
         self.cost = 0
-        self.time_out = int(time_out) if time_out is not None else time_out
+        self.time_out = None if time_out is None or is_inf(time_out) else time_out
         self.expanded_nodes = 1
         Loggable.__init__(self, log_level=kw_args.pop('log_level', 'INFO'))
 

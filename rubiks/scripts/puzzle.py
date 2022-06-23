@@ -7,6 +7,7 @@ from sys import argv
 from time import time as snap
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzle
+from rubiks.heuristics.heuristic import Heuristic
 from rubiks.solvers.solver import Solver
 from rubiks.utils.loggable import Loggable
 from rubiks.utils.utils import is_windows, g_not_a_pkl_file, model_file_name, s_format
@@ -20,11 +21,19 @@ def main():
     parser.add_argument('n', type=int)
     parser.add_argument('-m', type=int, default=None)
     parser.add_argument('-nb_shuffles', default=inf)
-    parser.add_argument('-timeout', type=int, default=60)
-    parser.add_argument('-puzzle_type', type=str, default=None,
-                        choices=[Puzzle.sliding_puzzle, Puzzle.rubiks_cube])
-    parser.add_argument('-solver_type', type=str, default='bfs', choices=['bfs', 'dfs', 'a*'])
-    parser.add_argument('-heuristic_type', type=str, default='manhattan', choices=['manhattan', 'deeplearning'])
+    parser.add_argument('-time_out', type=int, default=60)
+    parser.add_argument('-puzzle_type',
+                        type=str,
+                        default=None,
+                        choices=[Puzzle.sliding_puzzle_tag,
+                                 Puzzle.rubiks_cube_tag])
+    parser.add_argument('-solver_type', type=str,
+                        default=Solver.bfs_tag,
+                        choices=Solver.known_solver_types)
+    parser.add_argument('-heuristic_type',
+                        type=str,
+                        default=Heuristic.manhattan_tag,
+                        choices=Heuristic.known_heuristics)
     parser.add_argument('-model_file_name', type=str, default=g_not_a_pkl_file)
     parser.add_argument('--log_solution', default=False, action='store_true')
     parser.add_argument('--check_optimal', default=False, action='store_true')
@@ -43,7 +52,7 @@ def main():
     logger.log_info(puzzle)
     try:
         b4 = snap()
-        solution = solver.solve(puzzle, parser.timeout)
+        solution = solver.solve(puzzle, parser.time_out)
         info = 'Found solution of cost %s in %s' % (solution.cost, s_format(snap() - b4))
         if solver.know_to_be_optimal():
             info += '. This is an optimal solution.'
@@ -56,7 +65,7 @@ def main():
             optimal_solver = Solver.factory(**kw_args)
             b4 = snap()
             try:
-                optimal_solution = optimal_solver.solve(puzzle, time_out=parser.timeout)
+                optimal_solution = optimal_solver.solve(puzzle, time_out=parser.time_out)
                 if solution.cost != optimal_solution.cost:
                     logger.log_warning('Solution is not optimal!')
                     info = 'Optimal solution of cost %s in %s' % (optimal_solution.cost, s_format(snap() - b4))
@@ -74,29 +83,33 @@ def main():
 
 
 if '__main__' == __name__:
-    puzzle_type = 'sliding_puzzle'
-    dimension = (4, 3)
-    nb_shuffles = inf
+    PuzzleType = 'sliding_puzzle'
+    dimension = (4, 4)
+    nb_shuffles = 15
     solver_type = 'a*'
     heuristic_type = 'manhattan'
-    timeout = 300
+    time_out = 10
     log_solution = True
     check_optimal = True
+    layers = ('600', '300', '100')
+    one_hot_encoding = False
     if is_windows():
         command_line_args = "%d -m=%d -nb_shuffles=%s" % (*dimension, nb_shuffles)
-        command_line_args += " -puzzle_type=%s" % puzzle_type
+        command_line_args += " -puzzle_type=%s" % PuzzleType
         command_line_args += " -solver_type=%s" % solver_type
-        command_line_args += " -timeout=%d" % timeout
+        command_line_args += " -time_out=%d" % time_out
         command_line_args += " -heuristic_type=%s" % heuristic_type
-        layers = ('600', '300', '100')
-        one_hot_encoding = False
-        model_name = 'fully_connected_net_' + '_'.join(layers)
-        if one_hot_encoding:
-            model_name += '_one_hot_encoding'
-            command_line_args += " --one_hot_encoding"
-        command_line_args += " -model_file_name=%s" % (model_file_name(puzzle_type=puzzle_type,
-                                                                       dimension=dimension,
-                                                                       model_name=model_name))
+        if heuristic_type == 'deep_learning':
+            model_name = 'fully_connected_net_' + '_'.join(layers)
+            if one_hot_encoding:
+                model_name += '_one_hot_encoding'
+                command_line_args += " --one_hot_encoding"
+        elif heuristic_type == 'perfect':
+            model_name = 'perfect'
+        model_file_name = model_file_name(puzzle_type=PuzzleType,
+                                          dimension=dimension,
+                                          model_name='perfect')
+        command_line_args += " -model_file_name=%s" % model_file_name
         if log_solution:
             command_line_args += " --log_solution"
         if check_optimal:

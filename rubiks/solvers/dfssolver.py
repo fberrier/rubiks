@@ -19,7 +19,6 @@ class DFSSolver(Solver):
                          type=int,
                          default=31)
 
-
     def __init__(self, puzzle_type, **kw_args):
         kw_args.update({__class__.limit: kw_args.get(__class__.limit,
                                                      __class__.default_limit),
@@ -32,8 +31,9 @@ class DFSSolver(Solver):
         """ unless extremely lucky this is not going to return optimal solutions """
         return False
 
-    def solve_impl(self, puzzle, time_out, **kw_args):
-        strat = DepthFirstSearch(puzzle, time_out=time_out, **{**self.kw_args, **kw_args})
+    def solve_impl(self, puzzle, **kw_args):
+        strat = DepthFirstSearch(puzzle,
+                                 **{**self.kw_args, **kw_args})
         strat.solve()
         return Solution(strat.get_path_cost(),
                         strat.get_path(),

@@ -66,11 +66,11 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
         return False
 
     @abstractmethod
-    def solve_impl(self, puzzle, time_out, **kw_args) -> Solution:
+    def solve_impl(self, puzzle, **kw_args) -> Solution:
         return Solution(None, None, None)
 
-    def solve(self, puzzle, time_out, **kw_args) -> Solution:
-        return self.solve_impl(puzzle, inf if time_out <= 0 else time_out, **kw_args)
+    def solve(self, puzzle, **kw_args) -> Solution:
+        return self.solve_impl(puzzle, **kw_args)
 
     def __job__(self, nb_shuffles, time_out, index=-1):
         """ A single puzzle to solve """
@@ -82,7 +82,7 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
-            solution = self.solve_impl(puzzle, time_out)
+            solution = self.solve_impl(puzzle, time_out=time_out)
             run_time = snap() - start
             assert isinstance(solution.cost, int)
             assert isinstance(solution.path, list)

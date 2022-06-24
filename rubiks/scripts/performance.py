@@ -36,10 +36,10 @@ if '__main__' == __name__:
         PuzzleType = SlidingPuzzle
         dimension = (2, 2)
         solver_type = Solver.astar
-        heuristic_type = Heuristic.perfect
+        heuristic_type = Heuristic.manhattan
         layers = ('600', '300', '100')
         one_hot_encoding = True
-        action_type = Solver.do_solve
+        action_type = Solver.do_plot
         nb_samples = 10
         min_nb_shuffles = 0
         max_nb_shuffles = 100

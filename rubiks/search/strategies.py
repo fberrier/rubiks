@@ -57,10 +57,12 @@ class DepthFirstSearch(SearchStrategy):
     would enforce by itself, via the limit parameter.
     """
 
+    limit = 'limit'
+
     max_limit = 1000000
 
     def __init__(self, initial_state, **kw_args):
-        self.limit = int(kw_args.pop('limit', self.max_limit))
+        self.limit = int(kw_args.pop(__class__.limit, __class__.max_limit))
         SearchStrategy.__init__(self, initial_state, **kw_args)
         self.explored = set()
 

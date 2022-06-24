@@ -3,12 +3,12 @@
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
 from copy import deepcopy as copy
-from pandas import to_pickle, read_pickle
+from pandas import read_pickle
 from torch import device
 from torch.nn import Module
 ########################################################################################################################
 from rubiks.utils.loggable import Loggable
-from rubiks.utils.utils import touch
+from rubiks.utils.utils import touch, to_pickle
 ########################################################################################################################
 
 
@@ -29,10 +29,10 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
 
     puzzle_type = 'puzzle_type'
     puzzle_dimension = 'puzzle_dimension'
-    network_type_tag = 'network_type_tag'
+    network_type = 'network_type'
     kw_args = 'kw_args'
     fully_connected_net = 'fully_connected_net'
-    state_dict_tag = 'state_dict_tag'
+    state_dict = 'state_dict'
 
     def set_cuda(self):
         if self.use_cuda and not self.cuda_device:
@@ -51,19 +51,18 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
     def save(self, model_file_name):
         cls = self.__class__
         data = {cls.puzzle_type: self.puzzle_type,
-                cls.network_type_tag: self.network_type,
+                cls.network_type: self.network_type,
                 cls.kw_args: self.kw_args,
-                cls.state_dict_tag: self.state_dict()}
-        touch(model_file_name)
+                cls.state_dict: self.state_dict()}
         to_pickle(data, model_file_name)
 
     @classmethod
     def restore(cls, model_file):
         data = read_pickle(model_file)
         deeplearning = cls.factory(data[cls.puzzle_type],
-                                   data[cls.network_type_tag],
+                                   data[cls.network_type],
                                    **data[cls.kw_args])
-        deeplearning.load_state_dict(data[cls.state_dict_tag])
+        deeplearning.load_state_dict(data[cls.state_dict])
         return deeplearning
 
     def name(self):

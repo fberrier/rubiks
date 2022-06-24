@@ -13,18 +13,27 @@ class PerfectHeuristic(Heuristic):
     a given dimension and solve them via an optimal solver, and save that down to a file
     """
 
+    model_file_name = 'model_file_name'
+
     @classmethod
     def known_to_be_admissible(cls):
         return True
 
+    @classmethod
+    def populate_parser(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.model_file_name,
+                         type=str,
+                         default=None)
+
     def __init__(self, puzzle_type, model_file_name, **kw_args):
         super().__init__(puzzle_type, **kw_args)
         self.data_base = read_pickle(model_file_name)
-        puzzle_type = self.data_base[PerfectLearner.puzzle_type_tag]
-        dimension = self.data_base[PerfectLearner.dimension_tag]
+        puzzle_type = self.data_base[PerfectLearner.puzzle_type]
+        dimension = self.data_base[PerfectLearner.dimension]
         assert self.get_puzzle_type() == puzzle_type
-        assert dimension == self.puzzle_dimension()
-        self.data_base = self.data_base[PerfectLearner.data_tag]
+        assert dimension == self.get_puzzle_dimension()
+        self.data_base = self.data_base[PerfectLearner.data]
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
         return self.data_base[hash(puzzle)]

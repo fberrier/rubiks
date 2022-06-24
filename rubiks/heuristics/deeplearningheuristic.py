@@ -11,6 +11,15 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 class DeepLearningHeuristic(Heuristic):
     """ Just a heuristic that's been learnt by a Deep Learning Network """
 
+    model_file_name = 'model_file_name'
+
+    @classmethod
+    def populate_parser(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.model_file_name,
+                         type=str,
+                         default=None)
+
     def known_to_be_admissible(self):
         return False
 

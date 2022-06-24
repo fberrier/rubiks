@@ -5,10 +5,11 @@ from abc import ABCMeta, abstractmethod
 from torch import Tensor
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzled
+from rubiks.core.parsable import Parsable
 ########################################################################################################################
 
 
-class Heuristic(Puzzled, metaclass=ABCMeta):
+class Heuristic(Parsable, Puzzled, metaclass=ABCMeta):
     """ Generic concept of a heuristic: a class that is able to give us an estimated cost-to-go for a particular
     type of Puzzle of a given dimension.
     e.g. could be typical heuristics used in A* searches such as those based on Manhattan distance or similar concepts
@@ -18,28 +19,29 @@ class Heuristic(Puzzled, metaclass=ABCMeta):
         """ the kw_args are passed to the underlying type of puzzle that this heuristic deals with """
         Puzzled.__init__(self, puzzle_type, **kw_args)
 
-    manhattan_tag = 'manhattan'
-    deep_tag = 'deep'
-    deep_learning_tag = 'deep_learning'
-    dl_tag = 'dl'
-    perfect_tag = 'perfect'
+    heuristic_type = 'heuristic_type'
+    manhattan = 'manhattan'
+    deep_learning = 'deep_learning'
+    perfect = 'perfect'
+    known_heuristic_types = [manhattan, deep_learning, perfect]
 
-    known_heuristics = [manhattan_tag,
-                        deep_tag,
-                        deep_learning_tag,
-                        dl_tag,
-                        perfect_tag]
+    @classmethod
+    def populate_parser(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.heuristic_type,
+                         choices=cls.known_heuristic_types,
+                         default=cls.manhattan)
+
+    known_heuristics = [manhattan, deep_learning, perfect]
 
     @classmethod
     def factory(cls, heuristic_type, **kw_args):
         heuristic_type = str(heuristic_type).lower()
-        if any(heuristic_type.find(what) >= 0 for what in [cls.manhattan_tag]):
+        if any(heuristic_type.find(what) >= 0 for what in [cls.manhattan]):
             from rubiks.heuristics.manhattan import Manhattan as HeuristicType
-        elif any(heuristic_type.find(what) >= 0 for what in [cls.deep_tag,
-                                                             cls.deep_learning_tag,
-                                                             cls.dl_tag]):
+        elif any(heuristic_type.find(what) >= 0 for what in [cls.deep_learning]):
             from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic as HeuristicType
-        elif any(heuristic_type.find(what) >= 0 for what in [cls.perfect_tag]):
+        elif any(heuristic_type.find(what) >= 0 for what in [cls.perfect]):
             from rubiks.heuristics.perfectheuristic import PerfectHeuristic as HeuristicType
         else:
             raise NotImplementedError('Unknown heuristic_type [%s]' % heuristic_type)
@@ -58,9 +60,10 @@ class Heuristic(Puzzled, metaclass=ABCMeta):
     dim_error_message = 'cost_to_go expected %s of dimension %s. Got %s instead'
 
     def cost_to_go_from_puzzle(self, puzzle):
-        assert puzzle.dimension() == self.puzzle_dimension(), self.dim_error_message % (str(self.get_puzzle_type()),
-                                                                                        str(self.puzzle_dimension()),
-                                                                                        str(puzzle.dimension()))
+        assert puzzle.dimension() == self.get_puzzle_dimension(),\
+            self.dim_error_message % (str(self.get_puzzle_type()),
+                                      str(self.get_puzzle_dimension()),
+                                      str(puzzle.dimension()))
         return self.cost_to_go_from_puzzle_impl(puzzle)
 
     def cost_to_go_from_tensor(self, puzzle, **kw_args):

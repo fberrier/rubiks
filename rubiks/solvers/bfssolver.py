@@ -13,7 +13,9 @@ class BFSSolver(Solver):
         return True
 
     def solve_impl(self, puzzle, time_out, **kw_args):
-        strat = BreadthFirstSearch(puzzle, time_out=time_out, **{**self.kw_args, **kw_args})
+        strat = BreadthFirstSearch(puzzle,
+                                   time_out=time_out,
+                                   **{**self.kw_args, **kw_args})
         strat.solve()
         return Solution(strat.get_path_cost(),
                         strat.get_path(),

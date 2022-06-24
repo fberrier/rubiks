@@ -8,56 +8,54 @@ from math import inf
 from brokenaxes import brokenaxes
 from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
-from matplotlib import ticker
 from multiprocessing import Pool
 from numpy import isnan, isinf
-from pandas import concat, DataFrame, Series, read_pickle, to_pickle
+from os import remove
+from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
 ########################################################################################################################
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.puzzle.puzzle import Puzzled
 from rubiks.solvers.solution import Solution
 from rubiks.utils.loggable import Loggable
-from rubiks.utils.utils import pprint, g_not_a_pkl_file, touch
+from rubiks.utils.utils import pprint, g_not_a_pkl_file, to_pickle
+from rubiks.core.parsable import Parsable
 ########################################################################################################################
 
 
-class Solver(Puzzled, Loggable, metaclass=ABCMeta):
+class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
     """ Base class for a puzzle solver. How it actually solves its puzzle type is
     left to derived classes implementations by overwriting the  'solve_impl' method
      """
 
+    solver_type = 'solver_type'
+    bfs = 'bfs'
+    dfs = 'dfs'
+    astar = 'a*'
+    known_solver_types = [bfs, dfs, astar]
+    time_out = 'time_out'
+    max_consecutive_timeout = 'max_consecutive_timeout'
+    default_max_consecutive_timeout = 0
+
     def __init__(self, puzzle_type, **kw_args):
-        self.max_consecutive_timeout = kw_args.pop('max_consecutive_timeout', 0)
+        self.max_consecutive_timeout = kw_args.pop(__class__.max_consecutive_timeout,
+                                                   __class__.default_max_consecutive_timeout)
         Puzzled.__init__(self, puzzle_type, **kw_args)
-        Loggable.__init__(self, log_level=kw_args.pop('log_level', 'INFO'))
+        Loggable.__init__(self, log_level=kw_args.pop(Loggable.log_level, Loggable.INFO))
         self.all_shuffles_data = None
         self.shuffles_data = None
-
-    bfs_tag = 'bfs'
-    breathfirst_tag = 'breathfirst'
-    dfs_tag = 'dfs'
-    depthfirst_tag = 'depthfirst'
-    astar_tags = ['astar', 'a*']
-
-    known_solver_types = [bfs_tag, breathfirst_tag,
-                          dfs_tag, depthfirst_tag,
-                          *astar_tags]
 
     @classmethod
     def factory(cls, solver_type, puzzle_type, **kw_args):
         solver_type = str(solver_type).lower()
-        kw_args.update({'puzzle_type': puzzle_type})
-        if any(solver_type.find(what) >= 0 for what in [cls.breathfirst_tag,
-                                                        cls.bfs_tag]):
+        kw_args.update({Puzzled.puzzle_type: puzzle_type})
+        if any(solver_type.find(what) >= 0 for what in [cls.bfs]):
             from rubiks.solvers.bfssolver import BFSSolver as SolverType
-        elif any(solver_type.find(what) >= 0 for what in [cls.dfs_tag,
-                                                          cls.depthfirst_tag]):
+        elif any(solver_type.find(what) >= 0 for what in [cls.dfs]):
             from rubiks.solvers.dfssolver import DFSSolver as SolverType
-            kw_args.update({'limit': kw_args.get('limit', 100)})
-        elif any(solver_type.find(what) >= 0 for what in cls.astar_tags):
+        elif any(solver_type.find(what) >= 0 for what in cls.astar):
             from rubiks.solvers.astarsolver import AStarSolver as SolverType
-            kw_args.update({'heuristic_type': Heuristic.factory(**kw_args)})
+            kw_args.update({Heuristic.heuristic_type: Heuristic.factory(**kw_args)})
         else:
             raise NotImplementedError('Unknown solver_type [%s]' % solver_type)
         return SolverType(**kw_args)
@@ -72,7 +70,7 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
         return Solution(None, None, None)
 
     def solve(self, puzzle, time_out, **kw_args) -> Solution:
-        return self.solve_impl(puzzle, time_out, **kw_args)
+        return self.solve_impl(puzzle, inf if time_out <= 0 else time_out, **kw_args)
 
     def __job__(self, nb_shuffles, time_out, index=-1):
         """ A single puzzle to solve """
@@ -93,25 +91,87 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
         except Exception as error:
             if error is not RecursionError:
                 self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
-            run_time = time_out
+            run_time = float(time_out)
             solution = Solution(0, [], -1, puzzle=puzzle)
             timed_out = True
         return solution.cost, solution.path, solution.expanded_nodes, run_time, timed_out, index
 
-    nb_shuffles_tag = 'nb_shuffles'
-    nb_samples_tag = 'nb_samples'
-    avg_cost_tag = 'avg_cost'
-    max_cost_tag = 'max_cost'
-    avg_expanded_nodes_tag = 'avg_expanded_nodes'
-    max_expanded_nodes_tag = 'max_expanded_nodes'
-    nb_timeout_tag = 'nb_timeout'
-    avg_run_time_tag = 'avg_run_time (ms)'
-    max_run_time_tag = 'max_run_time (ms)'
-    solver_name_tag = 'solver_name'
-    pct_solved_tag = 'solved (%)'
-    pct_optimal_tag = 'optimal (%)'
-    puzzle_type_tag = 'puzzle_type'
-    puzzle_dimension_tag = 'puzzle_dimension'
+    nb_shuffles = 'nb_shuffles'
+    nb_samples = 'nb_samples'
+    avg_cost = 'avg_cost'
+    max_cost = 'max_cost'
+    avg_expanded_nodes = 'avg_expanded_nodes'
+    max_expanded_nodes = 'max_expanded_nodes'
+    nb_timeout = 'nb_timeout'
+    avg_run_time = 'avg_run_time (ms)'
+    max_run_time = 'max_run_time (ms)'
+    solver_name = 'solver_name'
+    pct_solved = 'solved (%)'
+    pct_optimal = 'optimal (%)'
+    puzzle_type = 'puzzle_type'
+    puzzle_dimension = 'puzzle_dimension'
+
+    action_type = 'action_type'
+    do_plot = 'do_plot'
+    do_solve = 'do_solve'
+    do_cleanup_performance_file = 'do_cleanup_performance_file'
+    known_action_type = [do_solve, do_plot, do_cleanup_performance_file]
+
+    @classmethod
+    def populate_parser(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.time_out,
+                         type=int,
+                         default=0)
+        cls.add_argument(parser,
+                         type=int,
+                         field=cls.max_consecutive_timeout,
+                         default=cls.default_max_consecutive_timeout)
+        cls.add_argument(parser,
+                         field=cls.solver_type,
+                         choices=cls.known_solver_types,
+                         default=cls.astar)
+        cls.add_argument(parser,
+                         'min_nb_shuffles',
+                         type=int,
+                         default=None)
+        cls.add_argument(parser,
+                         'max_nb_shuffles',
+                         type=int,
+                         default=None)
+        cls.add_argument(parser,
+                         'step_nb_shuffles',
+                         type=int,
+                         default=1)
+        cls.add_argument(parser,
+                         'nb_samples',
+                         type=int,
+                         default=1000)
+        cls.add_argument(parser,
+                         'nb_cpus',
+                         type=int,
+                         default=1)
+        cls.add_argument(parser,
+                         '-append',
+                         default=False,
+                         action='store_true')
+        cls.add_argument(parser,
+                         '-add_perfect_shuffle',
+                         default=False,
+                         action='store_true')
+        cls.add_argument(parser,
+                         'performance_file_name',
+                         type=str,
+                         default=None)
+        cls.add_argument(parser,
+                         'shuffles_file_name',
+                         type=str,
+                         default=None)
+        cls.add_argument(parser,
+                         cls.action_type,
+                         type=str,
+                         default=False,
+                         choices=cls.known_action_type)
     
     def performance(self,
                     max_nb_shuffles,
@@ -119,9 +179,12 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
                     time_out,
                     min_nb_shuffles=None,
                     step_nb_shuffles=1,
-                    perfect_shuffle=False,
+                    add_perfect_shuffle=False,
                     nb_cpus=1,
-                    shuffles_file_name=None):
+                    shuffles_file_name=None,
+                    performance_file_name=None,
+                    append=False,
+                    **kw_args):
         """
         Runs the solver on a bunch of randomly generated puzzles (more or less shuffled from goal state)
         and returns statistics of the various attempts to solve them.
@@ -135,35 +198,33 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
             nb_cpus:
             shuffles_file_name: if provided, can read puzzles' shuffles sequences from there, e.g. if
                                 want several algorithms to use the same sequences for fairness
-        returns:
-            blablabla tbc
         """
-        assert max_nb_shuffles > 0 or perfect_shuffle
+        assert max_nb_shuffles > 0 or add_perfect_shuffle
         assert nb_samples > 0
         if min_nb_shuffles is None:
             min_nb_shuffles = 1
         assert min_nb_shuffles <= max_nb_shuffles
-        dimension = tuple(self.puzzle_dimension())
+        dimension = tuple(self.get_puzzle_dimension())
         cls = self.__class__
         puzzle_type = self.get_puzzle_type().__name__
-        res = {cls.solver_name_tag: self.name(),
-               cls.puzzle_type_tag: puzzle_type,
-               cls.puzzle_dimension_tag: str(dimension),
-               cls.nb_shuffles_tag: [0],
-               cls.nb_samples_tag: [1],
-               cls.avg_cost_tag: [0],
-               cls.max_cost_tag: [0],
-               cls.avg_expanded_nodes_tag: [0],
-               cls.max_expanded_nodes_tag: [0],
-               cls.nb_timeout_tag: [0],
-               cls.avg_run_time_tag: [0],
-               cls.max_run_time_tag: [0],
-               cls.pct_solved_tag: [100],
-               cls.pct_optimal_tag: [100]}
+        res = {cls.solver_name: self.name(),
+               cls.puzzle_type: puzzle_type,
+               cls.puzzle_dimension: str(dimension),
+               cls.nb_shuffles: [0],
+               cls.nb_samples: [1],
+               cls.avg_cost: [0],
+               cls.max_cost: [0],
+               cls.avg_expanded_nodes: [0],
+               cls.max_expanded_nodes: [0],
+               cls.nb_timeout: [0],
+               cls.avg_run_time: [0],
+               cls.max_run_time: [0],
+               cls.pct_solved: [100],
+               cls.pct_optimal: [100]}
         performance = DataFrame(res)
         nan = float('nan')
         shuffles = list(range(min_nb_shuffles, max_nb_shuffles + 1, step_nb_shuffles))
-        if perfect_shuffle:
+        if add_perfect_shuffle:
             shuffles.append(inf)
         if shuffles_file_name and shuffles_file_name != g_not_a_pkl_file:
             try:
@@ -210,7 +271,7 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
             total_run_time = 0
             max_run_time = 0
             nb_timeout = 0
-            res[cls.nb_shuffles_tag] = nb_shuffles
+            res[cls.nb_shuffles] = nb_shuffles
             self.log_debug({'nb_shuffles': nb_shuffles, 'nb_cpus': nb_cpus})
             sample_size = nb_samples if nb_shuffles > 0 else 1
             new_pool_size = min(nb_cpus, sample_size)
@@ -272,41 +333,72 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
             max_expanded_nodes = max(max_expanded_nodes, avg_expanded_nodes)
             avg_run_time = round(total_run_time / div, 3)
             max_run_time = max(max_run_time, avg_run_time)
-            res[cls.nb_samples_tag] = sample
-            res[cls.avg_cost_tag] = avg_cost
-            res[cls.max_cost_tag] = max_cost
-            res[cls.avg_expanded_nodes_tag] = avg_expanded_nodes
-            res[cls.max_expanded_nodes_tag] = max_expanded_nodes
-            res[cls.nb_timeout_tag] = nb_timeout
-            res[cls.avg_run_time_tag] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
-            res[cls.max_run_time_tag] = nan if isnan(max_run_time) else int(max_run_time * 1000)
-            res[cls.pct_solved_tag] = int(100 * (sample - nb_timeout) / nb_samples)
-            res[cls.pct_optimal_tag] = int(100 * (sample - nb_not_optimal) / nb_samples)
+            res[cls.nb_samples] = sample
+            res[cls.avg_cost] = avg_cost
+            res[cls.max_cost] = max_cost
+            res[cls.avg_expanded_nodes] = avg_expanded_nodes
+            res[cls.max_expanded_nodes] = max_expanded_nodes
+            res[cls.nb_timeout] = nb_timeout
+            res[cls.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
+            res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
+            res[cls.pct_solved] = int(100 * (sample - nb_timeout) / nb_samples)
+            res[cls.pct_optimal] = int(100 * (sample - nb_not_optimal) / nb_samples)
             performance = concat([performance,
                                   Series(res).to_frame().transpose()],
                                  ignore_index=True)
             self.log_info(performance)
         if shuffles_file_name and shuffles_file_name != g_not_a_pkl_file:
-            touch(shuffles_file_name)
             to_pickle(self.all_shuffles_data, shuffles_file_name)
             self.log_info('Saved all shuffles data to \'%s\'' % shuffles_file_name)
         pool.close()
         pool.join()
-        return performance
+        self.log_info(performance)
+        if append and performance_file_name:
+            try:
+                performance = concat((read_pickle(performance_file_name), performance))
+            except FileNotFoundError:
+                pass
+        subset = [__class__.solver_name,
+                  __class__.puzzle_type,
+                  __class__.puzzle_dimension,
+                  __class__.nb_shuffles]
+        performance = performance.drop_duplicates(subset=subset).sort_values(subset)
+        if performance_file_name:
+            to_pickle(performance, performance_file_name)
+            self.log_info('Saved ', len(performance), ' rows of perf table to \'%s\'' % performance_file_name)
+        self.log_info(performance)
 
     def name(self):
         return '%s[%s]' % (self.__class__.__name__, self.puzzle_name())
 
+    def action(self, **kw_args):
+        action_type = str(kw_args.get(__class__.action_type)).lower()
+        if __class__.do_plot == action_type:
+            self.plot_performance(**kw_args)
+        elif __class__.do_solve == action_type:
+            self.performance(**kw_args)
+        elif __class__.do_cleanup_performance_file == action_type:
+            self.cleanup_perf_file(**kw_args)
+        else:
+            raise NotImplementedError('Unknown action_type [%s]' % action_type)
+
+    def cleanup_perf_file(self, performance_file_name, **kw_args):
+        try:
+            remove(performance_file_name)
+            self.log_info('Removed \'%s\'' % performance_file_name)
+        except FileNotFoundError:
+            pass
+
     def plot_performance(self,
                          performance_file_name,
                          solver_name=None,
-                         puzzle_type=None,
-                         puzzle_dimension=None):
+                         **kw_args):
         try:
             performance = read_pickle(performance_file_name)
         except FileNotFoundError:
             self.log_error('Cannot find \'%s\'. Did you really want to plot rather than solve?' % performance_file_name)
             return
+        self.log_info(performance)
         if solver_name:
             if not isinstance(solver_name, list):
                 solver_name = [solver_name]
@@ -314,40 +406,37 @@ class Solver(Puzzled, Loggable, metaclass=ABCMeta):
             def filter_sn(s_name):
                 return any(s_name.lower().find(w.lower()) >= 0 for w in solver_name)
             performance = performance[performance.solver_name.apply(filter_sn)]
-        if puzzle_type:
-            performance = performance[performance.puzzle_type == puzzle_type]
-        if puzzle_dimension:
-            performance = performance[performance.puzzle_dimension == puzzle_dimension]
-        print(performance[Solver.nb_shuffles_tag])
-        assert inf in performance[Solver.nb_shuffles_tag].values, 'Fix code so it uses normal axes if not inf in there'
-        shuffle_max = performance[Solver.nb_shuffles_tag].replace(inf, -1).max() * 2
-        performance.loc[:, Solver.nb_shuffles_tag] = \
-            performance[Solver.nb_shuffles_tag].replace(inf, shuffle_max)
+        assert 1 == len(set(performance.puzzle_type))
+        assert 1 == len(set(performance.puzzle_dimension))
+        assert inf in performance[Solver.nb_shuffles].values, 'Fix code so it uses normal axes if not inf in there'
+        shuffle_max = performance[Solver.nb_shuffles].replace(inf, -1).max() * 2
+        performance.loc[:, Solver.nb_shuffles] = \
+            performance[Solver.nb_shuffles].replace(inf, shuffle_max)
         pprint(performance)
-        y = [Solver.avg_run_time_tag,
-             Solver.pct_optimal_tag,
-             Solver.avg_expanded_nodes_tag,
-             Solver.pct_solved_tag]
+        y = [Solver.avg_run_time,
+             Solver.pct_optimal,
+             Solver.avg_expanded_nodes,
+             Solver.pct_solved]
         n = int(len(y)/2)
         fig = plt.figure(performance_file_name)
         sps = GridSpec(n, 2, figure=fig)
-        gb = performance.groupby(Solver.solver_name_tag)
-        max_shuffle = max(performance[Solver.nb_shuffles_tag])
+        gb = performance.groupby(Solver.solver_name)
+        max_shuffle = max(performance[Solver.nb_shuffles])
         for r, c in product(range(2), range(n)):
             what = y[r * 2 + c]
             bax = brokenaxes(xlims=((0, max_shuffle/2 + 1),
                                     (max_shuffle - 1.5, max_shuffle + 1.5)),
                              subplot_spec=sps[r, c])
-            bax.set_title('%s vs %s' % (what, Solver.nb_shuffles_tag))
+            bax.set_title('%s vs %s' % (what, Solver.nb_shuffles))
             if r == 1:
-                bax.set_xlabel(Solver.nb_shuffles_tag)
+                bax.set_xlabel(Solver.nb_shuffles)
             bax.set_ylabel(what)
             ticks = bax.get_xticks()
             labels = [['%d' % t for t in ticks[0]],
                       ['\u221e' for _ in ticks[1]]]
             bax.set_xticks('whatahorriblehack', 2, ticks, labels)
             for sn, grp in gb:
-                bax.scatter(x=Solver.nb_shuffles_tag,
+                bax.scatter(x=Solver.nb_shuffles,
                             y=what,
                             data=grp,
                             label=sn)

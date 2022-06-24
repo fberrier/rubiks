@@ -19,7 +19,7 @@ class Manhattan(Heuristic):
     def __init__(self, n, m=None, **kw_args):
         if m is None:
             m = n
-        kw_args.pop('puzzle_type', None)
+        kw_args.pop(__class__.puzzle_type, None)
         super().__init__(SlidingPuzzle, n=n, m=m, **kw_args)
         # build map of where each value should be
         self.goal_map = {}
@@ -30,7 +30,7 @@ class Manhattan(Heuristic):
                 self.goal_map[goal] = (row, col)
                 goal = goal + 1
                 goal %= size
-        (self.n, self.m) = tuple(self.puzzle_dimension())
+        (self.n, self.m) = tuple(self.get_puzzle_dimension())
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
         puzzle = puzzle.clone()

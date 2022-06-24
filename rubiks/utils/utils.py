@@ -5,6 +5,7 @@ from locale import format_string, LC_ALL, setlocale
 from math import isinf
 import numpy as np
 from os import makedirs
+from os import getenv
 from os.path import exists, dirname
 from pandas import DataFrame, Series, to_pickle as pandas_to_pickle
 from pathlib import Path
@@ -43,12 +44,14 @@ def snake_case(s):
 ########################################################################################################################
 
 
-def file_name(puzzle_type,
-              dimension,
-              file_type,
-              extension='pkl',
-              name=None):
-    home = str(Path.home()) + '/rubiks/data'
+def get_file_name(puzzle_type,
+                  dimension,
+                  file_type,
+                  extension='pkl',
+                  name=None):
+    data_folder = getenv('RUBIKSDATA')
+    if not data_folder:
+        data_folder = str(Path.home()) + '/rubiks/data'
     possible_file_types = ['models', 'perf', 'shuffles', 'training']
     assert file_type in possible_file_types, 'Unknown file_type [%s]. Choose from %s' % (file_type, possible_file_types)
     assert name, 'Empty name'
@@ -58,59 +61,59 @@ def file_name(puzzle_type,
         dimension = tuple(dimension)
     dimension = '_'.join((str(d) for d in dimension))
     extension = '.%s' % (extension.replace('.', ''))
-    fn = '/'.join([home, file_type, puzzle_type, dimension, name]) + extension
+    fn = '/'.join([data_folder, file_type, puzzle_type, dimension, name]) + extension
     fn = fn.replace('//', '/').replace('\\', '/')
     return fn
 
 ########################################################################################################################
 
 
-def perf_file_name(puzzle_type,
-                   dimension,
-                   extension='pkl'):
-    return file_name(puzzle_type=puzzle_type,
-                     dimension=dimension,
-                     file_type='perf',
-                     extension=extension,
-                     name='perf')
-
-########################################################################################################################
-
-
-def training_file_name(puzzle_type,
-                       dimension,
-                       model_name,
-                       extension='pkl'):
-    return file_name(puzzle_type=puzzle_type,
-                     dimension=dimension,
-                     file_type='training',
-                     extension=extension,
-                     name=model_name)
-
-########################################################################################################################
-
-
-def model_file_name(puzzle_type,
-                    dimension,
-                    model_name,
-                    extension='pkl'):
-    return file_name(puzzle_type=puzzle_type,
-                     dimension=dimension,
-                     file_type='models',
-                     extension=extension,
-                     name=model_name)
-
-########################################################################################################################
-
-
-def shuffles_file_name(puzzle_type,
+def get_perf_file_name(puzzle_type,
                        dimension,
                        extension='pkl'):
-    return file_name(puzzle_type=puzzle_type,
-                     dimension=dimension,
-                     file_type='shuffles',
-                     extension=extension,
-                     name='shuffles')
+    return get_file_name(puzzle_type=puzzle_type,
+                         dimension=dimension,
+                         file_type='perf',
+                         extension=extension,
+                         name='perf')
+
+########################################################################################################################
+
+
+def get_training_file_name(puzzle_type,
+                           dimension,
+                           model_name,
+                           extension='pkl'):
+    return get_file_name(puzzle_type=puzzle_type,
+                         dimension=dimension,
+                         file_type='training',
+                         extension=extension,
+                         name=model_name)
+
+########################################################################################################################
+
+
+def get_model_file_name(puzzle_type,
+                        dimension,
+                        model_name,
+                        extension='pkl'):
+    return get_file_name(puzzle_type=puzzle_type,
+                         dimension=dimension,
+                         file_type='models',
+                         extension=extension,
+                         name=model_name)
+
+########################################################################################################################
+
+
+def get_shuffles_file_name(puzzle_type,
+                           dimension,
+                           extension='pkl'):
+    return get_file_name(puzzle_type=puzzle_type,
+                         dimension=dimension,
+                         file_type='shuffles',
+                         extension=extension,
+                         name='shuffles')
 
 ########################################################################################################################
 

@@ -8,7 +8,7 @@ from sys import argv
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.puzzle.sliding import SlidingPuzzle
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
-from rubiks.utils.utils import is_windows, g_not_a_pkl_file, training_file_name, model_file_name
+from rubiks.utils.utils import is_windows, g_not_a_pkl_file, get_training_file_name, get_model_file_name
 ########################################################################################################################
 
 
@@ -89,13 +89,13 @@ if '__main__' == __name__:
         if one_hot_encoding:
             model_name += '_one_hot_encoding'
             command_line_args += " --one_hot_encoding"
-        model_file_name = model_file_name(puzzle_type=PuzzleType,
-                                          dimension=dimension,
-                                          model_name=model_name)
+        model_file_name = get_model_file_name(puzzle_type=PuzzleType,
+                                              dimension=dimension,
+                                              model_name=model_name)
         command_line_args += " -model_file_name=%s" % model_file_name
-        learning_file_name = training_file_name(puzzle_type=PuzzleType,
-                                                dimension=dimension,
-                                                model_name=model_name)
+        learning_file_name = get_training_file_name(puzzle_type=PuzzleType,
+                                                    dimension=dimension,
+                                                    model_name=model_name)
         command_line_args += " -learning_file_name=%s" % learning_file_name
         command_line_args += " --layers %s" % ' '.join(layers)
         argv.extend(command_line_args.split(' '))

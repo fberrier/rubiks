@@ -32,6 +32,10 @@ class CubeMove(Move):
 class RubiksCube(Puzzle):
     """ Game of the sliding Puzzle, e.g. the 8-puzzle, 15-puzzle, etc """
 
+    @classmethod
+    def generate_all_puzzles(cls, **kw_args):
+        pass
+
     move_type = CubeMove
 
     def __init__(self):

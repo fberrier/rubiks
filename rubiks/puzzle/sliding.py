@@ -34,6 +34,15 @@ class Slide(Move):
 class SlidingPuzzle(Puzzle):
     """ Game of the sliding Puzzle, e.g. the 8-puzzle, 15-puzzle, etc """
 
+    n = 'n'
+    m = 'm'
+
+    @classmethod
+    def populate_parser(cls, parser):
+        Puzzle.populate_parser(parser)
+        cls.add_argument(parser, field=cls.n, type=int, default=2)
+        cls.add_argument(parser, field=cls.m, type=int, default=None)
+
     def possible_puzzles_nb(self):
         dimension = self.dimension()
         return int(factorial(dimension[0] * dimension[1]) / 2)

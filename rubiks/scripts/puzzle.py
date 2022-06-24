@@ -10,7 +10,7 @@ from rubiks.puzzle.puzzle import Puzzle
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.solvers.solver import Solver
 from rubiks.utils.loggable import Loggable
-from rubiks.utils.utils import is_windows, g_not_a_pkl_file, model_file_name, s_format
+from rubiks.utils.utils import is_windows, g_not_a_pkl_file, get_model_file_name, s_format
 ########################################################################################################################
 
 
@@ -25,14 +25,14 @@ def main():
     parser.add_argument('-puzzle_type',
                         type=str,
                         default=None,
-                        choices=[Puzzle.sliding_puzzle_tag,
-                                 Puzzle.rubiks_cube_tag])
+                        choices=[Puzzle.sliding_puzzle,
+                                 Puzzle.rubiks_cube])
     parser.add_argument('-solver_type', type=str,
-                        default=Solver.bfs_tag,
+                        default=Solver.bfs,
                         choices=Solver.known_solver_types)
     parser.add_argument('-heuristic_type',
                         type=str,
-                        default=Heuristic.manhattan_tag,
+                        default=Heuristic.manhattan,
                         choices=Heuristic.known_heuristics)
     parser.add_argument('-model_file_name', type=str, default=g_not_a_pkl_file)
     parser.add_argument('--log_solution', default=False, action='store_true')
@@ -83,7 +83,7 @@ def main():
 
 
 if '__main__' == __name__:
-    PuzzleType = 'sliding_puzzle'
+    PuzzleType = Puzzle.sliding_puzzle
     dimension = (4, 4)
     nb_shuffles = 15
     solver_type = 'a*'
@@ -106,9 +106,9 @@ if '__main__' == __name__:
                 command_line_args += " --one_hot_encoding"
         elif heuristic_type == 'perfect':
             model_name = 'perfect'
-        model_file_name = model_file_name(puzzle_type=PuzzleType,
-                                          dimension=dimension,
-                                          model_name='perfect')
+        model_file_name = get_model_file_name(puzzle_type=PuzzleType,
+                                              dimension=dimension,
+                                              model_name='perfect')
         command_line_args += " -model_file_name=%s" % model_file_name
         if log_solution:
             command_line_args += " --log_solution"

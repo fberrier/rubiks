@@ -7,6 +7,7 @@ from numpy import prod
 from numpy.random import permutation
 from torch import Size, Tensor
 ########################################################################################################################
+from rubiks.core.parsable import Parsable
 from rubiks.utils.utils import snake_case, is_inf
 ########################################################################################################################
 
@@ -31,10 +32,23 @@ class Move(metaclass=ABCMeta):
 ########################################################################################################################
 
 
-class Puzzle(metaclass=ABCMeta):
+class Puzzle(Parsable, metaclass=ABCMeta):
     """ Generic concept of a puzzle """
 
     move_type = int
+    puzzle_type = 'puzzle_type'
+    sliding_puzzle = 'sliding_puzzle'
+    rubiks_cube = 'rubiks_cube'
+    known_puzzle_types = [sliding_puzzle, rubiks_cube]
+
+    @classmethod
+    def populate_parser(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.puzzle_type,
+                         type=str,
+                         choices=[cls.sliding_puzzle,
+                                  cls.rubiks_cube],
+                         default=cls.sliding_puzzle)
 
     @abstractmethod
     def dimension(self) -> Size:
@@ -110,22 +124,12 @@ class Puzzle(metaclass=ABCMeta):
                 training_data.append(puzzles)
         return training_data
 
-    sliding_puzzle_tag = 'sliding_puzzle'
-    sliding_tag = 'sliding'
-    rubiks_cube_tag = 'rubiks_cube'
-    rubiks_tag = 'rubiks'
-
-    known_puzzle_types = [sliding_puzzle_tag, sliding_tag,
-                          rubiks_cube_tag, rubiks_tag]
-
     @classmethod
     def factory(cls, puzzle_type, **kw_args):
         puzzle_type = snake_case(str(puzzle_type))
-        if any(puzzle_type.find(what) >= 0 for what in [cls.sliding_tag,
-                                                        cls.sliding_puzzle_tag]):
+        if any(puzzle_type.find(what) >= 0 for what in [cls.sliding_puzzle]):
             from rubiks.puzzle.sliding import SlidingPuzzle as PuzzleType
-        elif any(puzzle_type.find(what) >= 0 for what in [cls.rubiks_tag,
-                                                          cls.rubiks_cube_tag]):
+        elif any(puzzle_type.find(what) >= 0 for what in [cls.rubiks_cube]):
             from rubiks.puzzle.rubiks import RubiksCube as PuzzleType
         else:
             raise NotImplementedError('Unknown puzzle_type [%s]' % puzzle_type)
@@ -233,8 +237,10 @@ class Puzzle(metaclass=ABCMeta):
 
 class Puzzled:
 
+    puzzle_type = 'puzzle_type'
+
     def __init__(self, puzzle_type, **kw_args):
-        self.kw_args = {**kw_args, 'puzzle_type': puzzle_type}
+        self.kw_args = {**kw_args, self.__class__.puzzle_type: puzzle_type}
         self.goal = Puzzle.factory(**self.kw_args)
         self.puzzle_type = type(self.goal)
         self.pp_nb = self.goal.possible_puzzles_nb()
@@ -245,7 +251,7 @@ class Puzzled:
                           Puzzle), 'Puzzle type for %s has not been setup properly' % self.__class__.__name__
         return self.puzzle_type
 
-    def puzzle_dimension(self):
+    def get_puzzle_dimension(self):
         return self.goal.dimension()
 
     def get_goal(self):

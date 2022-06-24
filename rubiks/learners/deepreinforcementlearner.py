@@ -15,7 +15,7 @@ from torch.optim import RMSprop
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.learner import Learner
-from rubiks.utils.utils import ms_format, h_format, pformat, touch
+from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, touch
 ########################################################################################################################
 
 
@@ -23,6 +23,16 @@ class DeepReinforcementLearner(Learner):
     """ This learner will learn the cost-to-go via deep reinforcement learning
     @todo FB: maybe add ability to restore from a previous model and continue improving on it
     """
+
+    update_target_network_frequency = 'update_target_network_frequency'
+    update_target_network_threshold = 'update_target_network_threshold'
+    max_nb_target_network_update = 'max_nb_target_network_update'
+    max_target_not_increasing_epochs_pct = 'max_target_not_increasing_epochs_pct'
+    max_target_uptick = 'max_target_uptick'
+    use_cuda = 'use_cuda'
+    learning_rate = 'learning_rate'
+    nb_cpus = 'nb_cpus'
+    verbose = 'verbose'
 
     def __init__(self,
                  puzzle_type,
@@ -37,34 +47,34 @@ class DeepReinforcementLearner(Learner):
         self.nb_sequences = nb_sequences
         self.target_network = DeepLearning.factory(puzzle_type, **kw_args)
         self.current_network = self.target_network.clone()
-        self.update_target_network_frequency = kw_args.pop('update_target_network_frequency', 100)
-        self.update_target_network_threshold = kw_args.pop('update_target_network_threshold', 0.01)
-        self.max_nb_target_network_update = kw_args.pop('max_nb_target_network_update', 100)
+        self.update_target_network_frequency = kw_args.pop(__class__.update_target_network_frequency, 100)
+        self.update_target_network_threshold = kw_args.pop(__class__.update_target_network_threshold, 0.01)
+        self.max_nb_target_network_update = kw_args.pop(__class__.max_nb_target_network_update, 100)
         # if the max value of target not increasing in that many epochs (as % of total epochs) by more than uptick
         # not much point going on
-        self.max_target_not_increasing_epochs_pct = kw_args.pop('max_target_not_increasing_epochs_pct', 0.1)
-        self.max_target_uptick = kw_args.pop('max_target_uptick', 0.05)
-        self.use_cuda = kw_args.pop('use_cuda', False) and cuda.is_available()
+        self.max_target_not_increasing_epochs_pct = kw_args.pop(__class__.max_target_not_increasing_epochs_pct, 0.1)
+        self.max_target_uptick = kw_args.pop(__class__.max_target_uptick, 0.05)
+        self.use_cuda = kw_args.pop(__class__.use_cuda, False) and cuda.is_available()
         self.loss_function = MSELoss()
-        self.learning_rate = kw_args.pop('learning_rate', 1e-6)
-        self.nb_cpus = kw_args.pop('nb_cpus', 1)
-        self.verbose = kw_args.pop('verbose', False)
+        self.learning_rate = kw_args.pop(__class__.learning_rate, 1e-6)
+        self.nb_cpus = kw_args.pop(__class__.nb_cpus, 1)
+        self.verbose = kw_args.pop(__class__.verbose, False)
         cls = self.__class__
-        self.convergence_data = DataFrame(columns=[cls.epoch_tag,
-                                                   cls.nb_epochs_tag,
-                                                   cls.loss_tag,
-                                                   cls.latency_tag,
-                                                   cls.min_target_tag,
-                                                   cls.max_target_tag,
-                                                   cls.max_max_target_tag,
-                                                   cls.target_network_count_tag,
-                                                   cls.network_name_tag,
-                                                   cls.puzzle_type_tag,
-                                                   cls.puzzle_dimension_tag,
-                                                   cls.decision_tag,
-                                                   cls.nb_shuffles_tag,
-                                                   cls.nb_sequences_tag,
-                                                   cls.cuda_tag])
+        self.convergence_data = DataFrame(columns=[cls.epoch,
+                                                   cls.nb_epochs,
+                                                   cls.loss,
+                                                   cls.latency,
+                                                   cls.min_target,
+                                                   cls.max_target,
+                                                   cls.max_max_target,
+                                                   cls.target_network_count,
+                                                   cls.network_name,
+                                                   cls.puzzle_type,
+                                                   cls.puzzle_dimension,
+                                                   cls.decision,
+                                                   cls.nb_shuffles,
+                                                   cls.nb_sequences,
+                                                   cls.cuda])
         self.last_network_update = 0
         self.epoch_latency = 0
         self.training_data_latency = 0
@@ -74,21 +84,21 @@ class DeepReinforcementLearner(Learner):
         self.back_prop_latency = 0
         self.pool_size = self.nb_cpus
 
-    epoch_tag = 'epoch'
-    loss_tag = 'loss'
-    latency_tag = 'latency'
-    min_target_tag = 'min_target'
-    max_target_tag = 'max_target'
-    max_max_target_tag = 'max_max_target'
-    target_network_count_tag = 'target_network_count'
-    network_name_tag = 'network_name'
-    puzzle_type_tag = 'puzzle_type'
-    puzzle_dimension_tag = 'puzzle_dimension'
-    decision_tag = 'decision'
-    nb_shuffles_tag = 'nb_shuffles'
-    nb_sequences_tag = 'nb_sequences'
-    nb_epochs_tag = 'nb_epochs'
-    cuda_tag = 'cuda'
+    epoch = 'epoch'
+    loss = 'loss'
+    latency = 'latency'
+    min_target = 'min_target'
+    max_target = 'max_target'
+    max_max_target = 'max_max_target'
+    target_network_count = 'target_network_count'
+    network_name = 'network_name'
+    puzzle_type = 'puzzle_type'
+    puzzle_dimension = 'puzzle_dimension'
+    decision = 'decision'
+    nb_shuffles = 'nb_shuffles'
+    nb_sequences = 'nb_sequences'
+    nb_epochs = 'nb_epochs'
+    cuda = 'cuda'
 
     class Decision(Enum):
         TBD = 'TBD'
@@ -105,14 +115,14 @@ class DeepReinforcementLearner(Learner):
         if n >= self.nb_epochs:
             self.log_info('Reached max epochs')
             stop = True
-        elif top[cls.target_network_count_tag] >= self.max_nb_target_network_update:
+        elif top[cls.target_network_count] >= self.max_nb_target_network_update:
             self.log_info('Reached max number of target network updates')
             stop = True
         if not stop:
-            new_max = top[cls.max_max_target_tag]
+            new_max = top[cls.max_max_target]
             old_epoch = n - int(self.max_target_not_increasing_epochs_pct * self.nb_epochs)
             if old_epoch >= 0:
-                old_max = convergence_data[cls.max_max_target_tag][old_epoch]
+                old_max = convergence_data[cls.max_max_target][old_epoch]
                 old_max *= (1 + self.max_target_uptick)
                 if new_max <= old_max:
                     self.log_info('Max target not going up anymore')
@@ -122,18 +132,18 @@ class DeepReinforcementLearner(Learner):
         elif n - self.last_network_update >= self.update_target_network_frequency:
             decision = self.Decision.TARGET_NET_REGULAR_UPDATE
             self.last_network_update = n
-        elif abs(top[cls.loss_tag] / top[cls.max_max_target_tag]) <= self.update_target_network_threshold:
+        elif abs(top[cls.loss] / top[cls.max_max_target]) <= self.update_target_network_threshold:
             decision = self.Decision.TARGET_NET_CONVERGENCE_UPDATE
             self.last_network_update = n
         else:
             decision = self.Decision.GRADIENT_DESCENT
-        convergence_data.loc[n - 1, cls.decision_tag] = decision
+        convergence_data.loc[n - 1, cls.decision] = decision
         top = convergence_data.iloc[n - 1]
         self.log_info(top)
-        total_run_time = self.epoch_latency / top[cls.epoch_tag]
-        total_run_time *= top[cls.nb_epochs_tag] - top[cls.epoch_tag]
+        total_run_time = self.epoch_latency / top[cls.epoch]
+        total_run_time *= top[cls.nb_epochs] - top[cls.epoch]
         self.log_info('Estimated max run time left: ', h_format(total_run_time),
-                      '. Convergence update at loss <= %.4f' % (top[cls.max_max_target_tag] *
+                      '. Convergence update at loss <= %.4f' % (top[cls.max_max_target] *
                                                                 self.update_target_network_threshold),
                       '. Regular update in ',
                       self.last_network_update + self.update_target_network_frequency - n,
@@ -219,7 +229,7 @@ class DeepReinforcementLearner(Learner):
             min_targets = min(targets).item()
             max_targets = max(targets).item()
             old_max_targets = 0 if self.convergence_data.empty else \
-                self.convergence_data[cls.max_target_tag].iloc[-1]
+                self.convergence_data[cls.max_target].iloc[-1]
             max_max_targets = max(max_targets, old_max_targets)
             latency = Series({'epoch': ms_format(self.epoch_latency/epoch),
                               'training data': ms_format(self.training_data_latency/epoch),
@@ -229,21 +239,21 @@ class DeepReinforcementLearner(Learner):
                               'back prop': ms_format(self.back_prop_latency/epoch),
                               })
             latency = pformat(latency)
-            convergence_data = Series({cls.epoch_tag: epoch,
-                                       cls.nb_epochs_tag: self.nb_epochs,
-                                       cls.loss_tag: loss,
-                                       cls.latency_tag: latency,
-                                       cls.min_target_tag: min_targets,
-                                       cls.max_target_tag: max_targets,
-                                       cls.max_max_target_tag: max_max_targets,
-                                       cls.target_network_count_tag: target_network_count,
-                                       cls.puzzle_type_tag: self.get_puzzle_type().__name__,
-                                       cls.puzzle_dimension_tag: str(tuple(self.puzzle_dimension())),
-                                       cls.network_name_tag: self.target_network.name(),
-                                       cls.decision_tag: self.Decision.TBD,
-                                       cls.nb_shuffles_tag: self.nb_shuffles,
-                                       cls.nb_sequences_tag: self.nb_sequences,
-                                       cls.cuda_tag: self.use_cuda})
+            convergence_data = Series({cls.epoch: epoch,
+                                       cls.nb_epochs: self.nb_epochs,
+                                       cls.loss: loss,
+                                       cls.latency: latency,
+                                       cls.min_target: min_targets,
+                                       cls.max_target: max_targets,
+                                       cls.max_max_target: max_max_targets,
+                                       cls.target_network_count: target_network_count,
+                                       cls.puzzle_type: self.get_puzzle_type().__name__,
+                                       cls.puzzle_dimension: str(tuple(self.get_puzzle_dimension())),
+                                       cls.network_name: self.target_network.name(),
+                                       cls.decision: self.Decision.TBD,
+                                       cls.nb_shuffles: self.nb_shuffles,
+                                       cls.nb_sequences: self.nb_sequences,
+                                       cls.cuda: self.use_cuda})
             convergence_data = convergence_data.to_frame()
             convergence_data = convergence_data.transpose()
             self.convergence_data = concat([self.convergence_data, convergence_data],
@@ -271,11 +281,10 @@ class DeepReinforcementLearner(Learner):
              model_file_name,
              learning_file_name=None):
         touch(model_file_name)
-        touch(learning_file_name)
         self.current_network.save(model_file_name)
         self.log_info('Saved learner state in ', model_file_name)
         if learning_file_name is not None:
-            self.convergence_data.to_pickle(learning_file_name)
+            to_pickle(self.convergence_data, learning_file_name)
             self.log_info('Saved convergence data to ', learning_file_name)
 
     @staticmethod
@@ -284,38 +293,38 @@ class DeepReinforcementLearner(Learner):
                       puzzle_type=None,
                       puzzle_dimension=None):
         learning_data = read_pickle(learning_file_name)
-        drl = DeepReinforcementLearner # alias
+        drl = DeepReinforcementLearner  # alias
         if network_name:
             learning_data = learning_data[learning_data.solver_name.apply(lambda sn: sn.find(network_name) >= 0)]
         if not puzzle_type:
-            puzzle_types = set(learning_data[drl.puzzle_type_tag])
+            puzzle_types = set(learning_data[drl.puzzle_type])
         else:
             puzzle_types = {puzzle_type}
         if not puzzle_dimension:
-            puzzle_dimensions = set(learning_data[drl.puzzle_dimension_tag])
+            puzzle_dimensions = set(learning_data[drl.puzzle_dimension])
         else:
             puzzle_dimensions = {puzzle_dimension}
         for puzzle_type, puzzle_dimension in product(puzzle_types, puzzle_dimensions):
             data = learning_data[learning_data.puzzle_type == puzzle_type]
             data = data[data.puzzle_dimension == puzzle_dimension]
-            assert 1 == len(set(data[drl.nb_shuffles_tag]))
-            assert 1 == len(set(data[drl.nb_sequences_tag]))
-            assert 1 == len(set(data[drl.network_name_tag]))
+            assert 1 == len(set(data[drl.nb_shuffles]))
+            assert 1 == len(set(data[drl.nb_sequences]))
+            assert 1 == len(set(data[drl.network_name]))
             if not network_name:
-                network_name = data[drl.network_name_tag].iloc[0]
+                network_name = data[drl.network_name].iloc[0]
             title = '%s | %s | %s' % (network_name,
                                       puzzle_type,
                                       puzzle_dimension)
             fig = plt.figure(title)
             title = 'Learning data plot\n\n%s' % title
             fig.suptitle(title)
-            x = drl.epoch_tag
+            x = drl.epoch
             gs = fig.add_gridspec(4, 1)
             ax1 = fig.add_subplot(gs[0])
             ax2 = fig.add_subplot(gs[1])
             ax3 = fig.add_subplot(gs[2])
             ax4 = fig.add_subplot(gs[3])
-            loss_over_max_target_tag = 'loss_over_max_target'
+            loss_over_max_target = 'loss_over_max_target'
 
             def add_plot(ax, y, c):
                 ax.scatter(x,
@@ -326,13 +335,13 @@ class DeepReinforcementLearner(Learner):
                            marker='.')
                 ax.set_xlabel(x)
                 ax.set_ylabel(y)
-                if y in [drl.loss_tag, loss_over_max_target_tag]:
+                if y in [drl.loss, loss_over_max_target]:
                     ax.set_yscale('log')
-            data[loss_over_max_target_tag] = data[drl.loss_tag] /  data[drl.max_target_tag]
-            add_plot(ax1, drl.target_network_count_tag, 'b')
-            add_plot(ax2, drl.max_target_tag, 'r')
-            add_plot(ax3, drl.loss_tag, 'g')
-            add_plot(ax4, loss_over_max_target_tag, 'm')
+            data[loss_over_max_target] = data[drl.loss] /  data[drl.max_target]
+            add_plot(ax1, drl.target_network_count, 'b')
+            add_plot(ax2, drl.max_target, 'r')
+            add_plot(ax3, drl.loss, 'g')
+            add_plot(ax4, loss_over_max_target, 'm')
         plt.show()
 
 ########################################################################################################################

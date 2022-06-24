@@ -8,6 +8,26 @@ from rubiks.solvers.solver import Solver, Solution
 
 class DFSSolver(Solver):
 
+    limit = 'limit'
+    default_limit = 100
+
+    @classmethod
+    def populate_parser(cls, parser):
+        Solver.populate_parser(parser)
+        cls.add_argument(parser,
+                         'limit',
+                         type=int,
+                         default=31)
+
+
+    def __init__(self, puzzle_type, **kw_args):
+        kw_args.update({__class__.limit: kw_args.get(__class__.limit,
+                                                     __class__.default_limit),
+                        })
+        Solver.__init__(self,
+                        puzzle_type=puzzle_type,
+                        **kw_args)
+
     def know_to_be_optimal(self):
         """ unless extremely lucky this is not going to return optimal solutions """
         return False
@@ -21,6 +41,7 @@ class DFSSolver(Solver):
                         puzzle)
 
     def name(self):
-        return self.__class__.__name__ + '[limit=%d]' % self.kw_args.get('limit')
+        return self.__class__.__name__ + '[%s=%d]' % (__class__.limit,
+                                                      self.kw_args.get(__class__.limit))
 
 ########################################################################################################################

@@ -80,7 +80,6 @@ class SlidingPuzzle(Puzzle):
 
     def __init__(self, **kw_args):
         from_tiles = self.tiles in kw_args
-        #kw_args[self.puzzle_type] = self.sliding_puzzle
         if from_tiles:
             # we set n, m and empty
             self.tiles = kw_args[self.tiles]

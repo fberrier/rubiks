@@ -130,7 +130,6 @@ class PerfectLearner(Learner):
     def learn(self):
         cls = self.__class__
         solver = Solver.factory(**self.get_config())
-        self.log_info('DEBUG FB solver.get_config(): ', solver.get_config())
         pool = Pool(self.nb_cpus)
         puzzles = []
         self.puzzle_count = 1

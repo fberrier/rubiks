@@ -19,15 +19,9 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
 
     use_cuda = 'use_cuda'
 
-    @classmethod
-    def populate_parser_impl(cls, parser):
-        cls.add_argument(parser,
-                         field=cls.use_cuda,
-                         default=False,
-                         action=cls.store_true)
-
     def __init__(self, **kw_args):
         Module.__init__(self)
+        Factory.__init__(self, **kw_args)
         Puzzled.__init__(self, **kw_args)
         Loggable.__init__(self, **kw_args)
         self.cuda_device = None
@@ -35,6 +29,16 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
     network_type = 'network_type'
     fully_connected_net = 'fully_connected_net'
     state_dict_tag = 'state_dict'
+
+    @classmethod
+    def populate_parser_impl(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.use_cuda,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.network_type,
+                         choices=[cls.fully_connected_net])
 
     @classmethod
     def factory_key_name(cls):
@@ -50,29 +54,16 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
         from rubiks.deeplearning.fullyconnected import FullyConnected
         return {cls.fully_connected_net: FullyConnected}
 
-    @classmethod
-    def factory_impl(cls, network_type, **kw_args):
-        if cls.fully_connected_net == network_type:
-            from rubiks.deeplearning.fullyconnected import FullyConnected as Network
-        else:
-            raise NotImplementedError('DeepLearning.factory cannot construct network of type %s' % network_type)
-        return Network(**kw_args)
-
     def save(self, model_file_name):
-        cls = self.__class__
-        data = {cls.puzzle_type: self.puzzle_type,
-                cls.network_type: self.network_type,
-                cls.kw_args: self.kw_args,
-                cls.state_dict_tag: self.state_dict()}
+        data = (self.get_config(),
+                self.state_dict())
         to_pickle(data, model_file_name)
 
     @classmethod
     def restore(cls, model_file):
         data = read_pickle(model_file)
-        deeplearning = cls.factory(data[Puzzled.puzzle_type],
-                                   data[cls.network_type],
-                                   **data[cls.kw_args])
-        deeplearning.load_state_dict(data[cls.state_dict_tag])
+        deeplearning = cls.factory(**data[0])
+        deeplearning.load_state_dict(data[1])
         return deeplearning
 
     def get_name(self):

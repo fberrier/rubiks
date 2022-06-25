@@ -92,8 +92,8 @@ class Factory(Parsable, metaclass=ABCMeta):
     @classmethod
     def factory(cls, **kw_args):
         factory_key_name = cls.factory_key_name()
-        widget_name = kw_args[factory_key_name]
         widget_type = cls.factory_type(**kw_args)
+        widget_name = kw_args[factory_key_name]
         widget = widget_type(**kw_args)
         setattr(widget, factory_key_name, widget_name)
         return widget

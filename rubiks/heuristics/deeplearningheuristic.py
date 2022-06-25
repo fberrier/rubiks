@@ -32,14 +32,14 @@ class DeepLearningHeuristic(Heuristic):
         return '%s[%s]' % (super().name(), split(self.model_file_name)[1])
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
-        assert isinstance(puzzle, self.puzzle_type), \
+        assert isinstance(puzzle, self.get_puzzle_type_class()), \
             '%s knows cost for %s, not for %s' % (self.__class__.__name__,
-                                                  self.puzzle_type.__name__,
+                                                  self.puzzle_type,
                                                   puzzle.__class__.__name__)
-        assert tuple(puzzle.dimension()) == tuple(self.deep_learning.puzzle_dimension), \
+        assert tuple(puzzle.dimension()) == tuple(self.deep_learning.get_puzzle_dimension()), \
             '%s expected %s of dimension %s, got %s instead' % (self.__class__.__name__,
                                                                 puzzle.__class__.__name__,
-                                                                tuple(self.deep_learning.puzzle_dimension),
+                                                                tuple(self.deep_learning.get_puzzle_dimension()),
                                                                 tuple(puzzle.dimension()))
         return self.deep_learning.evaluate(puzzle)
 

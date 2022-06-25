@@ -41,14 +41,12 @@ class FullyConnected(DeepLearning):
             layers = (in_channels, *tuple(layers))
         self.layers_int = layers
         self.layers_str = str(layers)
-        self.log_info(self.get_config())
         modules = []
         for x, y in zip(layers[:-1], layers[1:]):
             modules.append(Linear(x, y))
             modules.append(ReLU())
         modules = modules[:-1]
         self.layers = Sequential(*modules)
-        self.log_info(self.layers)
 
     def get_name(self):
         name = self.__class__.__name__

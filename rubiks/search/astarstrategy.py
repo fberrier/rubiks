@@ -22,8 +22,8 @@ class AStar(SearchStrategy):
                          choices=Heuristic.known_heuristic_types,
                          default=Heuristic.manhattan)
 
-    def __init__(self, puzzle, **kw_args):
-        SearchStrategy.__init__(self, puzzle, **kw_args)
+    def __init__(self, **kw_args):
+        SearchStrategy.__init__(self, **kw_args)
         self.heuristic = Heuristic.factory(**kw_args)
 
     def get_name(self):

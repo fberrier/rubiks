@@ -6,6 +6,7 @@ from abc import abstractmethod, ABCMeta
 from rubiks.core.factory import Factory
 from rubiks.core.loggable import Loggable
 from rubiks.puzzle.puzzled import Puzzled
+from rubiks.deeplearning.deeplearning import DeepLearning
 ########################################################################################################################
 
 
@@ -22,6 +23,10 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
     deep_reinforcement_learner = 'deep_reinforcement_learner'
     drl = 'drl'
     known_learner_types = [perfect_learner, deep_reinforcement_learner]
+
+    @classmethod
+    def additional_dependencies(cls):
+        return [DeepLearning] + list(DeepLearning.widget_types().values())
 
     @classmethod
     def populate_parser_impl(cls, parser):

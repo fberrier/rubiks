@@ -26,32 +26,40 @@ class DeepReinforcementLearner(Learner):
 
     nb_epochs = 'nb_epochs'
     nb_shuffles = 'nb_shuffles'
+    min_no_loop = 'min_no_loop'
     nb_sequences = 'nb_sequences'
     update_target_network_frequency = 'update_target_network_frequency'
     default_update_target_network_frequency = 100
     update_target_network_threshold = 'update_target_network_threshold'
-    default_update_target_network_threshold = 0.01
+    default_update_target_network_threshold = 0.002
     max_nb_target_network_update = 'max_nb_target_network_update'
     default_max_nb_target_network_update = 100
     max_target_not_increasing_epochs_pct = 'max_target_not_increasing_epochs_pct'
-    default_max_target_not_increasing_epochs_pct = 0.1
+    default_max_target_not_increasing_epochs_pct = 0.25
     max_target_uptick = 'max_target_uptick'
-    default_max_target_uptick = 0.05
+    default_max_target_uptick = 0.01
     use_cuda = 'use_cuda'
     learning_rate = 'learning_rate'
     default_learning_rate = 1e-6
     nb_cpus = 'nb_cpus'
     default_nb_cpus = 1
     verbose = 'verbose'
+    model_file_name = 'model_file_name'
 
     @classmethod
     def populate_parser_impl(cls, parser):
         DeepLearning.populate_parser(parser)
         cls.add_argument(parser,
+                         field=cls.model_file_name,
+                         type=str)
+        cls.add_argument(parser,
                          field=cls.nb_epochs,
                          type=int)
         cls.add_argument(parser,
                          field=cls.nb_shuffles,
+                         type=int)
+        cls.add_argument(parser,
+                         field=cls.min_no_loop,
                          type=int)
         cls.add_argument(parser,
                          field=cls.nb_sequences,
@@ -95,7 +103,6 @@ class DeepReinforcementLearner(Learner):
 
     def __init__(self, **kw_args):
         Learner.__init__(self, **kw_args)
-        self.log_info('Config=', self.get_config())
         self.target_network = DeepLearning.factory(**kw_args)
         self.current_network = self.target_network.clone()
         # if the max value of target not increasing in that many epochs (as % of total epochs) by more than uptick
@@ -126,6 +133,8 @@ class DeepReinforcementLearner(Learner):
         self.loss_latency = 0
         self.back_prop_latency = 0
         self.pool_size = self.nb_cpus
+        if not self.min_no_loop:
+            self.min_no_loop = self.nb_shuffles
 
     epoch = 'epoch'
     loss = 'loss'
@@ -147,7 +156,7 @@ class DeepReinforcementLearner(Learner):
         TARGET_NET_CONVERGENCE_UPDATE = 'TARGET_NET_CONVERGENCE_UPDATE'
         STOP = 'STOP'
 
-    def decision(self, convergence_data) -> Decision:
+    def get_decision(self, convergence_data) -> Decision:
         n = len(convergence_data)
         cls = self.__class__
         top = convergence_data.iloc[n - 1]
@@ -214,15 +223,13 @@ class DeepReinforcementLearner(Learner):
         target_network_count = 1
         pool = Pool(self.pool_size)
         best_current = (inf, self.current_network.clone())
+        puzzle_class = self.get_puzzle_type_class()
+        config = self.get_config()
         while True:
             epoch += 1
             self.epoch_latency -= snap()
             self.training_data_latency -= snap()
-            puzzles = self.puzzle_type.get_training_data(nb_shuffles=self.nb_shuffles,
-                                                         nb_sequences=self.nb_sequences,
-                                                         min_no_loop=self.nb_shuffles,
-                                                         one_list=True,
-                                                         **self.kw_args)
+            puzzles = puzzle_class.get_training_data(one_list=True, **config)
             self.training_data_latency += snap()
             self.target_data_latency -= snap()
             hashes = [hash(puzzle) for puzzle in puzzles]
@@ -287,18 +294,19 @@ class DeepReinforcementLearner(Learner):
                                        cls.max_target: max_targets,
                                        cls.max_max_target: max_max_targets,
                                        cls.target_network_count: target_network_count,
-                                       cls.puzzle_type: self.get_puzzle_type().__name__,
+                                       cls.puzzle_type: self.get_puzzle_type(),
                                        cls.puzzle_dimension: str(tuple(self.get_puzzle_dimension())),
-                                       cls.network_name: self.target_network.name(),
+                                       cls.network_name: self.target_network.get_name(),
                                        cls.decision: self.Decision.TBD,
                                        cls.nb_shuffles: self.nb_shuffles,
                                        cls.nb_sequences: self.nb_sequences,
                                        cls.cuda: self.use_cuda})
+            self.log_info(convergence_data)
             convergence_data = convergence_data.to_frame()
             convergence_data = convergence_data.transpose()
             self.convergence_data = concat([self.convergence_data, convergence_data],
                                            ignore_index=True)
-            decision = self.decision(self.convergence_data)
+            decision = self.get_decision(self.convergence_data)
             if self.Decision.STOP == decision:
                 break
             if decision in [self.Decision.TARGET_NET_REGULAR_UPDATE,
@@ -316,6 +324,9 @@ class DeepReinforcementLearner(Learner):
                 target_network_count += 1
         pool.close()
         pool.join()
+        self.target_network = best_current[1].clone()
+        if self.model_file_name:
+            self.save(self.model_file_name)
 
     def save(self,
              model_file_name,

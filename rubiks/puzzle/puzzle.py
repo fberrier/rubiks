@@ -2,14 +2,13 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import ABCMeta, abstractmethod
-from math import factorial, inf
-from numpy import prod
+from math import inf
 from numpy.random import permutation
 from torch import Size, Tensor
 ########################################################################################################################
 from rubiks.core.factory import Factory
 from rubiks.puzzle.move import Move
-from rubiks.utils.utils import snake_case, is_inf
+from rubiks.utils.utils import is_inf
 ########################################################################################################################
 
 
@@ -29,8 +28,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
                          field=cls.puzzle_type,
                          type=str,
                          choices=[cls.sliding_puzzle,
-                                  cls.rubiks_cube],
-                         default=cls.sliding_puzzle)
+                                  cls.rubiks_cube])
         cls.add_argument(parser,
                          field=cls.n,
                          type=int)
@@ -97,8 +95,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
         returns:
             list of puzzles
         """
-        goal = cls.construct_puzzle(**kw_args)
-        nb_shuffles = min(nb_shuffles, factorial(prod(goal.dimension())) / 2)
+        goal = cls(**kw_args)
         training_data = []
         for _ in range(nb_sequences):
             moves = goal.random_moves(nb_shuffles, min_no_loop=min_no_loop)

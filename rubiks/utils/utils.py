@@ -4,8 +4,7 @@
 from locale import format_string, LC_ALL, setlocale
 from math import isinf
 import numpy as np
-from os import makedirs
-from os import getenv
+from os import makedirs, remove, getenv
 from os.path import exists, dirname
 from pandas import DataFrame, Series, to_pickle as pandas_to_pickle
 from pathlib import Path
@@ -22,9 +21,19 @@ g_not_a_pkl_file = 'not_a_file.pkl'
 ########################################################################################################################
 
 
-def touch(what):
-    if what is not None and not exists(dirname(what)):
-        makedirs(dirname(what))
+def remove_file(file_name):
+    try:
+        remove(file_name)
+    except FileNotFoundError:
+        pass
+
+
+########################################################################################################################
+
+
+def touch(file_name):
+    if file_name is not None and not exists(dirname(file_name)):
+        makedirs(dirname(file_name))
 
 ########################################################################################################################
 

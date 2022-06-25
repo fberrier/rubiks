@@ -17,8 +17,8 @@ class Manhattan(Heuristic):
         return True
 
     def __init__(self, **kw_args):
-        kw_args[self.puzzle_type] = Puzzle.sliding_puzzle
-        Heuristic.__init__(self, **kw_args)
+        """ Specific heuristic for the sliding_puzzle """
+        Heuristic.__init__(self, **{**kw_args, self.puzzle_type: Puzzle.sliding_puzzle})
         # build map of where each value should be
         self.goal_map = {}
         goal = 1

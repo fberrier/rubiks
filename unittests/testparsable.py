@@ -163,7 +163,7 @@ class TestParsable(TestCase):
         try:
             SomeDerivedParsableFactory.factory()
             self.assertFalse(True)
-        except Exception as error:
+        except ValueError as error:
             error = str(error)
             self.assertTrue(error.find('expects mandatory argument some_derived_parsable_factory_type') >= 0)
         self.assertFalse(isinstance(SomeDerivedParsableFactory.factory(some_derived_parsable_factory_type='widget1'),

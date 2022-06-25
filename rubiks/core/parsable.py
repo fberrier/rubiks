@@ -29,9 +29,19 @@ class Parsable(metaclass=ABCMeta):
     def get_all_parsable_parents(cls, parents):
         cls_parents = [parent for parent in cls.__bases__
                        if issubclass(parent, Parsable) and parent not in parents and parent is not Parsable]
-        parents.extend(cls_parents)
-        for parent in cls_parents:
-            Parsable.get_all_parsable_parents(parent, parents)
+        dependencies = []
+        try:
+            dependencies = cls.additional_dependencies()
+            dependencies = [dependency for dependency in dependencies
+                            if issubclass(dependency, Parsable) and
+                            dependency not in parents and
+                            dependency not in cls_parents and
+                            dependency is not Parsable]
+        except AttributeError:
+            pass
+        parents.extend(cls_parents + dependencies)
+        for dependency in cls_parents + dependencies:
+            Parsable.get_all_parsable_parents(dependency, parents)
 
     @classmethod
     def additional_dependencies(cls):

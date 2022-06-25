@@ -117,6 +117,6 @@ class SearchStrategy(Loggable, Factory, metaclass=ABCMeta):
 
     @classmethod
     def factory_key_name(cls):
-        return 'search_strategy_type'
+        return cls.search_strategy_type
 
 ########################################################################################################################

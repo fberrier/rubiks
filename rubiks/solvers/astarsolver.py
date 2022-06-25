@@ -34,7 +34,7 @@ class AStarSolver(Solver):
                                self.puzzle_name())
 
     def solve_impl(self, puzzle, **kw_args):
-        strat = AStar(puzzle, **kw_args)
+        strat = AStar(initial_state=puzzle, **kw_args)
         strat.solve()
         return Solution(strat.get_path_cost(),
                         strat.get_path(),

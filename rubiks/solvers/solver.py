@@ -14,65 +14,74 @@ from os import remove
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
 ########################################################################################################################
+from rubiks.core.loggable import Loggable
+from rubiks.core.factory import Factory
 from rubiks.heuristics.heuristic import Heuristic
-from rubiks.puzzle.puzzle import Puzzled
+from rubiks.puzzle.puzzled import Puzzled
+from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
-from rubiks.utils.loggable import Loggable
 from rubiks.utils.utils import pprint, g_not_a_pkl_file, to_pickle
-from rubiks.core.parsable import Parsable
 ########################################################################################################################
 
 
-class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
+class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     """ Base class for a puzzle solver. How it actually solves its puzzle type is
     left to derived classes implementations by overwriting the  'solve_impl' method
      """
 
     solver_type = 'solver_type'
-    bfs = 'bfs'
-    dfs = 'dfs'
-    astar = 'a*'
+    bfs = SearchStrategy.bfs
+    dfs = SearchStrategy.dfs
+    astar = SearchStrategy.astar
     known_solver_types = [bfs, dfs, astar]
     time_out = 'time_out'
     max_consecutive_timeout = 'max_consecutive_timeout'
     default_max_consecutive_timeout = 0
 
-    def __init__(self, puzzle_type, **kw_args):
-        self.max_consecutive_timeout = kw_args.pop(__class__.max_consecutive_timeout,
-                                                   __class__.default_max_consecutive_timeout)
-        Puzzled.__init__(self, puzzle_type, **kw_args)
-        Loggable.__init__(self, log_level=kw_args.pop(Loggable.log_level, Loggable.INFO))
+    def __init__(self, **kw_args):
+        Factory.__init__(self, **kw_args)
+        Puzzled.__init__(self, **kw_args)
+        Loggable.__init__(self, **kw_args)
         self.all_shuffles_data = None
         self.shuffles_data = None
 
     @classmethod
-    def factory(cls, solver_type, puzzle_type, **kw_args):
-        solver_type = str(solver_type).lower()
-        kw_args.update({Puzzled.puzzle_type: puzzle_type})
-        if any(solver_type.find(what) >= 0 for what in [cls.bfs]):
-            from rubiks.solvers.bfssolver import BFSSolver as SolverType
-        elif any(solver_type.find(what) >= 0 for what in [cls.dfs]):
-            from rubiks.solvers.dfssolver import DFSSolver as SolverType
-        elif any(solver_type.find(what) >= 0 for what in cls.astar):
-            from rubiks.solvers.astarsolver import AStarSolver as SolverType
-            kw_args.update({Heuristic.heuristic_type: Heuristic.factory(**kw_args)})
-        else:
-            raise NotImplementedError('Unknown solver_type [%s]' % solver_type)
-        return SolverType(**kw_args)
+    def factory_key_name(cls):
+        return cls.solver_type
+
+    @classmethod
+    def widget_types(cls):
+        from rubiks.solvers.bfssolver import BFSSolver
+        from rubiks.solvers.dfssolver import DFSSolver
+        from rubiks.solvers.astarsolver import AStarSolver
+        return {cls.bfs: BFSSolver,
+                cls.dfs: DFSSolver,
+                cls.astar: AStarSolver}
+
+    @classmethod
+    def additional_dependencies(cls):
+        return Heuristic.get_widgets() + [Heuristic]
 
     @abstractmethod
     def know_to_be_optimal(self):
         """ Return True only if this is demonstrably returning optimal solutions """
         return False
 
-    @abstractmethod
     def solve_impl(self, puzzle, **kw_args) -> Solution:
-        return Solution(None, None, None)
+        """ Can over-write if need to"""
+        kw_args[SearchStrategy.search_strategy_type] = self.solver_type
+        kw_args[SearchStrategy.initial_node] = puzzle
+        strat = SearchStrategy.factory(**kw_args)
+        strat.solve()
+        return Solution(strat.get_path_cost(),
+                        strat.get_path(),
+                        strat.get_node_counts(),
+                        puzzle)
 
     def solve(self, puzzle, **kw_args) -> Solution:
-        return self.solve_impl(puzzle, **kw_args)
+        return self.solve_impl(puzzle, **{**self.get_config(), **kw_args})
 
-    def __job__(self, nb_shuffles, time_out, index=-1):
+    def __job__(self, nb_shuffles, index=-1):
         """ A single puzzle to solve """
         start = snap()
         timed_out = False
@@ -82,7 +91,7 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
-            solution = self.solve_impl(puzzle, time_out=time_out)
+            solution = self.solve_impl(puzzle)
             run_time = snap() - start
             assert isinstance(solution.cost, int)
             assert isinstance(solution.path, list)
@@ -91,7 +100,7 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
         except Exception as error:
             if error is not RecursionError:
                 self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
-            run_time = float(time_out)
+            run_time = float(self.time_out)
             solution = Solution(0, [], -1, puzzle=puzzle)
             timed_out = True
         return solution.cost, solution.path, solution.expanded_nodes, run_time, timed_out, index
@@ -152,13 +161,13 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
                          type=int,
                          default=1)
         cls.add_argument(parser,
-                         '-append',
+                         'append',
                          default=False,
-                         action='store_true')
+                         action=cls.store_true)
         cls.add_argument(parser,
-                         '-add_perfect_shuffle',
+                         'add_perfect_shuffle',
                          default=False,
-                         action='store_true')
+                         action=cls.store_true)
         cls.add_argument(parser,
                          'performance_file_name',
                          type=str,
@@ -176,7 +185,6 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
     def performance(self,
                     max_nb_shuffles,
                     nb_samples,
-                    time_out,
                     min_nb_shuffles=None,
                     step_nb_shuffles=1,
                     add_perfect_shuffle=False,
@@ -191,7 +199,6 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
         params:
             max_nb_shuffles:
             nb_samples:
-            time_out:
             min_nb_shuffles:
             step_nb_shuffles:
             perfect_shuffle:
@@ -280,7 +287,7 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
                 pool.join()
                 pool = Pool(new_pool_size)
                 pool_size = new_pool_size
-            results = pool.map(partial(self.__class__.__job__, self, nb_shuffles, time_out),
+            results = pool.map(partial(self.__class__.__job__, self, nb_shuffles),
                                range(sample_size))
             consecutive_timeout = 0
             sample = 0
@@ -368,7 +375,7 @@ class Solver(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
             self.log_info('Saved ', len(performance), ' rows of perf table to \'%s\'' % performance_file_name)
         self.log_info(performance)
 
-    def name(self):
+    def get_name(self):
         return '%s[%s]' % (self.__class__.__name__, self.puzzle_name())
 
     def action(self, **kw_args):

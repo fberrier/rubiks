@@ -4,26 +4,40 @@
 from abc import ABCMeta, abstractmethod
 from torch import Tensor
 ########################################################################################################################
-from rubiks.puzzle.puzzle import Puzzled
-from rubiks.core.parsable import Parsable
+from rubiks.puzzle.puzzled import Puzzled
+from rubiks.core.factory import Factory
 ########################################################################################################################
 
 
-class Heuristic(Parsable, Puzzled, metaclass=ABCMeta):
+class Heuristic(Factory, Puzzled, metaclass=ABCMeta):
     """ Generic concept of a heuristic: a class that is able to give us an estimated cost-to-go for a particular
     type of Puzzle of a given dimension.
     e.g. could be typical heuristics used in A* searches such as those based on Manhattan distance or similar concepts
     or could be neural net based heuristics that have been trained by Deep Reinforcement Learning.
     """
-    def __init__(self, puzzle_type, **kw_args):
-        """ the kw_args are passed to the underlying type of puzzle that this heuristic deals with """
-        Puzzled.__init__(self, puzzle_type, **kw_args)
 
     heuristic_type = 'heuristic_type'
     manhattan = 'manhattan'
     deep_learning = 'deep_learning'
     perfect = 'perfect'
     known_heuristic_types = [manhattan, deep_learning, perfect]
+
+    def __init__(self, **kw_args):
+        Factory.__init__(self, **kw_args)
+        Puzzled.__init__(self, **kw_args)
+
+    @classmethod
+    def factory_key_name(cls):
+        return cls.heuristic_type
+
+    @classmethod
+    def widget_types(cls):
+        from rubiks.heuristics.perfectheuristic import PerfectHeuristic
+        from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
+        from rubiks.heuristics.manhattan import Manhattan
+        return {cls.perfect: PerfectHeuristic,
+                cls.deep_learning: DeepLearningHeuristic,
+                cls.manhattan: Manhattan}
 
     @classmethod
     def populate_parser(cls, parser):
@@ -33,19 +47,6 @@ class Heuristic(Parsable, Puzzled, metaclass=ABCMeta):
                          default=cls.manhattan)
 
     known_heuristics = [manhattan, deep_learning, perfect]
-
-    @classmethod
-    def factory(cls, heuristic_type, **kw_args):
-        heuristic_type = str(heuristic_type).lower()
-        if any(heuristic_type.find(what) >= 0 for what in [cls.manhattan]):
-            from rubiks.heuristics.manhattan import Manhattan as HeuristicType
-        elif any(heuristic_type.find(what) >= 0 for what in [cls.deep_learning]):
-            from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic as HeuristicType
-        elif any(heuristic_type.find(what) >= 0 for what in [cls.perfect]):
-            from rubiks.heuristics.perfectheuristic import PerfectHeuristic as HeuristicType
-        else:
-            raise NotImplementedError('Unknown heuristic_type [%s]' % heuristic_type)
-        return HeuristicType(**kw_args)
 
     @classmethod
     @abstractmethod
@@ -77,7 +78,7 @@ class Heuristic(Parsable, Puzzled, metaclass=ABCMeta):
             return self.cost_to_go_from_tensor(puzzle, **kw_args)
         return self.cost_to_go_from_puzzle(puzzle)
 
-    def name(self):
+    def get_name(self):
         return self.__class__.__name__
 
 ########################################################################################################################

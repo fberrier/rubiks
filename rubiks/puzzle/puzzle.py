@@ -7,32 +7,13 @@ from numpy import prod
 from numpy.random import permutation
 from torch import Size, Tensor
 ########################################################################################################################
-from rubiks.core.parsable import Parsable
+from rubiks.core.factory import Factory
+from rubiks.puzzle.move import Move
 from rubiks.utils.utils import snake_case, is_inf
 ########################################################################################################################
 
 
-class Move(metaclass=ABCMeta):
-    """ Generic concept of move """
-
-    @abstractmethod
-    def __eq__(self, other):
-        return
-
-    @abstractmethod
-    def __ne__(self, other):
-        return
-
-    @abstractmethod
-    def cost(self):
-        """ What is the cost of this move """
-        return
-
-
-########################################################################################################################
-
-
-class Puzzle(Parsable, metaclass=ABCMeta):
+class Puzzle(Factory, metaclass=ABCMeta):
     """ Generic concept of a puzzle """
 
     move_type = int
@@ -40,15 +21,19 @@ class Puzzle(Parsable, metaclass=ABCMeta):
     sliding_puzzle = 'sliding_puzzle'
     rubiks_cube = 'rubiks_cube'
     known_puzzle_types = [sliding_puzzle, rubiks_cube]
+    n = 'n'
 
     @classmethod
-    def populate_parser(cls, parser):
+    def populate_parser_impl(cls, parser):
         cls.add_argument(parser,
                          field=cls.puzzle_type,
                          type=str,
                          choices=[cls.sliding_puzzle,
                                   cls.rubiks_cube],
                          default=cls.sliding_puzzle)
+        cls.add_argument(parser,
+                         field=cls.n,
+                         type=int)
 
     @abstractmethod
     def dimension(self) -> Size:
@@ -78,7 +63,7 @@ class Puzzle(Parsable, metaclass=ABCMeta):
         """ return a puzzle shuffled nb_shuffles times randomly from goal state
         kw_args allow to construct the puzzle with e.g. puzzle dimension
         """
-        puzzle = cls.construct_puzzle(**kw_args)
+        puzzle = cls.factory(**kw_args)
         for _ in range(nb_shuffles):
             puzzle = puzzle.apply_random_move()
         return puzzle
@@ -87,7 +72,7 @@ class Puzzle(Parsable, metaclass=ABCMeta):
     def clone(self):
         return
 
-    def name(self):
+    def get_name(self):
         return '%s[%s]' % (self.__class__.__name__, str(tuple(self.dimension())))
 
     @abstractmethod
@@ -125,27 +110,20 @@ class Puzzle(Parsable, metaclass=ABCMeta):
         return training_data
 
     @classmethod
-    def factory(cls, puzzle_type, **kw_args):
-        puzzle_type = snake_case(str(puzzle_type))
-        if any(puzzle_type.find(what) >= 0 for what in [cls.sliding_puzzle]):
-            from rubiks.puzzle.sliding import SlidingPuzzle as PuzzleType
-        elif any(puzzle_type.find(what) >= 0 for what in [cls.rubiks_cube]):
-            from rubiks.puzzle.rubiks import RubiksCube as PuzzleType
-        else:
-            raise NotImplementedError('Unknown puzzle_type [%s]' % puzzle_type)
-        return PuzzleType.construct_puzzle(**kw_args)
-
-    @classmethod
-    @abstractmethod
-    def construct_puzzle(cls, **kw_args):
-        """ construct a puzzle according to specification given by kw_args """
-        return
+    def widget_types(cls):
+        from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
+        from rubiks.puzzle.rubiks import RubiksCube
+        return [SlidingPuzzle, RubiksCube]
 
     @classmethod
     @abstractmethod
     def from_tensor(cls, data, **kw_args):
         """ construct a puzzle from its tensor representation """
         return
+
+    @classmethod
+    def factory_key_name(cls):
+        return cls.puzzle_type
 
     @abstractmethod
     def goal(self):
@@ -234,33 +212,3 @@ class Puzzle(Parsable, metaclass=ABCMeta):
 
 ########################################################################################################################
 
-
-class Puzzled:
-
-    puzzle_type = 'puzzle_type'
-
-    def __init__(self, puzzle_type, **kw_args):
-        self.kw_args = {**kw_args, self.__class__.puzzle_type: puzzle_type}
-        self.goal = Puzzle.factory(**self.kw_args)
-        self.puzzle_type = type(self.goal)
-        self.pp_nb = self.goal.possible_puzzles_nb()
-
-    def get_puzzle_type(self):
-        """ returns the type of puzzle that this heuristic deals with """
-        assert issubclass(self.puzzle_type,
-                          Puzzle), 'Puzzle type for %s has not been setup properly' % self.__class__.__name__
-        return self.puzzle_type
-
-    def get_puzzle_dimension(self):
-        return self.goal.dimension()
-
-    def get_goal(self):
-        return self.goal.clone()
-
-    def puzzle_name(self):
-        return self.goal.name()
-
-    def possible_puzzles_nb(self):
-        return self.pp_nb
-
-########################################################################################################################

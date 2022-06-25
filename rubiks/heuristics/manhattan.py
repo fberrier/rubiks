@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from rubiks.heuristics.heuristic import Heuristic
-from rubiks.puzzle.sliding import SlidingPuzzle
+from rubiks.puzzle.puzzle import Puzzle
 ########################################################################################################################
 
 
@@ -16,21 +16,19 @@ class Manhattan(Heuristic):
     def known_to_be_admissible(cls):
         return True
 
-    def __init__(self, n, m=None, **kw_args):
-        if m is None:
-            m = n
-        kw_args.pop(__class__.puzzle_type, None)
-        super().__init__(SlidingPuzzle, n=n, m=m, **kw_args)
+    def __init__(self, **kw_args):
+        kw_args[self.puzzle_type] = Puzzle.sliding_puzzle
+        Heuristic.__init__(self, **kw_args)
         # build map of where each value should be
         self.goal_map = {}
         goal = 1
-        size = n*m
-        for row in range(n):
-            for col in range(m):
+        (self.n, self.m) = self.get_puzzle_dimension()
+        size = self.n * self.m
+        for row in range(self.n):
+            for col in range(self.m):
                 self.goal_map[goal] = (row, col)
                 goal = goal + 1
                 goal %= size
-        (self.n, self.m) = tuple(self.get_puzzle_dimension())
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
         puzzle = puzzle.clone()

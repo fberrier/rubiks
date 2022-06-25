@@ -6,7 +6,7 @@ from multiprocessing import cpu_count
 from sys import argv
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
-from rubiks.puzzle.sliding import SlidingPuzzle
+from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 from rubiks.utils.utils import is_windows, g_not_a_pkl_file, get_training_file_name, get_model_file_name
 ########################################################################################################################

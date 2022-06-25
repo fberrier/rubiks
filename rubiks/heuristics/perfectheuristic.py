@@ -26,9 +26,9 @@ class PerfectHeuristic(Heuristic):
                          type=str,
                          default=None)
 
-    def __init__(self, puzzle_type, model_file_name, **kw_args):
-        super().__init__(puzzle_type, **kw_args)
-        self.data_base = read_pickle(model_file_name)
+    def __init__(self, **kw_args):
+        Heuristic.__init__(self, **kw_args)
+        self.data_base = read_pickle(self.model_file_name)
         puzzle_type = self.data_base[PerfectLearner.puzzle_type]
         dimension = self.data_base[PerfectLearner.dimension]
         assert self.get_puzzle_type() == puzzle_type

@@ -3,7 +3,7 @@
 ########################################################################################################################
 from abc import ABCMeta
 ########################################################################################################################
-from rubiks.search.strategies import AStar
+from rubiks.search.astarstrategy import AStar
 from rubiks.solvers.solver import Solver, Solution
 ########################################################################################################################
 
@@ -12,12 +12,15 @@ class AStarSolver(Solver):
 
     heuristic_type = 'heuristic_type'
 
+    # @todo Francois make sure we can construct the heuristic at init and keep it there rather than
+    # reconstructing in solve_impl ... this is idiotic
+
     def know_to_be_optimal(self):
         """ unless extremely lucky this is not going to return optimal solutions """
         heuristic = self.kw_args[__class__.heuristic_type]
         return heuristic.known_to_be_admissible()
 
-    def name(self):
+    def get_name(self):
         heuristic = self.kw_args[__class__.heuristic_type]
         if hasattr(heuristic, '__class__') and heuristic.__class__ != ABCMeta:
             heuristic = heuristic.__class__
@@ -30,9 +33,7 @@ class AStarSolver(Solver):
                                heuristic,
                                self.puzzle_name())
 
-    def solve_impl(self, puzzle, time_out, **kw_args):
-        kw_args.update(self.kw_args)
-        kw_args.update({Solver.time_out: time_out})
+    def solve_impl(self, puzzle, **kw_args):
         strat = AStar(puzzle, **kw_args)
         strat.solve()
         return Solution(strat.get_path_cost(),

@@ -2,15 +2,16 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from itertools import permutations
-from math import factorial
+from math import factorial, inf
 from numpy import argwhere, array, where
 from pandas import DataFrame
 from random import randint
 from tabulate import tabulate
-from torch import equal, tensor, randperm, reshape
+from torch import equal, tensor, randperm, reshape, Tensor
 from torch.nn.functional import one_hot
 ########################################################################################################################
-from rubiks.puzzle.puzzle import Move, Puzzle
+from rubiks.puzzle.move import Move
+from rubiks.puzzle.puzzle import Puzzle
 ########################################################################################################################
 
 
@@ -34,44 +35,74 @@ class Slide(Move):
 class SlidingPuzzle(Puzzle):
     """ Game of the sliding Puzzle, e.g. the 8-puzzle, 15-puzzle, etc """
 
-    n = 'n'
     m = 'm'
+    tiles = 'tiles'
+    empty = 'empty'
 
     @classmethod
     def populate_parser(cls, parser):
-        Puzzle.populate_parser(parser)
-        cls.add_argument(parser, field=cls.n, type=int, default=2)
         cls.add_argument(parser, field=cls.m, type=int, default=None)
 
     def possible_puzzles_nb(self):
         dimension = self.dimension()
-        return int(factorial(dimension[0] * dimension[1]) / 2)
+        try:
+            return int(factorial(dimension[0] * dimension[1]) / 2)
+        except OverflowError:
+            return inf
 
     @classmethod
     def generate_all_puzzles(cls, **kw_args):
-        goal = SlidingPuzzle.construct_puzzle(**kw_args)
+        goal = SlidingPuzzle(**kw_args)
         goal_signature = goal.signature()
         (n, m) = goal.dimension()
         for perm in permutations(range(n * m)):
-            puzzle = SlidingPuzzle(tensor(perm).reshape((n, m)))
+            puzzle = SlidingPuzzle(tiles=tensor(perm).reshape((n, m)))
             if puzzle.signature() == goal_signature:
                 yield puzzle
 
     move_type = Slide
 
-    possible_moves_map = {}
+    possible_moves_map = dict()
 
-    goal_signature_map = {}
+    goal_signature_map = dict()
 
-    goal_map = {}
+    goal_map = dict()
 
-    def __init__(self, tiles, empty=None):
-        super().__init__()
-        self.tiles = tiles
-        if empty is None:
-            self.empty = tuple(argwhere(0 == tiles).squeeze().tolist())
+    @classmethod
+    def __populate_goal__(cls, n, m):
+        if n not in cls.goal_map:
+            cls.goal_map[n] = dict()
+        if m not in cls.goal_map[n]:
+            tiles = tensor(range(1, n * m + 1)).reshape((n, m))
+            tiles[n - 1][m - 1] = 0
+            empty = (n - 1, m - 1)
+            cls.goal_map[n][m] = SlidingPuzzle(tiles=tiles, empty=empty)
+
+    def __init__(self, **kw_args):
+        from_tiles = self.tiles in kw_args
+        #kw_args[self.puzzle_type] = self.sliding_puzzle
+        if from_tiles:
+            # we set n, m and empty
+            self.tiles = kw_args[self.tiles]
+            assert isinstance(self.tiles, Tensor)
+            self.empty = kw_args.get(self.empty,
+                                     tuple(argwhere(0 == self.tiles).squeeze().tolist()))
+            assert 2 == len(self.tiles.shape)
+            kw_args[self.n] = self.tiles.shape[0]
+            kw_args[self.m] = self.tiles.shape[1]
+            kw_args.pop(__class__.tiles, None)
+            kw_args.pop(__class__.empty, None)
+            self.puzzle_type = self.sliding_puzzle
+            self.n = self.tiles.shape[0]
+            self.m = self.tiles.shape[1]
+            Puzzle.__init__(self, **kw_args)
         else:
-            self.empty = empty
+            n = kw_args[self.n]
+            m = kw_args.get(self.m, n)
+            self.__populate_goal__(n, m) # except the first time this will do nothing
+            goal = self.goal_map[n][m]
+            self.__init__(tiles=goal.tiles.detach().clone(),
+                          empty=goal.empty)
 
     def __repr__(self):
         tiles = array(self.tiles.numpy(), dtype=str)
@@ -92,24 +123,15 @@ class SlidingPuzzle(Puzzle):
         return self.tiles.shape
 
     def clone(self):
-        return SlidingPuzzle(self.tiles.detach().clone(), self.empty)
+        return SlidingPuzzle(tiles=self.tiles.detach().clone(),
+                             empty=self.empty)
 
     def is_goal(self):
         return self == self.goal()
 
-    @classmethod
-    def construct_puzzle(cls, n, m=None, **kw_args):
-        if m is None:
-            m = n
-        goal = tensor(range(1, n * m + 1)).reshape((n, m))
-        goal[n - 1][m - 1] = 0
-        return SlidingPuzzle(goal, (n - 1, m - 1))
-
     def goal(self):
-        dimension = tuple(self.dimension())
-        if dimension not in self.goal_map:
-            self.goal_map[dimension] = self.construct_puzzle(*self.tiles.shape)
-        return self.goal_map[dimension]
+        self.__populate_goal__(*self.tiles.shape)
+        return self.goal_map[self.tiles.shape[0]][self.tiles.shape[1]]
 
     def apply(self, move: Slide):
         """ moved tile must either be same row or same col as the empty tile 
@@ -133,7 +155,7 @@ class SlidingPuzzle(Puzzle):
         tiles[self.empty[0]][self.empty[1]] = self.tiles[move.tile[0]][move.tile[1]]
         empty = move.tile
         tiles[empty[0]][empty[1]] = 0
-        return SlidingPuzzle(tiles, empty)
+        return SlidingPuzzle(tiles=tiles, empty=empty)
 
     @staticmethod
     def choices(empty, shape):
@@ -189,7 +211,7 @@ class SlidingPuzzle(Puzzle):
         for row in range(dimensions[0]):
             if 1 == row % 2:
                 tiles[row] = tiles[row].flip(0)
-        shuffle = SlidingPuzzle(tiles)
+        shuffle = SlidingPuzzle(tiles=tiles)
         if shuffle.signature() == self.goal_signature():
             return shuffle
         row = 0
@@ -201,7 +223,7 @@ class SlidingPuzzle(Puzzle):
             row2, col2 = self.increment(row2, col2)
         a, b = tiles[row][col].item(), tiles[row2][col2].item()
         tiles[row2][col2], tiles[row][col] = a, b
-        return SlidingPuzzle(tiles)
+        return SlidingPuzzle(tiles=tiles)
 
     def increment(self, row, col):
         col += 1

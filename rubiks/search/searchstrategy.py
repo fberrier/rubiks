@@ -2,47 +2,16 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
+from math import inf
 from time import time as snap
 ########################################################################################################################
-from rubiks.utils.loggable import Loggable
-from rubiks.utils.utils import is_inf
+from rubiks.search.node import Node
+from rubiks.core.factory import Factory
+from rubiks.core.loggable import Loggable
 ########################################################################################################################
 
 
-class Node:
-    """ Node is the data structure that we manipulate in the search algorithms.
-    As long as:
-    - state and parent are either None or of a type that satisfies 
-      the interface of BaseState
-    - action is of a type that satistifes the interface of BaseAction 
-      and parent.action(action) == state
-    Then we can run the search algorithms from this module on Nodes
-    """
-
-    def __init__(self,
-                 state,
-                 parent,
-                 action,
-                 path_cost: int):
-        self.state = state
-        self.parent = parent
-        self.action = action
-        self.path_cost = path_cost
-
-    def __repr__(self):
-        return 'State=%s, parent=%s, action=%s, path_cost=%s' % (self.state,
-                                                                 self.parent,
-                                                                 self.action,
-                                                                 self.path_cost)
-
-    def __hash__(self):
-        """ Useful to put in containers that rely on hashes """
-        return hash(self.state)
-
-########################################################################################################################
-
-
-class SearchStrategy(Loggable, metaclass=ABCMeta):
+class SearchStrategy(Loggable, Factory, metaclass=ABCMeta):
     """ Base class to represent a search strategy. All the basic logic of collecting
     the optimal path and storing it, as well as the cost and time spent running the
     algo are abstracted here. There is also an optional time out functionality
@@ -50,18 +19,45 @@ class SearchStrategy(Loggable, metaclass=ABCMeta):
     run.
     """
 
-    def __init__(self, initial_state, time_out=None, **kw_args):
-        self.initial_node = Node(initial_state,
+    time_out = 'time_out'
+    search_strategy_type = 'search_strategy_type'
+    bfs = 'bfs'
+    dfs = 'dfs'
+    astar = 'a*'
+    known_search_strategy_types = [bfs, dfs, astar]
+    initial_node = 'initial_node'
+
+    @classmethod
+    def widget_types(cls):
+        from rubiks.search.bfsstrategy import BreadthFirstSearch
+        from rubiks.search.dfsstrategy import DepthFirstSearch
+        from rubiks.search.astarstrategy import AStar
+        return {cls.bfs: BreadthFirstSearch,
+                cls.dfs: DepthFirstSearch,
+                cls.astar: AStar}
+
+    @classmethod
+    def populate_parser_impl(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.search_strategy_type,
+                         type=str,
+                         choices=cls.known_search_strategy_types)
+        cls.add_argument(parser,
+                         field=cls.time_out,
+                         type=float,
+                         default=inf)
+
+    def __init__(self, initial_state, **kw_args):
+        Loggable.__init__(self, **kw_args)
+        Factory.__init__(self, **kw_args)
+        self.initial_node = Node(state=initial_state,
                                  parent=None,
                                  action=None,
                                  path_cost=0)
         self.run_time = 0
         self.actions = []
         self.cost = 0
-        self.time_out = None if time_out is None or is_inf(time_out) else time_out
         self.expanded_nodes = 1
-        Loggable.__init__(self, log_level=kw_args.pop(Loggable.log_level,
-                                                      Loggable.INFO))
 
     def get_run_time(self):
         return self.run_time
@@ -108,7 +104,7 @@ class SearchStrategy(Loggable, metaclass=ABCMeta):
                 % (self.time_out, int(run_time))
             raise TimeoutError(error)
 
-    def name(self):
+    def get_name(self):
         return self.__class__.__name__
         
     @abstractmethod
@@ -118,5 +114,9 @@ class SearchStrategy(Loggable, metaclass=ABCMeta):
         :return list of actions of (optimal) solution or None of failure
         """
         pass
+
+    @classmethod
+    def factory_key_name(cls):
+        return 'search_strategy_type'
 
 ########################################################################################################################

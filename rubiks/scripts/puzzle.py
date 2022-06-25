@@ -9,7 +9,7 @@ from time import time as snap
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.solvers.solver import Solver
-from rubiks.utils.loggable import Loggable
+from rubiks.core.loggable import Loggable
 from rubiks.utils.utils import is_windows, g_not_a_pkl_file, get_model_file_name, s_format
 ########################################################################################################################
 

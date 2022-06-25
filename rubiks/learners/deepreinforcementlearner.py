@@ -24,41 +24,84 @@ class DeepReinforcementLearner(Learner):
     @todo FB: maybe add ability to restore from a previous model and continue improving on it
     """
 
+    nb_epochs = 'nb_epochs'
+    nb_shuffles = 'nb_shuffles'
+    nb_sequences = 'nb_sequences'
     update_target_network_frequency = 'update_target_network_frequency'
+    default_update_target_network_frequency = 100
     update_target_network_threshold = 'update_target_network_threshold'
+    default_update_target_network_threshold = 0.01
     max_nb_target_network_update = 'max_nb_target_network_update'
+    default_max_nb_target_network_update = 100
     max_target_not_increasing_epochs_pct = 'max_target_not_increasing_epochs_pct'
+    default_max_target_not_increasing_epochs_pct = 0.1
     max_target_uptick = 'max_target_uptick'
+    default_max_target_uptick = 0.05
     use_cuda = 'use_cuda'
     learning_rate = 'learning_rate'
+    default_learning_rate = 1e-6
     nb_cpus = 'nb_cpus'
+    default_nb_cpus = 1
     verbose = 'verbose'
 
-    def __init__(self,
-                 puzzle_type,
-                 nb_epochs,
-                 nb_shuffles,
-                 nb_sequences,
-                 **kw_args):
-        Learner.__init__(self, puzzle_type, **kw_args)
-        self.log_info('Config=', kw_args)
-        self.nb_epochs = nb_epochs
-        self.nb_shuffles = nb_shuffles
-        self.nb_sequences = nb_sequences
-        self.target_network = DeepLearning.factory(puzzle_type, **kw_args)
+    @classmethod
+    def populate_parser_impl(cls, parser):
+        DeepLearning.populate_parser(parser)
+        cls.add_argument(parser,
+                         field=cls.nb_epochs,
+                         type=int)
+        cls.add_argument(parser,
+                         field=cls.nb_shuffles,
+                         type=int)
+        cls.add_argument(parser,
+                         field=cls.nb_sequences,
+                         type=int)
+        cls.add_argument(parser,
+                         field=cls.update_target_network_frequency,
+                         type=int,
+                         default=cls.default_update_target_network_frequency)
+        cls.add_argument(parser,
+                         field=cls.update_target_network_threshold,
+                         type=float,
+                         default=cls.default_update_target_network_threshold)
+        cls.add_argument(parser,
+                         field=cls.max_nb_target_network_update,
+                         type=int,
+                         default=cls.default_max_nb_target_network_update)
+        cls.add_argument(parser,
+                         field=cls.max_target_not_increasing_epochs_pct,
+                         type=float,
+                         default=cls.default_max_target_not_increasing_epochs_pct)
+        cls.add_argument(parser,
+                         field=cls.max_target_uptick,
+                         type=float,
+                         default=cls.default_max_target_uptick)
+        cls.add_argument(parser,
+                         field=cls.learning_rate,
+                         type=float,
+                         default=cls.default_learning_rate)
+        cls.add_argument(parser,
+                         field=cls.use_cuda,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.verbose,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.nb_cpus,
+                         type=int,
+                         default=cls.default_nb_cpus)
+
+    def __init__(self, **kw_args):
+        Learner.__init__(self, **kw_args)
+        self.log_info('Config=', self.get_config())
+        self.target_network = DeepLearning.factory(**kw_args)
         self.current_network = self.target_network.clone()
-        self.update_target_network_frequency = kw_args.pop(__class__.update_target_network_frequency, 100)
-        self.update_target_network_threshold = kw_args.pop(__class__.update_target_network_threshold, 0.01)
-        self.max_nb_target_network_update = kw_args.pop(__class__.max_nb_target_network_update, 100)
         # if the max value of target not increasing in that many epochs (as % of total epochs) by more than uptick
         # not much point going on
-        self.max_target_not_increasing_epochs_pct = kw_args.pop(__class__.max_target_not_increasing_epochs_pct, 0.1)
-        self.max_target_uptick = kw_args.pop(__class__.max_target_uptick, 0.05)
-        self.use_cuda = kw_args.pop(__class__.use_cuda, False) and cuda.is_available()
+        self.use_cuda = self.use_cuda and cuda.is_available()
         self.loss_function = MSELoss()
-        self.learning_rate = kw_args.pop(__class__.learning_rate, 1e-6)
-        self.nb_cpus = kw_args.pop(__class__.nb_cpus, 1)
-        self.verbose = kw_args.pop(__class__.verbose, False)
         cls = self.__class__
         self.convergence_data = DataFrame(columns=[cls.epoch,
                                                    cls.nb_epochs,
@@ -95,9 +138,6 @@ class DeepReinforcementLearner(Learner):
     puzzle_type = 'puzzle_type'
     puzzle_dimension = 'puzzle_dimension'
     decision = 'decision'
-    nb_shuffles = 'nb_shuffles'
-    nb_sequences = 'nb_sequences'
-    nb_epochs = 'nb_epochs'
     cuda = 'cuda'
 
     class Decision(Enum):

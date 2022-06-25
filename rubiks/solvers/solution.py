@@ -28,8 +28,14 @@ class Solution:
         for move in self.path:
             puzzle = puzzle.apply(move)
             puzzles.append(str(puzzle))
-        return '\n' + pformat(Series(index=range(len(puzzles)),
-                                     data=puzzles))
+        string = '\n' + pformat(Series(index=range(len(puzzles)),
+                                       data=puzzles))
+        string = {'cost': self.cost,
+                  'path': string,
+                  'expanded_nodes': self.expanded_nodes,
+                  'puzzle': self.puzzle,
+                  }
+        return '\n' + pformat(string)
 
     def __repr__(self):
         return self.to_str()

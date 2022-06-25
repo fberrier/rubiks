@@ -3,13 +3,13 @@
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
 ########################################################################################################################
-from rubiks.core.parsable import Parsable
-from rubiks.utils.loggable import Loggable
-from rubiks.puzzle.puzzle import Puzzled
+from rubiks.core.factory import Factory
+from rubiks.core.loggable import Loggable
+from rubiks.puzzle.puzzled import Puzzled
 ########################################################################################################################
 
 
-class Learner(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
+class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
     """ Generic concept of a learning class that takes a Puzzle and kw_args to construct it, and can:
     - learn to solve the puzzle
     - save/restore its learning to/from a file
@@ -18,11 +18,13 @@ class Learner(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
 
     learner_type = 'learner_type'
     perfect_learner = 'perfect_learner'
+    perfect = 'perfect'
     deep_reinforcement_learner = 'deep_reinforcement_learner'
+    drl = 'drl'
     known_learner_types = [perfect_learner, deep_reinforcement_learner]
 
     @classmethod
-    def populate_parser(cls, parser):
+    def populate_parser_impl(cls, parser):
         cls.add_argument(parser,
                          field=cls.learner_type,
                          type=str,
@@ -30,20 +32,21 @@ class Learner(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
                          choices=cls.known_learner_types)
 
     @classmethod
-    def factory(cls, learner_type, puzzle_type, **kw_args):
-        learner_type = str(learner_type).lower()
-        kw_args.update({Puzzled.puzzle_type: puzzle_type})
-        if any(learner_type.find(what) >= 0 for what in [cls.perfect_learner]):
-            from rubiks.learners.perfectlearner import PerfectLearner as LearnerType
-        elif any(learner_type.find(what) >= 0 for what in [cls.deep_reinforcement_learner]):
-            from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner as LearnerType
-        else:
-            raise NotImplementedError('Unknown learner_type [%s]' % learner_type)
-        return LearnerType(**kw_args)
+    def factory_key_name(cls):
+        return cls.learner_type
 
-    def __init__(self, puzzle_type, **kw_args):
-        Puzzled.__init__(self, puzzle_type, **kw_args)
-        Loggable.__init__(self, log_level=kw_args.pop(Loggable.log_level, Loggable.INFO))
+    @classmethod
+    def widget_types(cls):
+        from rubiks.learners.perfectlearner import PerfectLearner
+        from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
+        return {cls.perfect: PerfectLearner,
+                cls.drl: DeepReinforcementLearner,
+                }
+
+    def __init__(self, **kw_args):
+        Puzzled.__init__(self, **kw_args)
+        Factory.__init__(self, **kw_args)
+        Loggable.__init__(self, **kw_args)
 
     @abstractmethod
     def learn(self):
@@ -58,9 +61,8 @@ class Learner(Parsable, Puzzled, Loggable, metaclass=ABCMeta):
         """ overwrite where meaningful """
         return
 
-    def name(self):
-        return '%s|%s' % (self.__class__.__name__,
-                          self.puzzle_type.construct_puzzle(**self.kw_args).name())
+    def get_name(self):
+        return '%s|%s' % (self.__class__.__name__, self.puzzle_name())
 
     @staticmethod
     @abstractmethod

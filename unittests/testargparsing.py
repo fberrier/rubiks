@@ -9,14 +9,39 @@ from unittest import TestCase
 class TestArgumentParser(TestCase):
 
     def test_parse_int(self):
+        parser = ArgumentParser()
+        parser.add_argument('-my_int', type=int, default=None)
         my_int = 314
         command_line_args = "-my_int=%d" % my_int
         argv = []
         argv.extend(command_line_args.split(' '))
+        self.assertEqual(my_int, parser.parse_args(argv).my_int)
+        my_int2 = 315
+        command_line_args = "-my_int=%d" % my_int2
+        argv = []
+        argv.extend(command_line_args.split(' '))
+        self.assertEqual(my_int2, parser.parse_args(argv).my_int)
+
+    def test_parse_int_float_repeat(self):
         parser = ArgumentParser()
         parser.add_argument('-my_int', type=int, default=None)
-        parser = parser.parse_args(argv)
-        self.assertEqual(my_int, parser.my_int)
+        parser.add_argument('-my_float', type=float, default=1.0)
+        my_int = 314
+        my_float = 3.0
+        command_line_args = "-my_int=%d" % my_int
+        command_line_args += " -my_float=%d" % my_float
+        argv = []
+        argv.extend(command_line_args.split(' '))
+        first_time = parser.parse_args(argv)
+        self.assertEqual(my_int, first_time.my_int)
+        self.assertEqual(my_float, first_time.my_float)
+        my_int2 = 315
+        command_line_args = "-my_int=%d" % my_int2
+        argv = []
+        argv.extend(command_line_args.split(' '))
+        second_time = parser.parse_args(argv)
+        self.assertEqual(my_int2, second_time.my_int)
+        self.assertEqual(1.0, second_time.my_float)
 
     def test_parse_bool_true(self):
         command_line_args = "--my_bool"

@@ -1,20 +1,26 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from unittest import TestCase
-########################################################################################################################
-from rubiks.puzzle.sliding import SlidingPuzzle
+from abc import ABCMeta, abstractmethod
 ########################################################################################################################
 
 
-class TestSliding(TestCase):
+class Move(metaclass=ABCMeta):
+    """ Generic concept of move """
 
-    def test_perfect_shuffle(self):
-        puzzle = SlidingPuzzle.construct_puzzle(4, 4)
-        self.assertEqual(puzzle.signature(), puzzle.goal_signature())
-        for j in range(1000):
-            shuffle = puzzle.perfect_shuffle()
-            self.assertEqual(shuffle.signature(), shuffle.goal_signature())
-            self.assertEqual(0, shuffle.tiles[shuffle.empty])
+    @abstractmethod
+    def __eq__(self, other):
+        return
+
+    @abstractmethod
+    def __ne__(self, other):
+        return
+
+    @abstractmethod
+    def cost(self):
+        """ What is the cost of this move """
+        return
+
 
 ########################################################################################################################
+

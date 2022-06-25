@@ -1,24 +1,20 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from rubiks.search.bfsstrategy import BreadthFirstSearch
-from rubiks.solvers.solver import Solver, Solution
+from unittest import TestCase
+########################################################################################################################
+from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
 ########################################################################################################################
 
 
-class BFSSolver(Solver):
+class TestSlidingPuzzle(TestCase):
 
-    def know_to_be_optimal(self):
-        """ if it does not time out, it is definitely optimal """
-        return True
-
-    def solve_impl(self, puzzle, **kw_args):
-        strat = BreadthFirstSearch(puzzle,
-                                   **{**self.kw_args, **kw_args})
-        strat.solve()
-        return Solution(strat.get_path_cost(),
-                        strat.get_path(),
-                        strat.get_node_counts(),
-                        puzzle)
+    def test_perfect_shuffle(self):
+        puzzle = SlidingPuzzle(n=4, m=4)
+        self.assertEqual(puzzle.signature(), puzzle.goal_signature())
+        for j in range(1000):
+            shuffle = puzzle.perfect_shuffle()
+            self.assertEqual(shuffle.signature(), shuffle.goal_signature())
+            self.assertEqual(0, shuffle.tiles[shuffle.empty])
 
 ########################################################################################################################

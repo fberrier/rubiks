@@ -4,10 +4,20 @@
 from unittest import TestCase
 ########################################################################################################################
 from rubiks.heuristics.manhattan import Manhattan
+from rubiks.core.loggable import Loggable
+from rubiks.heuristics.heuristic import Heuristic
 ########################################################################################################################
 
 
-class TestSliding(TestCase):
+class TestHeuristics(TestCase):
+
+    def test_heuristic_factory(self):
+        logger = Loggable(name='test_heuristic_factory')
+        manhattan = Heuristic.factory(heuristic_type=Heuristic.manhattan,
+                                      n=3,
+                                      m=3)
+        goal = manhattan.get_goal()
+        logger.log_info(goal)
 
     def test_manhattan_distance_3_3(self):
         manhattan = Manhattan(n=3, m=3)

@@ -4,7 +4,7 @@
 from argparse import ArgumentParser
 from sys import argv
 ########################################################################################################################
-from rubiks.puzzle.sliding import SlidingPuzzle
+from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
 from rubiks.puzzle.rubiks import RubiksCube
 from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic, Heuristic
 from rubiks.heuristics.perfectheuristic import PerfectHeuristic
@@ -34,7 +34,7 @@ def main():
 if '__main__' == __name__:
     if is_windows():
         PuzzleType = SlidingPuzzle
-        dimension = (2, 2)
+        dimension = (3, 3)
         solver_type = Solver.astar
         heuristic_type = Heuristic.manhattan
         layers = ('600', '300', '100')

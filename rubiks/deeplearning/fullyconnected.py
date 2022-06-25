@@ -13,28 +13,44 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 class FullyConnected(DeepLearning):
     """ A fully connected network """
 
-    network_type = DeepLearning.fully_connected_net
+    one_hot_encoding = 'one_hot_encoding'
+    layers_description = 'layers_description'
+    default_layers = (1000, 500, 100)
 
-    def __init__(self, puzzle_type, **kw_args):
-        DeepLearning.__init__(self, puzzle_type, **kw_args)
-        in_channels = prod(self.puzzle_dimension)
-        self.one_hot_encoding = kw_args.get('one_hot_encoding', True)
+    @classmethod
+    def populate_parser_impl(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.one_hot_encoding,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.layers_description,
+                         type=int,
+                         nargs='+',
+                         default=cls.default_layers)
+
+    def __init__(self, **kw_args):
+        DeepLearning.__init__(self, **kw_args)
+        in_channels = prod(self.get_puzzle_dimension())
         if self.one_hot_encoding:
             in_channels *= in_channels
-        layers = kw_args.get('layers', (1000, 500, 100))
+        layers = tuple(layer for layer in self.layers_description)
         if layers[-1] != 1:
             layers = (*tuple(layers), 1)
         if layers[0] != in_channels:
             layers = (in_channels, *tuple(layers))
+        self.layers_int = layers
         self.layers_str = str(layers)
+        self.log_info(self.get_config())
         modules = []
         for x, y in zip(layers[:-1], layers[1:]):
             modules.append(Linear(x, y))
             modules.append(ReLU())
         modules = modules[:-1]
         self.layers = Sequential(*modules)
+        self.log_info(self.layers)
 
-    def name(self):
+    def get_name(self):
         name = self.__class__.__name__
         name += '[%s]' % self.layers_str
         if self.one_hot_encoding:

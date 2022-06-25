@@ -7,65 +7,75 @@ from pandas import read_pickle
 from torch import device
 from torch.nn import Module
 ########################################################################################################################
-from rubiks.utils.loggable import Loggable
-from rubiks.utils.utils import touch, to_pickle
+from rubiks.core.loggable import Loggable
+from rubiks.core.factory import Factory
+from rubiks.puzzle.puzzled import Puzzled
+from rubiks.utils.utils import to_pickle
 ########################################################################################################################
 
 
-class DeepLearning(Module, Loggable, metaclass=ABCMeta):
+class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
     """ TBD """
 
-    network_type = None
+    use_cuda = 'use_cuda'
 
-    def __init__(self, puzzle_type, **kw_args):
-        Loggable.__init__(self, log_level=kw_args.pop('log_level', 'INFO'))
-        self.puzzle_type = puzzle_type
-        self.kw_args = kw_args
-        self.puzzle_dimension = self.puzzle_type.construct_puzzle(**kw_args).dimension()
+    @classmethod
+    def populate_parser_impl(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.use_cuda,
+                         default=False,
+                         action=cls.store_true)
+
+    def __init__(self, **kw_args):
         Module.__init__(self)
-        assert self.network_type is not None, 'Concrete DeepLearning should have a proper network_type'
-        self.use_cuda = self.kw_args.get('use_cuda', False)
+        Puzzled.__init__(self, **kw_args)
+        Loggable.__init__(self, **kw_args)
         self.cuda_device = None
 
-    puzzle_type = 'puzzle_type'
-    puzzle_dimension = 'puzzle_dimension'
     network_type = 'network_type'
-    kw_args = 'kw_args'
     fully_connected_net = 'fully_connected_net'
-    state_dict = 'state_dict'
+    state_dict_tag = 'state_dict'
+
+    @classmethod
+    def factory_key_name(cls):
+        return cls.network_type
 
     def set_cuda(self):
         if self.use_cuda and not self.cuda_device:
             self.cuda()
             self.cuda_device = device('cuda:0')
-        
+
     @classmethod
-    def factory(cls, puzzle_type, network_type, **kw_args):
+    def widget_types(cls):
+        from rubiks.deeplearning.fullyconnected import FullyConnected
+        return {cls.fully_connected_net: FullyConnected}
+
+    @classmethod
+    def factory_impl(cls, network_type, **kw_args):
         if cls.fully_connected_net == network_type:
-            from rubiks.deeplearning.fullyconnected import FullyConnected
-            network = FullyConnected
+            from rubiks.deeplearning.fullyconnected import FullyConnected as Network
         else:
             raise NotImplementedError('DeepLearning.factory cannot construct network of type %s' % network_type)
-        return network(puzzle_type, **kw_args)
+        return Network(**kw_args)
 
     def save(self, model_file_name):
         cls = self.__class__
         data = {cls.puzzle_type: self.puzzle_type,
                 cls.network_type: self.network_type,
                 cls.kw_args: self.kw_args,
-                cls.state_dict: self.state_dict()}
+                cls.state_dict_tag: self.state_dict()}
         to_pickle(data, model_file_name)
 
     @classmethod
     def restore(cls, model_file):
         data = read_pickle(model_file)
-        deeplearning = cls.factory(data[cls.puzzle_type],
+        deeplearning = cls.factory(data[Puzzled.puzzle_type],
                                    data[cls.network_type],
                                    **data[cls.kw_args])
-        deeplearning.load_state_dict(data[cls.state_dict])
+        deeplearning.load_state_dict(data[cls.state_dict_tag])
         return deeplearning
 
-    def name(self):
+    def get_name(self):
         return self.__class__.__name__
 
     def evaluate(self, puzzles):
@@ -82,7 +92,7 @@ class DeepLearning(Module, Loggable, metaclass=ABCMeta):
         return
 
     def clone(self):
-        cloned = self.__class__(self.puzzle_type, **self.kw_args)
+        cloned = self.__class__(**self.get_config())
         cloned.load_state_dict(copy(self.state_dict()))
         return cloned
     

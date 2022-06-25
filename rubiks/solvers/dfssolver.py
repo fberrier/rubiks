@@ -1,7 +1,7 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from rubiks.search.strategies import DepthFirstSearch
+from rubiks.search.dfsstrategy import DepthFirstSearch
 from rubiks.solvers.solver import Solver, Solution
 ########################################################################################################################
 
@@ -13,9 +13,8 @@ class DFSSolver(Solver):
 
     @classmethod
     def populate_parser(cls, parser):
-        Solver.populate_parser(parser)
         cls.add_argument(parser,
-                         'limit',
+                         cls.limit,
                          type=int,
                          default=31)
 
@@ -40,7 +39,7 @@ class DFSSolver(Solver):
                         strat.get_node_counts(),
                         puzzle)
 
-    def name(self):
+    def get_name(self):
         return self.__class__.__name__ + '[%s=%d]' % (__class__.limit,
                                                       self.kw_args.get(__class__.limit))
 

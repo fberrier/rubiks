@@ -30,7 +30,7 @@ class Puzzled(Parsable):
         return type(self.__goal__)
 
     def get_puzzle_dimension(self):
-        return self.__goal__.dimension()
+        return tuple(self.__goal__.dimension())
 
     def get_goal(self):
         return self.__goal__.clone()

@@ -54,14 +54,12 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
         from rubiks.deeplearning.fullyconnected import FullyConnected
         return {cls.fully_connected_net: FullyConnected}
 
-    def save(self, model_file_name):
-        data = (self.get_config(),
+    def get_data(self):
+        return (self.get_config(),
                 self.state_dict())
-        to_pickle(data, model_file_name)
 
     @classmethod
-    def restore(cls, model_file):
-        data = read_pickle(model_file)
+    def restore(cls, data):
         deeplearning = cls.factory(**data[0])
         deeplearning.load_state_dict(data[1])
         return deeplearning

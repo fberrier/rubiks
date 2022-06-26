@@ -7,6 +7,7 @@ from rubiks.core.factory import Factory
 from rubiks.core.loggable import Loggable
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.deeplearning.deeplearning import DeepLearning
+from rubiks.utils.utils import remove_file
 ########################################################################################################################
 
 
@@ -23,6 +24,12 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
     deep_reinforcement_learner = 'deep_reinforcement_learner'
     drl = 'drl'
     known_learner_types = [perfect_learner, deep_reinforcement_learner]
+    action_type = 'action_type'
+    do_plot = 'do_plot'
+    do_learn = 'do_learn'
+    do_cleanup_learning_file = 'do_cleanup_learning_file'
+    known_action_type = [do_learn, do_plot, do_cleanup_learning_file]
+    learning_file_name = 'learning_file_name'
 
     @classmethod
     def additional_dependencies(cls):
@@ -35,6 +42,31 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
                          type=str,
                          default=cls.perfect_learner,
                          choices=cls.known_learner_types)
+        cls.add_argument(parser,
+                         field=cls.learning_file_name,
+                         type=str)
+        cls.add_argument(parser,
+                         cls.action_type,
+                         type=str,
+                         default=False,
+                         choices=cls.known_action_type)
+
+    def action(self):
+        if self.do_plot == self.action_type:
+            self.plot_learning()
+        elif self.do_learn == self.action_type:
+            self.learn()
+        elif self.do_cleanup_learning_file == self.action_type:
+            self.cleanup_learning_file()
+        else:
+            raise NotImplementedError('Unknown action_type [%s]' % self.action_type)
+
+    def cleanup_learning_file(self):
+        try:
+            remove_file(self.learning_file_name)
+            self.log_info('Removed \'%s\'' % self.learning_file_name)
+        except FileNotFoundError:
+            pass
 
     @classmethod
     def factory_key_name(cls):
@@ -62,19 +94,15 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
         return
 
     @classmethod
-    def restore(cls, model_file):
+    def restore(cls, model_file_name):
         """ overwrite where meaningful """
         return
 
     def get_name(self):
         return '%s|%s' % (self.__class__.__name__, self.puzzle_name())
 
-    @staticmethod
     @abstractmethod
-    def plot_learning(learning_file_name,
-                      network_name=None,
-                      puzzle_type=None,
-                      puzzle_dimension=None):
+    def plot_learning(self):
         """ Plot something meaningful. Learning type dependent so will be implemented in derived classes """
         return
 

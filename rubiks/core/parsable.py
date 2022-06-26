@@ -13,7 +13,7 @@ class Parsable(metaclass=ABCMeta):
      """
 
     default = 'default'
-    action = 'action'
+    action_ap_tag = 'action'
     store_true = 'store_true'
 
     __parsers__ = dict()
@@ -81,7 +81,7 @@ class Parsable(metaclass=ABCMeta):
                 other_dependencies += cls.additional_dependencies()
             except AttributeError:
                 pass
-            dependencies = other_dependencies + dependencies
+            dependencies = list(set(other_dependencies + dependencies))
             for dependency in dependencies:
                 try:
                     dependency.populate_parser(cls.__parsers__[cls])
@@ -115,7 +115,7 @@ class Parsable(metaclass=ABCMeta):
     @classmethod
     def add_argument(cls, parser, field, **kw_args):
         try:
-            if cls.action in kw_args and cls.store_true == kw_args[cls.action]:
+            if cls.action_ap_tag in kw_args and cls.store_true == kw_args[cls.action_ap_tag]:
                 parser.add_argument('--%s' % field, **kw_args)
             else:
                 parser.add_argument('-%s' % field, **kw_args)

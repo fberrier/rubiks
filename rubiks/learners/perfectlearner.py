@@ -2,14 +2,16 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from functools import partial
-from pandas import read_pickle
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from pandas import read_pickle, Series
 from math import inf
 from multiprocessing import Pool
 ########################################################################################################################
 from rubiks.learners.learner import Learner
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.solvers.solver import Solver, Solution
-from rubiks.utils.utils import is_inf, to_pickle, g_not_a_pkl_file
+from rubiks.utils.utils import is_inf, to_pickle, number_format
 from rubiks.puzzle.puzzle import Puzzle
 ########################################################################################################################
 
@@ -28,13 +30,15 @@ class PerfectLearner(Learner):
     default_nb_cpus = 1
     max_puzzles = 'max_puzzles'
     regular_save = 'regular_save'
+    after_round_save = 'after_round_save'
     default_regular_save = 1000
     cpu_multiplier = 'cpu_multiplier'
     default_cpu_multiplier = 10
     time_out = Solver.time_out
-    data_base_file_name = 'data_base_file_name'
     heuristic_type = Heuristic.heuristic_type
     solver_type = Solver.solver_type
+
+    most_difficult_puzzle_tag = 'most_difficult_puzzle'
 
     @classmethod
     def populate_parser_impl(cls, parser):
@@ -44,18 +48,20 @@ class PerfectLearner(Learner):
                          default=cls.default_nb_cpus)
         cls.add_argument(parser,
                          field=cls.max_puzzles,
+                         type=float,
                          default=inf)
         cls.add_argument(parser,
                          field=cls.regular_save,
+                         type=int,
                          default=cls.default_regular_save)
+        cls.add_argument(parser,
+                         field=cls.after_round_save,
+                         default=False,
+                         action=cls.store_true)
         cls.add_argument(parser,
                          field=cls.cpu_multiplier,
                          type=int,
                          default=cls.default_cpu_multiplier)
-        cls.add_argument(parser,
-                         field=cls.data_base_file_name,
-                         type=str,
-                         default=g_not_a_pkl_file)
         cls.add_argument(parser,
                          field=cls.heuristic_type,
                          default=None,
@@ -66,10 +72,12 @@ class PerfectLearner(Learner):
                          type=str)
         cls.add_argument(parser,
                          field=cls.time_out,
+                         type=float,
                          default=0)
 
     def __init__(self, **kw_args):
         Learner.__init__(self, **kw_args)
+        cls = self.__class__
         try:
             self.puzzle_count_since_save = 0
             if not is_inf(self.max_puzzles):
@@ -77,17 +85,18 @@ class PerfectLearner(Learner):
             else:
                 self.max_puzzles = inf
             self.puzzle_count = 0
-            self.data_base = read_pickle(self.data_base_file_name)
+            self.data_base = read_pickle(self.learning_file_name)
             puzzle_type = self.data_base[PerfectLearner.puzzle_type]
             dimension = self.data_base[PerfectLearner.dimension]
             assert self.get_puzzle_type() == puzzle_type
             assert dimension == self.get_puzzle_dimension()
-        except FileNotFoundError:
-            self.log_warning('Could not find data base \'%s\'' % self.data_base_file_name)
-            cls = self.__class__
+        except (FileNotFoundError, ModuleNotFoundError):
+            self.log_warning('Could not find (or read) data base \'%s\'' % self.learning_file_name)
             self.data_base = {cls.puzzle_type: self.get_puzzle_type(),
                               cls.dimension: self.get_puzzle_dimension(),
+                              cls.most_difficult_puzzle_tag: None,
                               cls.data: dict()}
+        self.highest_cost = 0 if not self.data_base[cls.data] else max(self.data_base[cls.data].values())
 
     def add_puzzle_to_data_base(self, puzzle, cost):
         cls = self.__class__
@@ -98,19 +107,11 @@ class PerfectLearner(Learner):
         self.puzzle_count_since_save += 1
         if self.puzzle_count_since_save >= self.regular_save:
             self.puzzle_count_since_save = 0
-            self.save(self.data_base_file_name)
+            self.save(self.learning_file_name)
         self.data_base[cls.data][h] = cost
-        self.log_debug('Added ',
-                       puzzle,
-                       ' with cost ',
-                       cost,
-                       ' to data base. puzzle_count = ',
-                       self.puzzle_count,
-                       ' total data base count = ',
-                       len(self.data_base[cls.data]),
-                       ' out of ',
-                       self.possible_puzzles_nb(),
-                       ' possible puzzles.')
+        if cost > self.highest_cost:
+            self.highest_cost = cost
+            self.data_base[cls.most_difficult_puzzle_tag] = puzzle
 
     def add_solution_to_data_base(self, solution):
         if is_inf(solution.cost):
@@ -149,6 +150,9 @@ class PerfectLearner(Learner):
                 puzzles = [puzzle]
                 for solution in solutions:
                     self.add_solution_to_data_base(solution)
+                if self.after_round_save:
+                    self.puzzle_count_since_save = 0
+                    self.save(self.learning_file_name)
             if self.puzzle_count >= self.max_puzzles:
                 break
         if puzzles:
@@ -159,28 +163,55 @@ class PerfectLearner(Learner):
                                  puzzles)
             for solution in solutions:
                 self.add_solution_to_data_base(solution)
+            if self.after_round_save:
+                self.puzzle_count_since_save = 0
+                self.save(self.learning_file_name)
         pool.close()
         pool.join()
-        self.save(self.data_base_file_name)
+        if self.learning_file_name:
+            self.save(self.learning_file_name)
 
-    def save(self, model_file_name, **kwargs):
-        cls = self.__class__
-        to_pickle(self.data_base, model_file_name)
-        n = len(self.data_base[cls.data])
-        if n <= 0:
+    def save(self, learning_file_name, **kwargs):
+        if not learning_file_name:
+            learning_file_name = self.learning_file_name
+        if not learning_file_name:
             return
-        self.log_info('Saved ',
-                      n,
-                      ' puzzles to \'%s\'' % self.data_base_file_name,
-                      '. Max cost = ',
-                      max(self.data_base[cls.data].values()))
+        cls = self.__class__
+        to_pickle(self.data_base, learning_file_name)
+        n = len(self.data_base[cls.data])
+        if n == 0:
+            return
+        info = {'saved puzzles': number_format(n),
+                'learning_file_name': learning_file_name,
+                'max cost': self.highest_cost,
+                '# possible puzzles': number_format(self.possible_puzzles_nb()),
+                'hardest puzzle so far': '%s' % self.data_base[cls.most_difficult_puzzle_tag]}
+        self.log_info(info)
 
-    @staticmethod
-    def plot_learning(learning_file_name,
-                      network_name=None,
-                      puzzle_type=None,
-                      puzzle_dimension=None):
-        """ Plot something meaningful. Learning type dependent so will be implemented in derived classes """
-        return
+    def plot_learning(self):
+        data = read_pickle(self.learning_file_name)[self.__class__.data]
+        puzzles_per_cost = dict()
+        for puzzle_hash, cost in data.items():
+            if cost not in puzzles_per_cost:
+                puzzles_per_cost[cost] = 0
+            puzzles_per_cost[cost] += 1
+        total_puzzles = len(data)
+        max_cost = max(data.values())
+        title = '%s | %s\n# puzzles = %s\nmax cost = %s' % (self.get_puzzle_type(),
+                                                            tuple(self.get_puzzle_dimension()),
+                                                            number_format(total_puzzles),
+                                                            number_format(max_cost))
+        fig = plt.figure(self.learning_file_name, figsize=(15, 10))
+        ax = fig.gca()
+        Series(data=puzzles_per_cost, dtype=int).sort_index().\
+            plot(kind='bar',
+                 label='# puzzles for each optimal cost',
+                 color='navy')
+        plt.legend()
+        plt.xlabel('Optimal cost')
+        plt.ylabel('# of puzzles')
+        plt.title(title)
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        plt.show()
 
 ########################################################################################################################

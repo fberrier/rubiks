@@ -5,36 +5,44 @@ from sys import argv
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.learners.perfectlearner import PerfectLearner
+from rubiks.heuristics.heuristic import Heuristic
 from rubiks.utils.utils import is_windows, get_model_file_name
 ########################################################################################################################
 
 
 def main(line):
-    PerfectLearner.from_command_line(line).learn()
+    PerfectLearner.from_command_line(line).action()
 
 ########################################################################################################################
 
 
-if '__main__' == __name__:
+if "__main__" == __name__:
     puzzle_type = Puzzle.sliding_puzzle
-    dimension = (2, 2)
+    dimension = (3, 3)
     time_out = 300
-    nb_cpus = 20
-    cpu_multiplier = 5
-    max_puzzles = 100000
-    regular_save = 10000
-    data_base_file_name = get_model_file_name(puzzle_type=puzzle_type,
-                                              dimension=dimension,
-                                              model_name='perfect')
+    nb_cpus = 16
+    cpu_multiplier = 100
+    max_puzzles = 250000
+    regular_save = 2500
+    after_round_save = True
+    heuristic_type = Heuristic.manhattan
+    action_type = PerfectLearner.do_learn # do_plot # do_cleanup_learning_file # do_learn
+    learning_file_name = get_model_file_name(puzzle_type=puzzle_type,
+                                             dimension=dimension,
+                                             model_name=PerfectLearner.perfect)
     if is_windows():
         command_line = " -n=%d -m=%d" % dimension
         command_line += " -puzzle_type=%s" % puzzle_type
         command_line += " -time_out=%d" % time_out
+        command_line += " -heuristic_type=%s" % heuristic_type
+        command_line += " -action_type=%s" % action_type
         command_line += " -nb_cpus=%d" % nb_cpus
         command_line += " -cpu_multiplier=%d" % cpu_multiplier
         command_line += " -max_puzzles=%d" % max_puzzles
         command_line += " -regular_save=%d" % regular_save
-        command_line += " -data_base_file_name=%s" % data_base_file_name
+        if after_round_save:
+            command_line += " --after_round_save"
+        command_line += " -learning_file_name=%s" % learning_file_name
     else:
         command_line = argv
     main(command_line)

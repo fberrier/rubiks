@@ -3,6 +3,8 @@
 ########################################################################################################################
 from os.path import split
 ########################################################################################################################
+from pandas import read_pickle
+########################################################################################################################
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.deeplearning.deeplearning import DeepLearning
 ########################################################################################################################
@@ -25,7 +27,7 @@ class DeepLearningHeuristic(Heuristic):
 
     def __init__(self, model_file_name, **kw_args):
         self.model_file_name = model_file_name
-        self.deep_learning = DeepLearning.restore(self.model_file_name)
+        self.deep_learning = DeepLearning.restore(read_pickle(self.model_file_name)[0])
         Heuristic.__init__(self, **kw_args)
 
     def get_name(self):

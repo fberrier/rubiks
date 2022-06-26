@@ -44,14 +44,10 @@ class DeepReinforcementLearner(Learner):
     nb_cpus = 'nb_cpus'
     default_nb_cpus = 1
     verbose = 'verbose'
-    model_file_name = 'model_file_name'
 
     @classmethod
     def populate_parser_impl(cls, parser):
         DeepLearning.populate_parser(parser)
-        cls.add_argument(parser,
-                         field=cls.model_file_name,
-                         type=str)
         cls.add_argument(parser,
                          field=cls.nb_epochs,
                          type=int)
@@ -325,74 +321,58 @@ class DeepReinforcementLearner(Learner):
         pool.close()
         pool.join()
         self.target_network = best_current[1].clone()
-        if self.model_file_name:
-            self.save(self.model_file_name)
+        if self.learning_file_name:
+            self.save(self.learning_file_name)
 
-    def save(self,
-             model_file_name,
-             learning_file_name=None):
-        touch(model_file_name)
-        self.current_network.save(model_file_name)
-        self.log_info('Saved learner state in ', model_file_name)
-        if learning_file_name is not None:
-            to_pickle(self.convergence_data, learning_file_name)
-            self.log_info('Saved convergence data to ', learning_file_name)
+    def save(self):
+        touch(self.learning_file_name)
+        to_pickle((self.current_network.get_data(),
+                   self.convergence_data),
+                  self.learning_file_name)
+        self.log_info('Saved learner state & convergence data in ',
+                      self.learning_file_name)
 
-    @staticmethod
-    def plot_learning(learning_file_name,
-                      network_name=None,
-                      puzzle_type=None,
-                      puzzle_dimension=None):
-        learning_data = read_pickle(learning_file_name)
+    def plot_learning(self):
+        learning_data = read_pickle(self.learning_file_name)[1]
         drl = DeepReinforcementLearner  # alias
-        if network_name:
-            learning_data = learning_data[learning_data.solver_name.apply(lambda sn: sn.find(network_name) >= 0)]
-        if not puzzle_type:
-            puzzle_types = set(learning_data[drl.puzzle_type])
-        else:
-            puzzle_types = {puzzle_type}
-        if not puzzle_dimension:
-            puzzle_dimensions = set(learning_data[drl.puzzle_dimension])
-        else:
-            puzzle_dimensions = {puzzle_dimension}
-        for puzzle_type, puzzle_dimension in product(puzzle_types, puzzle_dimensions):
-            data = learning_data[learning_data.puzzle_type == puzzle_type]
-            data = data[data.puzzle_dimension == puzzle_dimension]
-            assert 1 == len(set(data[drl.nb_shuffles]))
-            assert 1 == len(set(data[drl.nb_sequences]))
-            assert 1 == len(set(data[drl.network_name]))
-            if not network_name:
-                network_name = data[drl.network_name].iloc[0]
-            title = '%s | %s | %s' % (network_name,
-                                      puzzle_type,
-                                      puzzle_dimension)
-            fig = plt.figure(title)
-            title = 'Learning data plot\n\n%s' % title
-            fig.suptitle(title)
-            x = drl.epoch
-            gs = fig.add_gridspec(4, 1)
-            ax1 = fig.add_subplot(gs[0])
-            ax2 = fig.add_subplot(gs[1])
-            ax3 = fig.add_subplot(gs[2])
-            ax4 = fig.add_subplot(gs[3])
-            loss_over_max_target = 'loss_over_max_target'
+        puzzle_type = self.get_puzzle_type()
+        puzzle_dimension = self.get_puzzle_dimension()
+        data = learning_data[learning_data.puzzle_type == puzzle_type]
+        data = data[data.puzzle_dimension == puzzle_dimension]
+        assert 1 == len(set(data[drl.nb_shuffles]))
+        assert 1 == len(set(data[drl.nb_sequences]))
+        assert 1 == len(set(data[drl.network_name]))
+        network_name = data[drl.network_name].iloc[0]
+        title = '%s | %s | %s' % (network_name,
+                                  puzzle_type,
+                                  puzzle_dimension)
+        fig = plt.figure(title)
+        title = 'Learning data plot\n\n%s' % title
+        fig.suptitle(title)
+        x = drl.epoch
+        gs = fig.add_gridspec(4, 1)
+        ax1 = fig.add_subplot(gs[0])
+        ax2 = fig.add_subplot(gs[1])
+        ax3 = fig.add_subplot(gs[2])
+        ax4 = fig.add_subplot(gs[3])
+        loss_over_max_target = 'loss_over_max_target'
 
-            def add_plot(ax, y, c):
-                ax.scatter(x,
-                           y=y,
-                           data=data,
-                           color=c,
-                           s=10,
-                           marker='.')
-                ax.set_xlabel(x)
-                ax.set_ylabel(y)
-                if y in [drl.loss, loss_over_max_target]:
-                    ax.set_yscale('log')
-            data[loss_over_max_target] = data[drl.loss] /  data[drl.max_target]
-            add_plot(ax1, drl.target_network_count, 'b')
-            add_plot(ax2, drl.max_target, 'r')
-            add_plot(ax3, drl.loss, 'g')
-            add_plot(ax4, loss_over_max_target, 'm')
+        def add_plot(ax, y, c):
+            ax.scatter(x,
+                       y=y,
+                       data=data,
+                       color=c,
+                       s=10,
+                       marker='.')
+            ax.set_xlabel(x)
+            ax.set_ylabel(y)
+            if y in [drl.loss, loss_over_max_target]:
+                ax.set_yscale('log')
+        data[loss_over_max_target] = data[drl.loss] /  data[drl.max_target]
+        add_plot(ax1, drl.target_network_count, 'b')
+        add_plot(ax2, drl.max_target, 'r')
+        add_plot(ax3, drl.loss, 'g')
+        add_plot(ax4, loss_over_max_target, 'm')
         plt.show()
 
 ########################################################################################################################

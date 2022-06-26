@@ -10,7 +10,6 @@ from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
 from multiprocessing import Pool
 from numpy import isnan, isinf
-from os import remove
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
 ########################################################################################################################
@@ -20,7 +19,7 @@ from rubiks.heuristics.heuristic import Heuristic
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
-from rubiks.utils.utils import pprint, g_not_a_pkl_file, to_pickle
+from rubiks.utils.utils import pprint, g_not_a_pkl_file, to_pickle, remove_file
 ########################################################################################################################
 
 
@@ -119,7 +118,6 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     pct_optimal = 'optimal (%)'
     puzzle_type = 'puzzle_type'
     puzzle_dimension = 'puzzle_dimension'
-
     action_type = 'action_type'
     do_plot = 'do_plot'
     do_solve = 'do_solve'
@@ -379,19 +377,18 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         return '%s[%s]' % (self.__class__.__name__, self.puzzle_name())
 
     def action(self, **kw_args):
-        action_type = str(kw_args.get(__class__.action_type)).lower()
-        if __class__.do_plot == action_type:
+        if self.do_plot == self.action_type:
             self.plot_performance(**kw_args)
-        elif __class__.do_solve == action_type:
+        elif self.do_solve == self.action_type:
             self.performance(**kw_args)
-        elif __class__.do_cleanup_performance_file == action_type:
+        elif self.do_cleanup_performance_file == self.action_type:
             self.cleanup_perf_file(**kw_args)
         else:
-            raise NotImplementedError('Unknown action_type [%s]' % action_type)
+            raise NotImplementedError('Unknown action_type [%s]' % self.action_type)
 
-    def cleanup_perf_file(self, performance_file_name, **kw_args):
+    def cleanup_perf_file(self):
         try:
-            remove(performance_file_name)
+            remove_file(self.fil)
             self.log_info('Removed \'%s\'' % performance_file_name)
         except FileNotFoundError:
             pass

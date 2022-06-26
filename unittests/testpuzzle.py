@@ -105,7 +105,7 @@ class TestPuzzle(TestCase):
             Puzzle.factory(puzzle_type=Puzzle.sliding_puzzle, n=10)
         latency = snap() - b4
         logger.log_info({'latency': ms_format(latency)})
-        self.assertGreater(6, latency)
+        self.assertGreater(10, latency)
 
     def test_generate_all_sliding_puzzles_2_2(self):
         logger = Loggable(name='test_generate_all_sliding_puzzles_2_2')

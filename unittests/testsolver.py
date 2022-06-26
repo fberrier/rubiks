@@ -39,7 +39,7 @@ class TestSolver(TestCase):
                                               model_name='test_a_star_perfect_solver')
         remove_file(model_file_name)
         learner = PerfectLearner(puzzle_type=Puzzle.sliding_puzzle,
-                                 data_base_file_name=model_file_name,
+                                 learning_file_name=model_file_name,
                                  solver_type=Solver.astar,
                                  heuristic_type=Heuristic.manhattan,
                                  time_out=2,
@@ -95,7 +95,7 @@ class TestSolver(TestCase):
                                               model_name='test_deep_reinforcement_learning_solver')
         remove_file(model_file_name)
         learner = DeepReinforcementLearner(puzzle_type=Puzzle.sliding_puzzle,
-                                           model_file_name=model_file_name,
+                                           learning_file_name=model_file_name,
                                            solver_type=Solver.astar,
                                            n=dimension[0],
                                            m=dimension[1],

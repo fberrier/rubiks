@@ -15,7 +15,7 @@ class TestLearner(TestCase):
 
     def test_learner_direct_construct_perfect_learner_4_4(self):
         learner = PerfectLearner(puzzle_type=Puzzle.sliding_puzzle,
-                                 data_base_file_name='test_learner_direct_construct.pkl',
+                                 learning_file_name='test_learner_direct_construct.pkl',
                                  n=4)
         self.assertEqual(learner.nb_cpus, PerfectLearner.default_nb_cpus)
         self.assertEqual(learner.regular_save, PerfectLearner.default_regular_save)
@@ -24,7 +24,7 @@ class TestLearner(TestCase):
 
     def test_learner_direct_construct_perfect_learner_4_6(self):
         learner = PerfectLearner(puzzle_type=Puzzle.sliding_puzzle,
-                                 data_base_file_name='test_learner_direct_construct.pkl',
+                                 learning_file_name='test_learner_direct_construct.pkl',
                                  n=4,
                                  m=6,
                                  cpu_multiplier=45)
@@ -47,7 +47,7 @@ class TestLearner(TestCase):
     def test_learner_perfect_from_factory(self):
         learner = Learner.factory(learner_type=Learner.perfect_learner,
                                   puzzle_type=Puzzle.sliding_puzzle,
-                                  data_base_file_name='test_search_strategy_perfect_from_factory.pkl',
+                                  learning_file_name='test_search_strategy_perfect_from_factory.pkl',
                                   n=4)
         self.assertEqual(learner.nb_cpus, PerfectLearner.default_nb_cpus)
         self.assertEqual(learner.regular_save, PerfectLearner.default_regular_save)

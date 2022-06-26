@@ -115,6 +115,18 @@ class TestParsable(TestCase):
         self.assertFalse(my_parsable4.some_bool)
 
     def test_parsable_from_command_line(self):
+        command_line = '-some_thing=this? -some_int=1979'
+        my_parsable = SomeParsable.from_command_line(command_line)
+        self.assertEqual('this?', my_parsable.some_string)
+        self.assertEqual(1979, my_parsable.some_int)
+        self.assertFalse(my_parsable.some_bool)
+        command_line += ' --some_bool'
+        my_parsable = SomeParsable.from_command_line(command_line)
+        self.assertEqual('this?', my_parsable.some_string)
+        self.assertEqual(1979, my_parsable.some_int)
+        self.assertTrue(my_parsable.some_bool)
+
+    def test_parsable_from_command_line(self):
         my_parsable = SomeParsable.from_command_line(["-some_string=this?", "--some_bool"])
         self.assertEqual('this?', my_parsable.some_string)
         self.assertEqual(413, my_parsable.some_int)

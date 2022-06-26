@@ -3,14 +3,12 @@
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
 from copy import deepcopy as copy
-from pandas import read_pickle
 from torch import device
 from torch.nn import Module
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.core.factory import Factory
 from rubiks.puzzle.puzzled import Puzzled
-from rubiks.utils.utils import to_pickle
 ########################################################################################################################
 
 

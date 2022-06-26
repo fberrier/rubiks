@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from sys import argv
 ########################################################################################################################
 from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
-from rubiks.puzzle.rubiks import RubiksCube
+from rubiks.puzzle.rubikscube import RubiksCube
 from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic, Heuristic
 from rubiks.heuristics.perfectheuristic import PerfectHeuristic
 from rubiks.heuristics.manhattan import Manhattan

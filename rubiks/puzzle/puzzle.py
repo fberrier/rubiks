@@ -109,7 +109,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
     @classmethod
     def widget_types(cls):
         from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
-        from rubiks.puzzle.rubiks import RubiksCube
+        from rubiks.puzzle.rubikscube import RubiksCube
         return [SlidingPuzzle, RubiksCube]
 
     @classmethod

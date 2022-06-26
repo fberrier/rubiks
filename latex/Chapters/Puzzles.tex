@@ -19,7 +19,22 @@
 The first puzzle I will focus on is the sliding puzzle (see \cite{SlidingPuzzleWiki}).The 15-puzzle seems to have been invented in the late 19th century by Noyes Chapman (see \cite{SlidingPuzzleWolfram}), who applied for a patent in 1980. In 1879, a couple of interesting notes (\cite{Johnson1879}), published in the American Journal of Mathematics proved that exactly half of the $16!$ possible ways of setting up the 16 tiles on the board lead to solvable puzzles. A more modern proof can be found in \cite{Archer1999}.
 \\
 \\
-Since then, several variations of the 15-puzzle have become popular, such as the 24-puzzle. A rather contrived but interesting one is the coiled 15-puzzle (\cite{Coiled15Puzzle}), where the bottom-right and the top-left compartments are adjascent; the additional move that this allows renders all $16!$ configurations solvable. It is rather easy to see why this is the case, let us discuss why: Given a configuration c of the tiles, let us define the permutation p(c) of this configuration according to the following schema: we enumerate the tiles row by row (top to bottom), left to right for odd rows and right to left for the even rows, ignoring the empty compartment. For instance, the following 15-puzzle c:
+Since then, several variations of the 15-puzzle have become popular, such as the 24-puzzle. A rather contrived but interesting one is the coiled 15-puzzle (\cite{Coiled15Puzzle}), where the bottom-right and the top-left compartments are adjascent; the additional move that this allows renders all $16!$ configurations solvable. 
+
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.7]{./Figures/coiled15puzzle}
+\decoRule
+\caption[Coiled 15-puzzle]{Coiled 15-puzzle}
+\label{fig:Coiled15Puzzle}
+\end{figure}
+
+
+
+
+It is rather easy to see why this is the case, let us discuss why: Given a configuration c of the tiles, let us define the permutation p(c) of this configuration according to the following schema: we enumerate the tiles row by row (top to bottom), left to right for odd rows and right to left for the even rows, ignoring the empty compartment. For instance, the following 15-puzzle c:
 
 \begin{fifteen}
 \setrow{4}{1,6,2,3}

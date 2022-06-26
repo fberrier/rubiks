@@ -7,11 +7,12 @@ from matplotlib.ticker import MaxNLocator
 from pandas import read_pickle, Series
 from math import inf
 from multiprocessing import Pool
+from time import time as snap
 ########################################################################################################################
 from rubiks.learners.learner import Learner
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.solvers.solver import Solver, Solution
-from rubiks.utils.utils import is_inf, to_pickle, number_format
+from rubiks.utils.utils import is_inf, to_pickle, number_format, hms_format, pformat
 from rubiks.puzzle.puzzle import Puzzle
 ########################################################################################################################
 
@@ -37,8 +38,12 @@ class PerfectLearner(Learner):
     time_out = Solver.time_out
     heuristic_type = Heuristic.heuristic_type
     solver_type = Solver.solver_type
+    puzzle_generation = 'puzzle_generation'
+    random_puzzle_generation = 'random_puzzle_generation'
+    permutation_puzzle_generation = 'permutation_puzzle_generation'
 
     most_difficult_puzzle_tag = 'most_difficult_puzzle'
+    computing_time_tag = 'computing_time'
 
     @classmethod
     def populate_parser_impl(cls, parser):
@@ -67,6 +72,12 @@ class PerfectLearner(Learner):
                          default=None,
                          type=str)
         cls.add_argument(parser,
+                         field=cls.puzzle_generation,
+                         default=cls.permutation_puzzle_generation,
+                         choices=[cls.permutation_puzzle_generation,
+                                  cls.random_puzzle_generation],
+                         type=str)
+        cls.add_argument(parser,
                          field=cls.solver_type,
                          default=Solver.astar,
                          type=str)
@@ -86,17 +97,21 @@ class PerfectLearner(Learner):
                 self.max_puzzles = inf
             self.puzzle_count = 0
             self.data_base = read_pickle(self.learning_file_name)
+            self.computing_time = self.data_base[cls.computing_time_tag]
             puzzle_type = self.data_base[PerfectLearner.puzzle_type]
             dimension = self.data_base[PerfectLearner.dimension]
             assert self.get_puzzle_type() == puzzle_type
             assert dimension == self.get_puzzle_dimension()
-        except (FileNotFoundError, ModuleNotFoundError):
+        except (FileNotFoundError, ModuleNotFoundError, KeyError):
             self.log_warning('Could not find (or read) data base \'%s\'' % self.learning_file_name)
             self.data_base = {cls.puzzle_type: self.get_puzzle_type(),
                               cls.dimension: self.get_puzzle_dimension(),
                               cls.most_difficult_puzzle_tag: None,
-                              cls.data: dict()}
+                              cls.data: dict(),
+                              cls.computing_time_tag: 0.}
+            self.computing_time = 0
         self.highest_cost = 0 if not self.data_base[cls.data] else max(self.data_base[cls.data].values())
+        self.snap = None
 
     def add_puzzle_to_data_base(self, puzzle, cost):
         cls = self.__class__
@@ -128,6 +143,19 @@ class PerfectLearner(Learner):
         except TimeoutError:
             return Solution(inf, [], inf, puzzle)
 
+    def generate_puzzles(self):
+        self.log_info('Puzzles generation process:', self.puzzle_generation)
+        if self.puzzle_generation == self.permutation_puzzle_generation:
+            for puzzle in self.get_puzzle_type_class().generate_all_puzzles(**self.get_config()):
+                yield puzzle
+        elif self.puzzle_generation == self.random_puzzle_generation:
+            goal = self.get_goal()
+            while True:
+                yield goal.perfect_shuffle()
+        else:
+            raise NotImplementedError('Unknown %s [%s]' % (self.__class__.puzzle_generation,
+                                                           self.puzzle_generation))
+
     def learn(self):
         cls = self.__class__
         solver = Solver.factory(**self.get_config())
@@ -135,37 +163,45 @@ class PerfectLearner(Learner):
         puzzles = []
         self.puzzle_count = 1
         config = self.get_config()
-        for puzzle in self.get_puzzle_type_class().generate_all_puzzles(**config):
-            h = hash(puzzle)
-            if h in self.data_base[cls.data]:
-                continue
-            if len(puzzles) < self.cpu_multiplier * self.nb_cpus:
-                puzzles.append(puzzle)
-            else:
+        self.snap = snap()
+        try:
+            for puzzle in self.generate_puzzles():
+                if self.puzzle_count > self.max_puzzles or \
+                        len(self.data_base[cls.data]) >= self.possible_puzzles_nb():
+                    break
+                h = hash(puzzle)
+                if h in self.data_base[cls.data]:
+                    continue
+                if len(puzzles) < self.cpu_multiplier * self.nb_cpus:
+                    puzzles.append(puzzle)
+                else:
+                    solutions = pool.map(partial(self.__class__.__job__,
+                                                 self,
+                                                 solver,
+                                                 config),
+                                         puzzles)
+                    puzzles = [puzzle]
+                    for solution in solutions:
+                        self.add_solution_to_data_base(solution)
+                    if self.after_round_save:
+                        self.puzzle_count_since_save = 0
+                        self.save(self.learning_file_name)
+                if self.puzzle_count >= self.max_puzzles or \
+                        len(self.data_base[cls.data]) >= self.possible_puzzles_nb():
+                    break
+            if puzzles and len(self.data_base[cls.data]) < self.possible_puzzles_nb():
                 solutions = pool.map(partial(self.__class__.__job__,
                                              self,
                                              solver,
                                              config),
                                      puzzles)
-                puzzles = [puzzle]
                 for solution in solutions:
                     self.add_solution_to_data_base(solution)
                 if self.after_round_save:
                     self.puzzle_count_since_save = 0
                     self.save(self.learning_file_name)
-            if self.puzzle_count >= self.max_puzzles:
-                break
-        if puzzles:
-            solutions = pool.map(partial(self.__class__.__job__,
-                                         self,
-                                         solver,
-                                         config),
-                                 puzzles)
-            for solution in solutions:
-                self.add_solution_to_data_base(solution)
-            if self.after_round_save:
-                self.puzzle_count_since_save = 0
-                self.save(self.learning_file_name)
+        except KeyboardInterrupt:
+            self.log_warning('Was interrupted. Exit and save')
         pool.close()
         pool.join()
         if self.learning_file_name:
@@ -177,6 +213,7 @@ class PerfectLearner(Learner):
         if not learning_file_name:
             return
         cls = self.__class__
+        self.data_base[cls.computing_time_tag] = self.computing_time + snap() - self.snap
         to_pickle(self.data_base, learning_file_name)
         n = len(self.data_base[cls.data])
         if n == 0:
@@ -185,16 +222,27 @@ class PerfectLearner(Learner):
                 'learning_file_name': learning_file_name,
                 'max cost': self.highest_cost,
                 '# possible puzzles': number_format(self.possible_puzzles_nb()),
-                'hardest puzzle so far': '%s' % self.data_base[cls.most_difficult_puzzle_tag]}
+                'hardest puzzle so far': '%s' % self.data_base[cls.most_difficult_puzzle_tag],
+                'computing time': hms_format(self.computing_time + snap() - self.snap),
+                '# puzzles vs cost': pformat(self.puzzles_vs_cost(self.data_base[cls.data]).to_frame().transpose())}
         self.log_info(info)
 
-    def plot_learning(self):
-        data = read_pickle(self.learning_file_name)[self.__class__.data]
+    @staticmethod
+    def puzzles_vs_cost(data):
         puzzles_per_cost = dict()
         for puzzle_hash, cost in data.items():
             if cost not in puzzles_per_cost:
                 puzzles_per_cost[cost] = 0
             puzzles_per_cost[cost] += 1
+        puzzles_per_cost = Series(data=puzzles_per_cost,
+                                  dtype=int,
+                                  name='# puzzles').sort_index()
+        return puzzles_per_cost
+
+    def plot_learning(self):
+        data = read_pickle(self.learning_file_name)[self.__class__.data]
+        if not data:
+            return
         total_puzzles = len(data)
         max_cost = max(data.values())
         title = '%s | %s\n# puzzles = %s\nmax cost = %s' % (self.get_puzzle_type(),
@@ -203,7 +251,7 @@ class PerfectLearner(Learner):
                                                             number_format(max_cost))
         fig = plt.figure(self.learning_file_name, figsize=(15, 10))
         ax = fig.gca()
-        Series(data=puzzles_per_cost, dtype=int).sort_index().\
+        self.puzzles_vs_cost(data).\
             plot(kind='bar',
                  label='# puzzles for each optimal cost',
                  color='navy')

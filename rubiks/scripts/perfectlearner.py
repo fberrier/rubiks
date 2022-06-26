@@ -18,15 +18,18 @@ def main(line):
 
 if "__main__" == __name__:
     puzzle_type = Puzzle.sliding_puzzle
-    dimension = (3, 3)
+    dimension = (2, 5)
     time_out = 300
-    nb_cpus = 16
-    cpu_multiplier = 100
-    max_puzzles = 250000
-    regular_save = 2500
+    nb_cpus = 20
+    cpu_multiplier = 50
+    max_puzzles = 25000
+    regular_save = 1000
     after_round_save = True
+    # {random_puzzle_generation, permutation_puzzle_generation}
+    puzzle_generation = PerfectLearner.permutation_puzzle_generation
     heuristic_type = Heuristic.manhattan
-    action_type = PerfectLearner.do_learn # do_plot # do_cleanup_learning_file # do_learn
+    # {do_plot, do_cleanup_learning_file, do_learn}
+    action_type = PerfectLearner.do_learn
     learning_file_name = get_model_file_name(puzzle_type=puzzle_type,
                                              dimension=dimension,
                                              model_name=PerfectLearner.perfect)
@@ -36,6 +39,7 @@ if "__main__" == __name__:
         command_line += " -time_out=%d" % time_out
         command_line += " -heuristic_type=%s" % heuristic_type
         command_line += " -action_type=%s" % action_type
+        command_line += " -puzzle_generation=%s" % puzzle_generation
         command_line += " -nb_cpus=%d" % nb_cpus
         command_line += " -cpu_multiplier=%d" % cpu_multiplier
         command_line += " -max_puzzles=%d" % max_puzzles

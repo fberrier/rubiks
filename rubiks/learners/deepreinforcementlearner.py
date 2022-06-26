@@ -3,7 +3,6 @@
 ########################################################################################################################
 from enum import Enum
 from functools import partial
-from itertools import product
 from matplotlib import pyplot as plt
 from math import inf
 from multiprocessing import Pool

@@ -1,0 +1,233 @@
+digraph g {
+    rankdir=TB;
+    nodesep=0.5;
+    edge [ constraint=false ];
+	size=1;
+	overlap=scale;
+	start=2;
+	edge [penwidth=0.8, arrowsize=0.6, color=black, forcelabels=false, constraint=true];
+	node [shape=circle,
+			fixedsize=false,
+			color="black",
+			fillcolor="white",
+			style="filled, solid",
+			fontsize=10,
+			penwidth=1
+		];
+
+	# PYTORCH
+    nodepytorch [label="Module", fillcolor=antiquewhite4]
+	# UTILS
+	nodeutils [label="utils",shape=rectangle]
+	# 3rd PARTIES
+	nodebrokenaxes [label="brokenaxes",shape=rectangle, fillcolor=antiquewhite4]
+	# SCRIPTS
+	nodescriptperfectlearner [label="perfectlearner",shape=rectangle]
+	nodescriptdeeplearning [label="deeplearning",shape=rectangle]
+	nodescriptperformance [label="performance",shape=rectangle]
+	# LEGEND
+	nodelegendfactories [label="factories",color=cadetblue4,shape=rectangle,fontcolor=cadetblue4]
+	nodelegendexternal [label="3rd parties",color=antiquewhite4,shape=rectangle,fontcolor=antiquewhite4]
+	nodelegendsearch [label="search",color=brown3,shape=rectangle,fontcolor=brown3]
+	nodelegendpuzzles [label="puzzles",color=chartreuse4,shape=rectangle,fontcolor=chartreuse4]
+	nodelegenddeeplearning [label="deeplearning",color=violetred4,shape=rectangle,fontcolor=violetred4]
+	# PUZZLE
+    nodepuzzle [label="Puzzle", fillcolor=cadetblue4]
+    nodeslidingpuzzle [label="SlidingPuzzle"]
+    noderubikscube [label="RubiksCube"]
+    nodepuzzled [label="Puzzled"]
+	# HEURISTICS
+    nodeheuristic [label="Heuristic", fillcolor=cadetblue4]
+    nodemanhattan [label="Manhattan"]
+    nodeperfectheuristic [label="PerfectHeuristic"]
+    nodedlheuristic [label="DeepLearningHeuristic"]
+	# SEARCH
+	nodesearchstrategy [label="SearchStrategy", fillcolor=cadetblue4]
+	nodenode [label="Node"]
+	nodesbfs [label="BreadthFirstSearch"]
+	nodesdfs [label="DepthFirstSearch"]
+	nodeastar [label="AStar"]
+	# DEEPLEARNING
+    nodedeeplearning [label="DeepLearning", fillcolor=cadetblue4]
+    nodefullyconnected [label="FullyConnected"]
+	# LEARNERS
+	nodelearner [label="Learner", fillcolor=cadetblue4]
+	nodeperfectlearner [label="PerfectLearner"]
+	nodedeepreinforcementlearner [label="DeepReinforcementLearner"]
+	# SOLVERS
+	nodesolver [label="Solver", fillcolor=cadetblue4]
+	nodesolution [label="Solution"]
+	nodebfssolver [label="BFSSolver"]
+	nodedfssolver [label="DFSSolver"]
+	nodestarsolver [label="AStarSolver"]
+	######################################################################################################
+	# CLUSTERS
+	subgraph clusterFB {
+		rankdir=BT;
+		fontsize=25;
+		#label="Rubiks Cube & Sliding Puzzle -- MSc in Artificial Intelligence -- Royal Holloway, University of London\n"
+		label="Rubiks Cube & Sliding Puzzle -- Code Base"
+		# LEGEND
+		subgraph clusterLegend {
+			label = "Legend";
+			color=black
+			nodelegendpuzzles
+			nodelegendfactories
+			nodelegendexternal
+			nodelegendsearch
+			nodelegenddeeplearning
+		}
+		# SCRIPTS
+		subgraph clusterScripts {
+			label="scripts"
+			nodescriptperfectlearner
+			nodescriptdeeplearning
+			nodescriptperformance
+		}
+		# 3rd PARTIES
+		subgraph cluster3rdParties {
+			label="thirdparties"
+			nodebrokenaxes
+		}
+		# UTILS
+		subgraph clusterUtils {
+			label="utils"
+			nodeutils
+		}
+		# PYTORCH
+		subgraph clusterPytorch {
+			label="pytorch"
+			#bgcolor=grey
+			color=black
+			nodepytorch
+		}
+		# CORE
+		subgraph clusterCore {
+			label="core"
+			bgcolor=white
+			# CORE
+			nodecorefactory [label="Factory", fillcolor=cadetblue4]
+			nodecoreloggable [label="Loggable"]
+			nodecoreparsable [label="Parsable"]
+			{
+				nodecoreloggable
+				nodecoreparsable
+				nodecorefactory
+			}
+			#nodecoreloggable -> nodecoreparsable [style=invis, constraint=true]
+			nodecoreparsable -> nodecorefactory
+		}
+		# PUZZLE
+		subgraph clusterPuzzle {
+			label="puzzle"
+			bgcolor=white
+			nodepuzzle
+			nodeslidingpuzzle [fillcolor=chartreuse4]
+			noderubikscube [fillcolor=chartreuse4]
+			nodepuzzled
+			nodepuzzled -> nodepuzzle [style=dashed, arrowhead=none]
+			nodepuzzle -> nodeslidingpuzzle
+			nodepuzzle -> noderubikscube
+		}
+		nodecoreparsable -> nodepuzzled [constraint=true]#, style=invis ];
+		nodecorefactory -> nodepuzzle [constraint=true]#, style=invis ];
+		# HEURISTICS
+		subgraph clusterHeuristic {
+			label="heuristics"
+			bgcolor=white
+			nodeheuristic
+			nodemanhattan
+			nodeperfectheuristic
+			nodedlheuristic [fillcolor=violetred4]
+			nodeheuristic -> nodemanhattan
+			nodeheuristic -> nodeperfectheuristic
+			nodeheuristic -> nodedlheuristic
+		}
+		nodecorefactory -> nodeheuristic
+		nodepuzzled -> nodeheuristic
+		# SEARCH
+		subgraph clusterSearch {
+			label="search"
+			bgcolor=white
+			nodenode
+			{
+				nodesearchstrategy
+				nodesbfs [fillcolor=brown3]
+				nodesdfs [fillcolor=brown3]
+				nodeastar [fillcolor=brown3]
+			}
+			nodesearchstrategy -> nodesbfs
+			nodesearchstrategy -> nodesdfs
+			nodesearchstrategy -> nodeastar
+		}
+		nodenode -> nodesearchstrategy  [style=dashed, constraint=true, arrowhead=false]
+		nodecoreloggable -> nodesearchstrategy
+		nodecorefactory -> nodesearchstrategy
+		# DEEP LEARNING
+		subgraph clusterDeeplearning {
+			label="deeplearning"
+			nodedeeplearning
+			nodefullyconnected [fillcolor=violetred4]
+			nodedeeplearning -> nodefullyconnected
+		}
+		nodepytorch -> nodedeeplearning
+		nodecorefactory -> nodedeeplearning
+		nodecoreloggable -> nodedeeplearning
+		nodepuzzled -> nodedeeplearning
+		nodeastar -> nodeheuristic  [style=dashed, constraint=false, arrowhead=false]
+
+		# LEARNERS
+		subgraph clusterLearners {
+			label="learners"
+			nodelearner
+			nodeperfectlearner
+			nodedeepreinforcementlearner [fillcolor=violetred4]
+			nodelearner -> nodeperfectlearner
+			nodelearner -> nodedeepreinforcementlearner
+		}
+		nodepuzzled -> nodelearner
+		nodecorefactory -> nodelearner
+		nodecoreloggable -> nodelearner
+		# SOLVERS
+		subgraph clusterSolvers {
+    		label="solvers"
+			nodesolver
+			nodesolution
+			nodebfssolver [fillcolor=brown3]
+			nodedfssolver [fillcolor=brown3]
+			nodestarsolver [fillcolor=brown3]
+			nodesolution -> nodesolver [style=dashed, arrowhead=none]
+			nodesolver -> nodebfssolver
+			nodesolver -> nodedfssolver
+			nodesolver -> nodestarsolver
+		}
+		nodecorefactory -> nodesolver
+		nodecoreloggable -> nodesolver
+		nodepuzzled -> nodesolver
+
+
+		nodesbfs -> nodebfssolver [style=dashed, arrowhead=none]
+		nodesdfs -> nodedfssolver [style=dashed, arrowhead=none]
+		nodeastar-> nodestarsolver [style=dashed, arrowhead=none]
+
+
+		nodelegendfactories -> nodeutils [constraint=true,color=red, style=invis ];
+		nodelegendfactories -> nodebrokenaxes [constraint=true,color=red, style=invis ];
+		nodelegendfactories -> nodepytorch [constraint=true,color=red, style=invis ];
+		nodelegendfactories -> nodescriptdeeplearning [constraint=true,color=red, style=invis ];
+		nodeutils -> nodecorefactory [constraint=true,color=red, style=invis ];
+		nodeutils -> nodecoreloggable [constraint=true,color=red, style=invis ];
+		nodeutils -> nodecoreparsable [constraint=true,color=red, style=invis ];
+		nodesbfs -> nodedeeplearning [constraint=true,color=red, style=invis ];
+		nodesbfs -> nodelearner [constraint=true,color=red, style=invis ];
+		nodesbfs -> nodesolver [constraint=true,color=red, style=invis ];
+		nodelegendpuzzles -> nodepuzzled [constraint=true,color=red, style=invis ];
+		nodelegendexternal -> nodepytorch [constraint=true,color=red, style=invis ];
+		nodeslidingpuzzle -> nodesolver [constraint=true,color=red, style=invis ];
+		nodeastar -> nodesolution [constraint=true,color=red, style=invis ];
+
+		#nodecorefactory -> nodetoto [constraint=true,color=red]#, style=invis ];
+		#nodelegendfactories -> nodedeeplearning [constraint=true,color=red]#, style=invis ];
+	} # subgraph clusterFB
+	######################################################################################################
+}

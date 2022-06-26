@@ -180,6 +180,15 @@ def h_format(run_time):
 ########################################################################################################################
 
 
+def hms_format(run_time):
+    hour = int(run_time / 3600)
+    minute = int((run_time - hour * 3600) / 60)
+    second = int(run_time - hour * 3600 - minute * 60)
+    return '%sh%sm%ss' % (hour, minute, second)
+
+########################################################################################################################
+
+
 def is_windows():
     return 'win32' == platform
 

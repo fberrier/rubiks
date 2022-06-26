@@ -5,7 +5,7 @@ from abc import abstractmethod, ABCMeta
 from functools import partial
 from itertools import product
 from math import inf
-from brokenaxes import brokenaxes
+from rubiks.thridparties import brokenaxes
 from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
 from multiprocessing import Pool

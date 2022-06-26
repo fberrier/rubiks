@@ -80,10 +80,10 @@ This module implements learners, which learn something from a puzzle, store what
 
 \begin{itemize}
 \item Learner is a Puzzled Loggable Factory. It provides some common code to learners (to save or purge what they learnt), kick off learning and plot results. Concrete derived implementation define what and how they learn, and what interesting they can display about this learning process. Currently the two implemented learners are:
-\item PerfectLearner: It instantiates an optimal solver ($A^{*}$ with a configurable heuristic - but will only accept heurstic that advertise themselves as optimal. The learning consists in generating all the possible configuration of the considered puzzle, solve them with the optimal solver, and save the optimal cost of it as well as those of the whole solution path. The code allows for parallelization, stop and restart so that we can run on several different occasions and keep completing a database of solutions if necessary or desired. Once the PerfectLearner has completed its job, it can display some interesting information, such as the puzzle's God's number, the distribution of number of puzzles versus optimal cost, the hardest configuration it came across, and how long it took it to come up with the full knowledge of that puzzle. I will show in section \ref{PLSS} how to run an example. Notice that for puzzles of too high dimension, where my computing resources will not allow to solve exhaustively all the configurations of a given dimension, this class can still be used to populate a data base of optimal costs, which can then be used by DeepLearner. If it is to be used this way, the PerfectLearner can be configured to use perfectly random configurations to learn from, rather than going through the configurations one by one in a well defined order.
+\item PerfectLearner: It instantiates an optimal solver ($A^{*}$ with a configurable heuristic - but will only accept heuristic that advertise themselves as optimal. The learning consists in generating all the possible configuration of the considered puzzle, solve them with the optimal solver, and save the optimal cost of it as well as those of the whole solution path. The code allows for parallelization, stop and restart so that we can run on several different occasions and keep completing a database of solutions if necessary or desired. Once the PerfectLearner has completed its job, it can display some interesting information, such as the puzzle's God's number, the distribution of number of puzzles versus optimal cost, the hardest configuration it came across, and how long it took it to come up with the full knowledge of that puzzle. I will show in section \ref{PLSS} how to run an example. Notice that for puzzles of too high dimension, where my computing resources will not allow to solve exhaustively all the configurations of a given dimension, this class can still be used to populate a data base of optimal costs, which can then be used by DeepLearner. If it is to be used this way, the PerfectLearner can be configured to use perfectly random configurations to learn from, rather than going through the configurations one by one in a well defined order.
 
 \item DeepLearner tbd
-\item DeepReinforcementLearner: It instantiates a DeepLearning (a network), and trains it using DRL. It then saves the trained network, which can then be used in the DeepLearningHeuristic we have seen earlier in section \ref{HSS}
+\item DeepReinforcementLearner: It instantiates a DeepLearning (network), and trains it using DRL. It then saves the trained network, which can then be used in the DeepLearningHeuristic we have seen earlier in section \ref{HSS}. The
 
 
 \end{itemize}
@@ -91,12 +91,17 @@ This module implements learners, which learn something from a puzzle, store what
 
 \subsection{rubiks.solvers}
 
+\subsection{rubiks.scripts}
+
+
+Finally it is worth noting that the code will save on disk a lot of data (e.g. the learners will save what they have learnt, e.g. a Pytorch network or a data base of optimal costs, the performance comparison will run solvers versus very many configurations of puzzles and save the results for later being able to display) etc... The base of the tree to save all this data can be chosen by setting up the "RUBIKSDATA" environment variable. If not, it will go somewhere in you HOME :)
+
 
 %-----------------------------------
 %	SECTION 2
 %-----------------------------------
 \section{Running Some Examples}
-
+Here I show how to run some examples... TBC
 
 %-----------------------------------
 %	SECTION 2.1
@@ -109,12 +114,14 @@ This module implements learners, which learn something from a puzzle, store what
 %	SECTION 3
 %-----------------------------------
 \section{DL Training}
-
+\label{DLTS}
 blabla
+
 %-----------------------------------
 %	SECTION 4
 %-----------------------------------
 \section{DRL Training}
+\label{DRLTS}
 
 blabla
 
@@ -124,4 +131,4 @@ blabla
 
 \section{Solvers Comparison}
 
-blabla]
+blabla

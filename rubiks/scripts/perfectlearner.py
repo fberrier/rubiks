@@ -22,9 +22,10 @@ if "__main__" == __name__:
     time_out = 300
     nb_cpus = 20
     cpu_multiplier = 50
-    max_puzzles = 25000
-    regular_save = 1000
+    max_puzzles = 150000
+    regular_save = 15000
     after_round_save = True
+    flush_timed_out_puzzles = True
     # {random_puzzle_generation, permutation_puzzle_generation}
     puzzle_generation = PerfectLearner.permutation_puzzle_generation
     heuristic_type = Heuristic.manhattan
@@ -46,6 +47,8 @@ if "__main__" == __name__:
         command_line += " -regular_save=%d" % regular_save
         if after_round_save:
             command_line += " --after_round_save"
+        if flush_timed_out_puzzles:
+            command_line += " --flush_timed_out_puzzles"
         command_line += " -learning_file_name=%s" % learning_file_name
     else:
         command_line = argv

@@ -41,6 +41,7 @@ class PerfectLearner(Learner):
     puzzle_generation = 'puzzle_generation'
     random_puzzle_generation = 'random_puzzle_generation'
     permutation_puzzle_generation = 'permutation_puzzle_generation'
+    flush_timed_out_puzzles = 'flush_timed_out_puzzles'
 
     most_difficult_puzzle_tag = 'most_difficult_puzzle'
     computing_time_tag = 'computing_time'
@@ -61,6 +62,10 @@ class PerfectLearner(Learner):
                          default=cls.default_regular_save)
         cls.add_argument(parser,
                          field=cls.after_round_save,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.flush_timed_out_puzzles,
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
@@ -110,6 +115,11 @@ class PerfectLearner(Learner):
                               cls.data: dict(),
                               cls.computing_time_tag: 0.}
             self.computing_time = 0
+        if self.flush_timed_out_puzzles:
+            has_inf = any(is_inf(cost) for cost in self.data_base[cls.data].values())
+            self.data_base[cls.data] = {h: cost for h, cost in self.data_base[cls.data].items() if not is_inf(cost)}
+            if has_inf:
+                self.data_base[cls.most_difficult_puzzle_tag] = 'Lost due to timed out flushing'
         self.highest_cost = 0 if not self.data_base[cls.data] else max(self.data_base[cls.data].values())
         self.snap = None
 
@@ -131,6 +141,8 @@ class PerfectLearner(Learner):
     def add_solution_to_data_base(self, solution):
         if is_inf(solution.cost):
             self.log_error('Timed out while solving ', solution.puzzle)
+            if self.flush_timed_out_puzzles:
+                return
         self.add_puzzle_to_data_base(solution.puzzle, solution.cost)
         for move in solution.path:
             solution.puzzle = solution.puzzle.apply(move)
@@ -159,6 +171,8 @@ class PerfectLearner(Learner):
     def learn(self):
         cls = self.__class__
         solver = Solver.factory(**self.get_config())
+        assert solver.know_to_be_optimal(), \
+            'This cannot be a PerfectLearner if the solver is not optimal!'
         pool = Pool(self.nb_cpus)
         puzzles = []
         self.puzzle_count = 1

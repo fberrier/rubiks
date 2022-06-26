@@ -173,7 +173,7 @@ headsepline, % Uncomment to get a line under the header
 %\rule[0.5em]{25em}{0.5pt} % This prints a line to write the date
 %\end{declaration}
 
-\cleardoublepage
+%\cleardoublepage
 
 %----------------------------------------------------------------------------------------
 %	QUOTATION PAGE
@@ -191,7 +191,21 @@ headsepline, % Uncomment to get a line under the header
 
 \begin{abstract}
 \addchaptertocentry{\abstractname} % Add the abstract to the table of contents
-blablabl\ldots
+\textbf{Motivation}
+\\
+Reinforcement Learning (\textbf{RL}), exposed with brilliant clarity in the Sutton book (\cite{Sutton1998}), has until recently known less success than we might have hoped for. Its framework is very appealing and intuitive. In particular, the mathematical beauty of Value iteration and Q iteration (\cite{WatkinsThesis}) for discrete state and action spaces, blindly iterating from \textit{any} initial value, is quite prfound. Sadly, it had until recently proven hard to achieve practical success with these methods.
+\\
+Inspired however by the seminal success of Deep Mind's team in using Deep Reinforcement Learning (\textbf{DRL}) to play Atari games (\cite{Mnih2013})  and to master the game of Go (\cite{AlphaGo}), researchers have in recent years made a lot of progress towards designing algorihtms capable of learning and solving, \textit{without human knowledge}, the Rubiks Cube (\textbf{RC}) - as well as similar single player puzzles - by using Deep Q-Learning (\textbf{DQR})  (\cite{DBLP:journals/corr/abs-1805-07470}) or search and (\textbf{DRL}) value iteration (\cite{https://doi.org/10.48550/arxiv.1805.07470}).
+\\
+In this project, I will attempt to implement a variety of solvers combining $A^{*}$ search and heuristics, some of which will be handcrafted, others which I will train on randomly generated sequences of puzzles using (\textbf{DL}) or (\textbf{DRL}), to solve the 15-puzzle (and variations of different dimensions), as well as the Rubik's cube.
+\\
+\\
+\textbf{Organisation of this thesis}
+\\
+In the first chapter, I will quickly describe what I hope to get out of this project, both in terms of personal learning, as well as in terms of tangible results (solving some puzzles!). In chapter 2, I will do a quick recap of the different methods that I will use in the project. Chapter 3 will be dedicated to discussing the mathematics of the sliding puzzle (\textbf{SP}) and the (\textbf{RC}). I might throw a few random (but hopefully interesting) observations in there and give some references for the keen reader. I will then give an overview in chapter 4 of the code base I have developed - and put in the open on my github page (\cite{FB}) - to complete this project. Finally, in chapters 5 and 6, I will present all my various results on respecively the sliding puzzle and the Rubiks' cube.
+
+
+
 \end{abstract}
 
 %----------------------------------------------------------------------------------------

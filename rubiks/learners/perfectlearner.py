@@ -134,7 +134,7 @@ class PerfectLearner(Learner):
             self.puzzle_count_since_save = 0
             self.save(self.learning_file_name)
         self.data_base[cls.data][h] = cost
-        if cost > self.highest_cost:
+        if cost >= self.highest_cost:
             self.highest_cost = cost
             self.data_base[cls.most_difficult_puzzle_tag] = puzzle
 

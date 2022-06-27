@@ -27,19 +27,24 @@ class PerfectLearner(Learner):
     puzzle_type = Puzzle.puzzle_type
     dimension = 'dimension'
     data = 'data'
+    timed_out_tag = 'timed_out'
+    rerun_timed_out = 'rerun_timed_out'
+    save_timed_out = 'save_timed_out'
+    save_timed_out_max_puzzles = 'save_timed_out_max_puzzles'
+    abort_after_that_many_consecutive_timed_out = 'abort_after_that_many_consecutive_timed_out'
     nb_cpus = 'nb_cpus'
     default_nb_cpus = 1
     max_puzzles = 'max_puzzles'
     regular_save = 'regular_save'
     after_round_save = 'after_round_save'
-    default_regular_save = 1000
+    default_regular_save = -1
     cpu_multiplier = 'cpu_multiplier'
     default_cpu_multiplier = 10
     time_out = Solver.time_out
     heuristic_type = Heuristic.heuristic_type
     solver_type = Solver.solver_type
     puzzle_generation = 'puzzle_generation'
-    random_puzzle_generation = 'random_puzzle_generation'
+    perfect_random_puzzle_generation = 'perfect_random_puzzle_generation'
     permutation_puzzle_generation = 'permutation_puzzle_generation'
     flush_timed_out_puzzles = 'flush_timed_out_puzzles'
 
@@ -69,6 +74,22 @@ class PerfectLearner(Learner):
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
+                         field=cls.save_timed_out,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.rerun_timed_out,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.save_timed_out_max_puzzles,
+                         type=int,
+                         default=inf)
+        cls.add_argument(parser,
+                         field=cls.abort_after_that_many_consecutive_timed_out,
+                         type=int,
+                         default=inf)
+        cls.add_argument(parser,
                          field=cls.cpu_multiplier,
                          type=int,
                          default=cls.default_cpu_multiplier)
@@ -80,7 +101,7 @@ class PerfectLearner(Learner):
                          field=cls.puzzle_generation,
                          default=cls.permutation_puzzle_generation,
                          choices=[cls.permutation_puzzle_generation,
-                                  cls.random_puzzle_generation],
+                                  cls.perfect_random_puzzle_generation],
                          type=str)
         cls.add_argument(parser,
                          field=cls.solver_type,
@@ -113,7 +134,8 @@ class PerfectLearner(Learner):
                               cls.dimension: self.get_puzzle_dimension(),
                               cls.most_difficult_puzzle_tag: None,
                               cls.data: dict(),
-                              cls.computing_time_tag: 0.}
+                              cls.computing_time_tag: 0.,
+                              cls.timed_out_tag: dict()}
             self.computing_time = 0
         if self.flush_timed_out_puzzles:
             has_inf = any(is_inf(cost) for cost in self.data_base[cls.data].values())
@@ -121,7 +143,10 @@ class PerfectLearner(Learner):
             if has_inf:
                 self.data_base[cls.most_difficult_puzzle_tag] = 'Lost due to timed out flushing'
         self.highest_cost = 0 if not self.data_base[cls.data] else max(self.data_base[cls.data].values())
-        self.snap = None
+        self.snap = snap()
+        if not self.action_type == cls.do_cleanup_learning_file:
+            self.log_data()
+        self.consecutive_time_outs = 0
 
     def add_puzzle_to_data_base(self, puzzle, cost):
         cls = self.__class__
@@ -130,19 +155,24 @@ class PerfectLearner(Learner):
             return
         self.puzzle_count += 1
         self.puzzle_count_since_save += 1
-        if self.puzzle_count_since_save >= self.regular_save:
+        if 0 < self.regular_save <= self.puzzle_count_since_save:
             self.puzzle_count_since_save = 0
-            self.save(self.learning_file_name)
+            self.save()
         self.data_base[cls.data][h] = cost
         if cost >= self.highest_cost:
             self.highest_cost = cost
             self.data_base[cls.most_difficult_puzzle_tag] = puzzle
 
     def add_solution_to_data_base(self, solution):
+        cls = self.__class__
         if is_inf(solution.cost):
+            self.consecutive_time_outs += 1
             self.log_error('Timed out while solving ', solution.puzzle)
-            if self.flush_timed_out_puzzles:
-                return
+            if self.save_timed_out and len(self.data_base[cls.timed_out_tag]) < self.save_timed_out_max_puzzles:
+                self.data_base[cls.timed_out_tag][hash(solution.puzzle)] = solution.puzzle
+                self.log_info('Saving puzzle to data base for later resolve')
+            return
+        self.consecutive_time_outs = 0
         self.add_puzzle_to_data_base(solution.puzzle, solution.cost)
         for move in solution.path:
             solution.puzzle = solution.puzzle.apply(move)
@@ -152,15 +182,19 @@ class PerfectLearner(Learner):
     def __job__(self, solver, config, puzzle):
         try:
             return solver.solve(puzzle, **config)
-        except TimeoutError:
+        except (TimeoutError, KeyboardInterrupt):
             return Solution(inf, [], inf, puzzle)
 
     def generate_puzzles(self):
         self.log_info('Puzzles generation process:', self.puzzle_generation)
+        if self.rerun_timed_out:
+            for puzzle in self.data_base[self.__class__.timed_out_tag].values():
+                self.log_info('Retrying to solve ', puzzle)
+                yield puzzle
         if self.puzzle_generation == self.permutation_puzzle_generation:
             for puzzle in self.get_puzzle_type_class().generate_all_puzzles(**self.get_config()):
                 yield puzzle
-        elif self.puzzle_generation == self.random_puzzle_generation:
+        elif self.puzzle_generation == self.perfect_random_puzzle_generation:
             goal = self.get_goal()
             while True:
                 yield goal.perfect_shuffle()
@@ -180,6 +214,8 @@ class PerfectLearner(Learner):
         self.snap = snap()
         try:
             for puzzle in self.generate_puzzles():
+                if self.consecutive_time_outs > self.abort_after_that_many_consecutive_timed_out:
+                    break
                 if self.puzzle_count > self.max_puzzles or \
                         len(self.data_base[cls.data]) >= self.possible_puzzles_nb():
                     break
@@ -199,11 +235,12 @@ class PerfectLearner(Learner):
                         self.add_solution_to_data_base(solution)
                     if self.after_round_save:
                         self.puzzle_count_since_save = 0
-                        self.save(self.learning_file_name)
+                        self.save()
                 if self.puzzle_count >= self.max_puzzles or \
                         len(self.data_base[cls.data]) >= self.possible_puzzles_nb():
                     break
-            if puzzles and len(self.data_base[cls.data]) < self.possible_puzzles_nb():
+            if puzzles and len(self.data_base[cls.data]) < self.possible_puzzles_nb() and \
+                    self.consecutive_time_outs <= self.abort_after_that_many_consecutive_timed_out:
                 solutions = pool.map(partial(self.__class__.__job__,
                                              self,
                                              solver,
@@ -213,33 +250,42 @@ class PerfectLearner(Learner):
                     self.add_solution_to_data_base(solution)
                 if self.after_round_save:
                     self.puzzle_count_since_save = 0
-                    self.save(self.learning_file_name)
+                    self.save()
         except KeyboardInterrupt:
             self.log_warning('Was interrupted. Exit and save')
         pool.close()
         pool.join()
-        if self.learning_file_name:
-            self.save(self.learning_file_name)
+        self.save()
+        for h in self.data_base[cls.data].keys():
+            # We do that at the end, don't want to mess up with it while iterating thru it potentially
+            self.data_base[cls.timed_out_tag].pop(h, None)
+        if self.consecutive_time_outs > self.abort_after_that_many_consecutive_timed_out:
+            self.log_warning('Aborted as too many consecutive [%d] time outs' %
+                             self.abort_after_that_many_consecutive_timed_out)
 
-    def save(self, learning_file_name, **kwargs):
-        if not learning_file_name:
-            learning_file_name = self.learning_file_name
-        if not learning_file_name:
-            return
+    def log_data(self):
         cls = self.__class__
-        self.data_base[cls.computing_time_tag] = self.computing_time + snap() - self.snap
-        to_pickle(self.data_base, learning_file_name)
-        n = len(self.data_base[cls.data])
+        data = self.data_base[cls.data]
+        n = len(data)
         if n == 0:
             return
         info = {'saved puzzles': number_format(n),
-                'learning_file_name': learning_file_name,
+                'learning_file_name': self.learning_file_name,
                 'max cost': self.highest_cost,
                 '# possible puzzles': number_format(self.possible_puzzles_nb()),
-                'hardest puzzle so far': '%s' % self.data_base[cls.most_difficult_puzzle_tag],
+                'hardest puzzle so far': '%s' % self.data_base[self.most_difficult_puzzle_tag],
                 'computing time': hms_format(self.computing_time + snap() - self.snap),
-                '# puzzles vs cost': pformat(self.puzzles_vs_cost(self.data_base[cls.data]).to_frame().transpose())}
+                '# puzzles vs cost': pformat(self.puzzles_vs_cost(data).to_frame().transpose()),
+                '# timed out saved': number_format(len(self.data_base[cls.timed_out_tag])),
+                }
         self.log_info(info)
+
+    def save(self, **kwargs):
+        if not self.learning_file_name:
+            return
+        self.data_base[self.computing_time_tag] = self.computing_time + snap() - self.snap
+        to_pickle(self.data_base, self.learning_file_name)
+        self.log_data()
 
     @staticmethod
     def puzzles_vs_cost(data):
@@ -254,15 +300,20 @@ class PerfectLearner(Learner):
         return puzzles_per_cost
 
     def plot_learning(self):
-        data = read_pickle(self.learning_file_name)[self.__class__.data]
-        if not data:
+        data = read_pickle(self.learning_file_name)
+        if not data[self.__class__.data]:
             return
+        hardest_puzzle = str(data[self.most_difficult_puzzle_tag])
+        data = data[self.__class__.data]
         total_puzzles = len(data)
         max_cost = max(data.values())
-        title = '%s | %s\n# puzzles = %s\nmax cost = %s' % (self.get_puzzle_type(),
-                                                            tuple(self.get_puzzle_dimension()),
-                                                            number_format(total_puzzles),
-                                                            number_format(max_cost))
+        title = {Puzzle.puzzle_type: self.get_puzzle_type(),
+                 'dimension': self.get_puzzle_dimension(),
+                 '# puzzles': number_format(total_puzzles),
+                 'max cost': number_format(max_cost),
+                 'hardest puzzle': hardest_puzzle,
+                 }
+        title = pformat(title)
         fig = plt.figure(self.learning_file_name, figsize=(15, 10))
         ax = fig.gca()
         self.puzzles_vs_cost(data).\
@@ -272,8 +323,9 @@ class PerfectLearner(Learner):
         plt.legend()
         plt.xlabel('Optimal cost')
         plt.ylabel('# of puzzles')
-        plt.title(title)
+        plt.title(title, fontname='Consolas')
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        plt.tight_layout()
         plt.show()
 
 ########################################################################################################################

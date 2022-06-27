@@ -34,7 +34,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
                          type=int)
 
     @abstractmethod
-    def dimension(self) -> Size:
+    def dimension(self) -> tuple:
         """ returns the dimension of that puzzle. The concept of dimension is type of puzzle dependent obviously """
         return
 
@@ -72,6 +72,10 @@ class Puzzle(Factory, metaclass=ABCMeta):
 
     def get_name(self):
         return '%s[%s]' % (self.__class__.__name__, str(tuple(self.dimension())))
+
+    def is_solvable(self) -> bool:
+        """ is this puzzle the goal state? """
+        raise NotImplementedError('Cannot tell if a %s is solvable' % self.__class__)
 
     @abstractmethod
     def is_goal(self) -> bool:
@@ -193,12 +197,13 @@ class Puzzle(Factory, metaclass=ABCMeta):
             return self.clone()
         return self.apply(random_move)
 
-    def apply_random_moves(self, nb_moves, min_no_loop=1):
+    def apply_random_moves(self, nb_moves, min_no_loop=None):
+        if min_no_loop is None:
+            min_no_loop = nb_moves
         if is_inf(nb_moves):
             return self.perfect_shuffle()
         nb_moves = int(nb_moves)
-        if min_no_loop:
-            min_no_loop = int(min_no_loop)
+        min_no_loop = int(min_no_loop)
         return self.apply_moves(self.random_moves(nb_moves=nb_moves,
                                                   min_no_loop=min_no_loop))
 

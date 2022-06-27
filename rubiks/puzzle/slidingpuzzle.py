@@ -119,7 +119,7 @@ class SlidingPuzzle(Puzzle):
         return hash(tuple(self.tiles.flatten().numpy()))
 
     def dimension(self):
-        return self.tiles.shape
+        return tuple(self.tiles.shape)
 
     def clone(self):
         return SlidingPuzzle(tiles=self.tiles.detach().clone(),
@@ -216,15 +216,15 @@ class SlidingPuzzle(Puzzle):
         row = 0
         col = 0
         while 0 == tiles[row][col]:
-            row, col = self.increment(row, col)
-        row2, col2 = self.increment(row, col)
+            row, col = self.__increment__(row, col)
+        row2, col2 = self.__increment__(row, col)
         while 0 == tiles[row2][col2]:
-            row2, col2 = self.increment(row2, col2)
+            row2, col2 = self.__increment__(row2, col2)
         a, b = tiles[row][col].item(), tiles[row2][col2].item()
         tiles[row2][col2], tiles[row][col] = a, b
         return SlidingPuzzle(tiles=tiles)
 
-    def increment(self, row, col):
+    def __increment__(self, row, col):
         col += 1
         if self.dimension()[1] == col:
             row += 1
@@ -250,5 +250,8 @@ class SlidingPuzzle(Puzzle):
         if goal_dim not in self.goal_signature_map:
             self.goal_signature_map[goal_dim] = self.goal().signature()
         return self.goal_signature_map[goal_dim]
+
+    def is_solvable(self) -> bool:
+        return self.signature() == self.goal_signature()
     
 ########################################################################################################################

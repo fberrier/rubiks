@@ -123,14 +123,19 @@ class Parsable(metaclass=ABCMeta):
             pass
 
     @classmethod
-    def from_command_line(cls, command_line, strict=False):
+    def config_from_command_line(cls, command_line, strict=False):
         cls.setup_parser()
         if isinstance(command_line, str):
             command_line = command_line.strip().split(' ')
         if strict:
-            return cls(**cls.__parsers__[cls].parse_args(command_line).__dict__)
+            config = cls.__parsers__[cls].parse_args(command_line).__dict__
         else:
-            return cls(**cls.__parsers__[cls].parse_known_args(command_line)[0].__dict__)
+            config = cls.__parsers__[cls].parse_known_args(command_line)[0].__dict__
+        return config
+
+    @classmethod
+    def from_command_line(cls, command_line, strict=False):
+        return cls(**cls.config_from_command_line(command_line, strict=strict))
 
     def __init__(self, **kw_args):
         self.setup_parser()

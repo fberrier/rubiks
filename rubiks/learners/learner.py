@@ -89,7 +89,7 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
     def learn(self):
         return
 
-    def save(self, model_file_name, **kwargs):
+    def save(self, **kwargs):
         """ overwrite where meaningful """
         return
 

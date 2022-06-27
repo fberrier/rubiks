@@ -13,12 +13,12 @@ class BFSSolver(Solver):
         return True
 
     def solve_impl(self, puzzle, **kw_args):
-        strat = BreadthFirstSearch(puzzle,
-                                   **{**self.kw_args, **kw_args})
+        strat = BreadthFirstSearch(puzzle, **{**self.get_config(), **kw_args})
         strat.solve()
         return Solution(strat.get_path_cost(),
                         strat.get_path(),
                         strat.get_node_counts(),
-                        puzzle)
+                        puzzle,
+                        solver_name=self.get_name())
 
 ########################################################################################################################

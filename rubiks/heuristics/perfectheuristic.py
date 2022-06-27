@@ -36,7 +36,11 @@ class PerfectHeuristic(Heuristic):
         self.data_base = self.data_base[PerfectLearner.data]
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
-        return self.data_base[hash(puzzle)]
+        hash_puzzle = hash(puzzle)
+        if hash_puzzle not in self.data_base:
+            raise KeyError('puzzle not found in data base')
+        return self.data_base[hash_puzzle]
+
 
 ########################################################################################################################
 

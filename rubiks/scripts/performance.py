@@ -12,7 +12,7 @@ from rubiks.heuristics.manhattan import Manhattan
 from rubiks.solvers.dfssolver import DFSSolver
 from rubiks.solvers.astarsolver import Solver, AStarSolver
 from rubiks.utils.utils import is_windows
-from rubiks.utils.utils import get_model_file_name, get_shuffles_file_name, get_perf_file_name
+from rubiks.utils.utils import get_model_file_name, get_shuffles_file_name, get_performance_file_name
 ########################################################################################################################
 
 
@@ -40,14 +40,8 @@ if '__main__' == __name__:
         layers = ('600', '300', '100')
         one_hot_encoding = True
         action_type = Solver.do_plot
-        nb_samples = 10
-        min_nb_shuffles = 0
-        max_nb_shuffles = 100
-        step_nb_shuffles = 10
-        add_perfect_shuffle = True
-        nb_cpus = 1
-        performance_file_name = get_perf_file_name(puzzle_type=PuzzleType,
-                                                   dimension=dimension)
+        performance_file_name = get_performance_file_name(puzzle_type=PuzzleType,
+                                                          dimension=dimension)
         command_line_args = " -n=%d -m=%d" % dimension
         command_line_args += " -min_nb_shuffles=%d -max_nb_shuffles=%d -step_nb_shuffles=%d" % (min_nb_shuffles,
                                                                                                 max_nb_shuffles,

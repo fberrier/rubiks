@@ -5,6 +5,7 @@ from abc import ABCMeta
 ########################################################################################################################
 from rubiks.search.astarstrategy import AStar
 from rubiks.solvers.solver import Solver, Solution
+from rubiks.heuristics.heuristic import Heuristic
 ########################################################################################################################
 
 
@@ -17,21 +18,12 @@ class AStarSolver(Solver):
 
     def know_to_be_optimal(self):
         """ unless extremely lucky this is not going to return optimal solutions """
-        heuristic = self.kw_args[__class__.heuristic_type]
+        heuristic = Heuristic.factory(**self.get_config())
         return heuristic.known_to_be_admissible()
 
     def get_name(self):
-        heuristic = self.kw_args[__class__.heuristic_type]
-        if hasattr(heuristic, '__class__') and heuristic.__class__ != ABCMeta:
-            heuristic = heuristic.__class__
-        try:
-            heuristic = heuristic(**self.kw_args).name()
-        except AttributeError:
-            if hasattr(heuristic, '__name__'):
-                heuristic = heuristic.__name__
-        return '%s[%s][%s]' % (self.__class__.__name__,
-                               heuristic,
-                               self.puzzle_name())
+        return '%s[%s]' % (self.__class__.__name__,
+                           Heuristic.factory(**self.get_config()).get_name())
 
     def solve_impl(self, puzzle, **kw_args):
         strat = AStar(initial_state=puzzle, **kw_args)
@@ -39,6 +31,7 @@ class AStarSolver(Solver):
         return Solution(strat.get_path_cost(),
                         strat.get_path(),
                         strat.get_node_counts(),
-                        puzzle=puzzle)
+                        puzzle=puzzle,
+                        solver_name=self.get_name())
 
 ########################################################################################################################

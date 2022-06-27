@@ -16,7 +16,7 @@ class DepthFirstSearch(SearchStrategy):
 
     limit = 'limit'
 
-    max_limit = 1000000
+    max_limit = 100
 
     @classmethod
     def populate_parser_impl(cls, parser):
@@ -25,15 +25,15 @@ class DepthFirstSearch(SearchStrategy):
                          type=int,
                          default=cls.max_limit)
 
-    def __init__(self, **kw_args):
-        SearchStrategy.__init__(self, **kw_args)
+    def __init__(self, initial_state, **kw_args):
+        SearchStrategy.__init__(self, initial_state, **kw_args)
         self.explored = set()
 
     def get_name(self):
-        nem = SearchStrategy.name(self)
+        name = SearchStrategy.get_name(self)
         if self.limit < self.max_limit:
-            nem += '[limit=%d]' % self.limit
-        return nem
+            name += '[limit=%d]' % self.limit
+        return name
 
     def depth_first(self, node, depth):
         """ Typical recursive function to implement DFS """
@@ -68,7 +68,7 @@ class DepthFirstSearch(SearchStrategy):
         self.explored = set()
         solution = self.depth_first(self.initial_node, depth=0)
         if solution is RecursionError:
-            raise solution
+            raise RecursionError('RecursionError')
         return solution
     
 ########################################################################################################################

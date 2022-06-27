@@ -16,11 +16,6 @@ setlocale(LC_ALL, '')
 ########################################################################################################################
 
 
-g_not_a_pkl_file = 'not_a_file.pkl'
-
-########################################################################################################################
-
-
 def remove_file(file_name):
     try:
         remove(file_name)
@@ -77,9 +72,9 @@ def get_file_name(puzzle_type,
 ########################################################################################################################
 
 
-def get_perf_file_name(puzzle_type,
-                       dimension,
-                       extension='pkl'):
+def get_performance_file_name(puzzle_type,
+                              dimension,
+                              extension='pkl'):
     return get_file_name(puzzle_type=puzzle_type,
                          dimension=dimension,
                          file_type='perf',

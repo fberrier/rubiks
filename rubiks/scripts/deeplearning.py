@@ -8,7 +8,7 @@ from sys import argv
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
-from rubiks.utils.utils import is_windows, g_not_a_pkl_file, get_training_file_name, get_model_file_name
+from rubiks.utils.utils import is_windows, get_training_file_name, get_model_file_name
 ########################################################################################################################
 
 
@@ -27,8 +27,8 @@ def main():
     parser.add_argument('--verbose', default=False, action='store_true')
     parser.add_argument('--use_cuda', default=False, action='store_true')
     parser.add_argument('-action', type=str, default='learn', choices=['learn', 'train', 'plot'])
-    parser.add_argument('-model_file_name', type=str, default=g_not_a_pkl_file)
-    parser.add_argument('-learning_file_name', type=str, default=g_not_a_pkl_file)
+    parser.add_argument('-model_file_name', type=str, default='')
+    parser.add_argument('-learning_file_name', type=str, default='')
     parser.add_argument('--layers', type=int, nargs='+')
     parser.add_argument('--one_hot_encoding', default=False, action='store_true')
     parser.add_argument('-nb_cpus', type=int, default=int(cpu_count() / 2))

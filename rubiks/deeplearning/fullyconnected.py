@@ -7,11 +7,18 @@ from torch.nn import Sequential, ReLU, BatchNorm1d, Linear
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.deeplearning.deeplearning import DeepLearning
+from rubiks.utils.utils import snake_case
 ########################################################################################################################
 
 
 class FullyConnected(DeepLearning):
     """ A fully connected network """
+
+    def get_model_details(self):
+        name = [snake_case(self.__class__.__name__)]
+        layers = ['%d' % l for l in self.layers_description]
+        ohe = ['ohe'] if self.one_hot_encoding else []
+        return '_'.join(name + layers + ohe)
 
     one_hot_encoding = 'one_hot_encoding'
     layers_description = 'layers_description'
@@ -39,7 +46,6 @@ class FullyConnected(DeepLearning):
             layers = (*tuple(layers), 1)
         if layers[0] != in_channels:
             layers = (in_channels, *tuple(layers))
-        self.layers_int = layers
         self.layers_str = str(layers)
         modules = []
         for x, y in zip(layers[:-1], layers[1:]):

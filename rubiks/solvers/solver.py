@@ -5,7 +5,6 @@ from abc import abstractmethod, ABCMeta
 from functools import partial
 from itertools import product
 from math import inf
-from rubiks.thridparties import brokenaxes
 from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
 from multiprocessing import Pool
@@ -13,13 +12,16 @@ from numpy import isnan, isinf
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
 ########################################################################################################################
+from rubiks.thridparties import brokenaxes
+########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.core.factory import Factory
 from rubiks.heuristics.heuristic import Heuristic
+from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
-from rubiks.utils.utils import pprint, g_not_a_pkl_file, to_pickle, remove_file
+from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format
 ########################################################################################################################
 
 
@@ -36,6 +38,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     time_out = 'time_out'
     max_consecutive_timeout = 'max_consecutive_timeout'
     default_max_consecutive_timeout = 0
+    log_solution = 'log_solution'
+    check_optimal = 'check_optimal'
 
     def __init__(self, **kw_args):
         Factory.__init__(self, **kw_args)
@@ -68,17 +72,43 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
 
     def solve_impl(self, puzzle, **kw_args) -> Solution:
         """ Can over-write if need to"""
-        kw_args[SearchStrategy.search_strategy_type] = self.solver_type
-        kw_args[SearchStrategy.initial_node] = puzzle
-        strat = SearchStrategy.factory(**kw_args)
-        strat.solve()
-        return Solution(strat.get_path_cost(),
-                        strat.get_path(),
-                        strat.get_node_counts(),
-                        puzzle)
+        return Solution.failure(puzzle)
 
     def solve(self, puzzle, **kw_args) -> Solution:
-        return self.solve_impl(puzzle, **{**self.get_config(), **kw_args})
+        try:
+            solution = self.solve_impl(puzzle, **{**self.get_config(), **kw_args})
+        except Exception as error:
+            solution = Solution.failure(puzzle=puzzle,
+                                        solver_name=self.get_name(),
+                                        failure_reason=error)
+        if self.log_solution:
+            self.log_info(solution)
+        if self.check_optimal:
+            if self.know_to_be_optimal() and not solution.failed():
+                self.log_info('Solution is optimal')
+            else:
+                assert self.get_puzzle_type() == Puzzle.sliding_puzzle, \
+                    'No admissible heuristic for %s' % self.get_puzzle_type()
+                kw_args.update({Solver.solver_type: Solver.astar,
+                                Heuristic.heuristic_type: Heuristic.manhattan,
+                                Solver.log_solution: False,
+                                Solver.check_optimal: False})
+                optimal_solver = Solver.factory(**kw_args)
+                b4 = snap()
+                try:
+                    optimal_solution = optimal_solver.solve(puzzle, **kw_args)
+                    if solution.cost != optimal_solution.cost:
+                        self.log_warning('Solution is not optimal!')
+                        info = 'Optimal solution of cost %s in %s' % (optimal_solution.cost,
+                                                                      s_format(snap() - b4))
+                        self.log_info(info)
+                        if self.log_solution:
+                            self.log_info('Optimal solution: ', optimal_solution)
+                    else:
+                        self.log_info('Solution is optimal')
+                except TimeoutError:
+                    optimal_solver.log_error('Could not check optimality as timed out')
+        return solution
 
     def __job__(self, nb_shuffles, index=-1):
         """ A single puzzle to solve """
@@ -100,12 +130,20 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if error is not RecursionError:
                 self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
             run_time = float(self.time_out)
-            solution = Solution(0, [], -1, puzzle=puzzle)
+            solution = Solution.failure(puzzle)
             timed_out = True
         return solution.cost, solution.path, solution.expanded_nodes, run_time, timed_out, index
 
     nb_shuffles = 'nb_shuffles'
+    min_nb_shuffles = 'min_nb_shuffles'
+    max_nb_shuffles = 'max_nb_shuffles'
+    step_nb_shuffles = 'step_nb_shuffles'
+    add_perfect_shuffle = 'add_perfect_shuffle'
     nb_samples = 'nb_samples'
+    nb_cpus = 'nb_cpus'
+    append = 'append'
+    performance_file_name = 'performance_file_name'
+    shuffles_file_name = 'shuffles_file_name'
     avg_cost = 'avg_cost'
     max_cost = 'max_cost'
     avg_expanded_nodes = 'avg_expanded_nodes'
@@ -121,8 +159,15 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     action_type = 'action_type'
     do_plot = 'do_plot'
     do_solve = 'do_solve'
+    do_performance_test = 'do_performance_test'
     do_cleanup_performance_file = 'do_cleanup_performance_file'
-    known_action_type = [do_solve, do_plot, do_cleanup_performance_file]
+    do_cleanup_shuffles_file = 'do_cleanup_shuffles_file'
+    known_action_type = [do_solve,
+                         do_plot,
+                         do_performance_test,
+                         do_cleanup_performance_file,
+                         do_cleanup_shuffles_file,
+                         ]
 
     @classmethod
     def populate_parser(cls, parser):
@@ -139,76 +184,70 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          choices=cls.known_solver_types,
                          default=cls.astar)
         cls.add_argument(parser,
-                         'min_nb_shuffles',
+                         cls.nb_shuffles,
+                         type=float,
+                         default=None)
+        cls.add_argument(parser,
+                         cls.min_nb_shuffles,
                          type=int,
                          default=None)
         cls.add_argument(parser,
-                         'max_nb_shuffles',
+                         cls.max_nb_shuffles,
                          type=int,
                          default=None)
         cls.add_argument(parser,
-                         'step_nb_shuffles',
+                         cls.step_nb_shuffles,
                          type=int,
                          default=1)
         cls.add_argument(parser,
-                         'nb_samples',
+                         cls.nb_samples,
                          type=int,
                          default=1000)
         cls.add_argument(parser,
-                         'nb_cpus',
+                         cls.nb_cpus,
                          type=int,
                          default=1)
         cls.add_argument(parser,
-                         'append',
+                         cls.append,
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
-                         'add_perfect_shuffle',
+                         cls.log_solution,
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
-                         'performance_file_name',
+                         cls.check_optimal,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         cls.add_perfect_shuffle,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         cls.performance_file_name,
                          type=str,
                          default=None)
         cls.add_argument(parser,
-                         'shuffles_file_name',
+                         cls.shuffles_file_name,
                          type=str,
                          default=None)
         cls.add_argument(parser,
                          cls.action_type,
                          type=str,
-                         default=False,
+                         default=None,
                          choices=cls.known_action_type)
     
-    def performance(self,
-                    max_nb_shuffles,
-                    nb_samples,
-                    min_nb_shuffles=None,
-                    step_nb_shuffles=1,
-                    add_perfect_shuffle=False,
-                    nb_cpus=1,
-                    shuffles_file_name=None,
-                    performance_file_name=None,
-                    append=False,
-                    **kw_args):
+    def performance_test(self):
         """
         Runs the solver on a bunch of randomly generated puzzles (more or less shuffled from goal state)
         and returns statistics of the various attempts to solve them.
-        params:
-            max_nb_shuffles:
-            nb_samples:
-            min_nb_shuffles:
-            step_nb_shuffles:
-            perfect_shuffle:
-            nb_cpus:
-            shuffles_file_name: if provided, can read puzzles' shuffles sequences from there, e.g. if
-                                want several algorithms to use the same sequences for fairness
         """
-        assert max_nb_shuffles > 0 or add_perfect_shuffle
-        assert nb_samples > 0
-        if min_nb_shuffles is None:
-            min_nb_shuffles = 1
-        assert min_nb_shuffles <= max_nb_shuffles
+        assert self.max_nb_shuffles > 0 or self.add_perfect_shuffle, \
+            'Cannot run performance_test with negative max_nb_shuffles and not add_perfect_shuffle'
+        assert self.nb_samples > 0, 'Cannot run performance_test with nb_samples <= 0'
+        if self.min_nb_shuffles is None:
+            self.min_nb_shuffles = 1
+        assert self.min_nb_shuffles <= self.max_nb_shuffles
         dimension = tuple(self.get_puzzle_dimension())
         cls = self.__class__
         puzzle_type = self.get_puzzle_type().__name__
@@ -228,14 +267,16 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                cls.pct_optimal: [100]}
         performance = DataFrame(res)
         nan = float('nan')
-        shuffles = list(range(min_nb_shuffles, max_nb_shuffles + 1, step_nb_shuffles))
-        if add_perfect_shuffle:
+        shuffles = list(range(self.min_nb_shuffles,
+                              self.max_nb_shuffles + 1,
+                              self.step_nb_shuffles))
+        if self.add_perfect_shuffle:
             shuffles.append(inf)
-        if shuffles_file_name and shuffles_file_name != g_not_a_pkl_file:
+        if self.shuffles_file_name:
             try:
-                self.all_shuffles_data = read_pickle(shuffles_file_name)
+                self.all_shuffles_data = read_pickle(self.shuffles_file_name)
             except FileNotFoundError:
-                self.log_warning('Could not find shuffles_file_name \'%s\'' % shuffles_file_name)
+                self.log_warning('Could not find shuffles_file_name \'%s\'' % self.shuffles_file_name)
                 self.all_shuffles_data = dict()
                 self.all_shuffles_data[puzzle_type] = dict()
                 self.all_shuffles_data[puzzle_type][dimension] = dict()
@@ -249,9 +290,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             goal = self.get_goal()
             for nb_shuffles in shuffles:
                 if nb_shuffles in self.shuffles_data:
-                    required = max(0, nb_samples - len(self.shuffles_data[nb_shuffles]))
+                    required = max(0, self.nb_samples - len(self.shuffles_data[nb_shuffles]))
                 else:
-                    required = nb_samples
+                    required = self.nb_samples
                     self.shuffles_data[nb_shuffles] = []
                 new_shuffles = [(goal.apply_random_moves(nb_moves=nb_shuffles,
                                                          min_no_loop=nb_shuffles),
@@ -277,15 +318,14 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             max_run_time = 0
             nb_timeout = 0
             res[cls.nb_shuffles] = nb_shuffles
-            self.log_debug({'nb_shuffles': nb_shuffles, 'nb_cpus': nb_cpus})
-            sample_size = nb_samples if nb_shuffles > 0 else 1
-            new_pool_size = min(nb_cpus, sample_size)
+            sample_size = self.nb_samples if nb_shuffles > 0 else 1
+            new_pool_size = min(self.nb_cpus, sample_size)
             if new_pool_size != pool_size:
                 pool.close()
                 pool.join()
                 pool = Pool(new_pool_size)
                 pool_size = new_pool_size
-            results = pool.map(partial(self.__class__.__job__, self, nb_shuffles),
+            results = pool.map(partial(cls.__job__, self, nb_shuffles),
                                range(sample_size))
             consecutive_timeout = 0
             sample = 0
@@ -329,7 +369,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                    'as timed-out/error-ed %d times' % self.max_consecutive_timeout)
                     early_breakout = True
                     break
-            div = nb_samples - nb_timeout
+            div = self.nb_samples - nb_timeout
             if 0 == div:
                 div = float('nan')
             avg_cost = round(total_cost / div, 1)
@@ -346,70 +386,77 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             res[cls.nb_timeout] = nb_timeout
             res[cls.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
             res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
-            res[cls.pct_solved] = int(100 * (sample - nb_timeout) / nb_samples)
-            res[cls.pct_optimal] = int(100 * (sample - nb_not_optimal) / nb_samples)
+            res[cls.pct_solved] = int(100 * (sample - nb_timeout) / self.nb_samples)
+            res[cls.pct_optimal] = int(100 * (sample - nb_not_optimal) / self.nb_samples)
             performance = concat([performance,
                                   Series(res).to_frame().transpose()],
                                  ignore_index=True)
             self.log_info(performance)
-        if shuffles_file_name and shuffles_file_name != g_not_a_pkl_file:
-            to_pickle(self.all_shuffles_data, shuffles_file_name)
-            self.log_info('Saved all shuffles data to \'%s\'' % shuffles_file_name)
+        if self.shuffles_file_name:
+            to_pickle(self.all_shuffles_data, self.shuffles_file_name)
+            self.log_info('Saved all shuffles data to \'%s\'' % self.shuffles_file_name)
         pool.close()
         pool.join()
         self.log_info(performance)
-        if append and performance_file_name:
+        if self.append and self.performance_file_name:
             try:
-                performance = concat((read_pickle(performance_file_name), performance))
+                performance = concat((read_pickle(self.performance_file_name), performance))
             except FileNotFoundError:
                 pass
-        subset = [__class__.solver_name,
-                  __class__.puzzle_type,
-                  __class__.puzzle_dimension,
-                  __class__.nb_shuffles]
+        subset = [cls.solver_name,
+                  cls.puzzle_type,
+                  cls.puzzle_dimension,
+                  cls.nb_shuffles]
         performance = performance.drop_duplicates(subset=subset).sort_values(subset)
-        if performance_file_name:
-            to_pickle(performance, performance_file_name)
-            self.log_info('Saved ', len(performance), ' rows of perf table to \'%s\'' % performance_file_name)
+        if self.performance_file_name:
+            to_pickle(performance, self.performance_file_name)
+            self.log_info('Saved ',
+                          len(performance),
+                          ' rows of perf table to \'%s\'' % self.performance_file_name)
         self.log_info(performance)
 
     def get_name(self):
         return '%s[%s]' % (self.__class__.__name__, self.puzzle_name())
 
-    def action(self, **kw_args):
+    def action(self):
+        config = self.get_config()
         if self.do_plot == self.action_type:
-            self.plot_performance(**kw_args)
+            self.plot_performance()
         elif self.do_solve == self.action_type:
-            self.performance(**kw_args)
+            puzzle = Puzzle.factory(**self.get_config())
+            puzzle = puzzle.apply_random_moves(nb_moves=config[self.__class__.nb_shuffles])
+            return self.solve(puzzle)
+        elif self.do_performance_test == self.action_type:
+            self.performance_test()
         elif self.do_cleanup_performance_file == self.action_type:
-            self.cleanup_perf_file(**kw_args)
+            self.cleanup_perf_file()
+        elif self.do_cleanup_shuffles_file == self.action_type:
+            self.cleanup_shuffles_file()
         else:
             raise NotImplementedError('Unknown action_type [%s]' % self.action_type)
 
     def cleanup_perf_file(self):
         try:
-            remove_file(self.fil)
-            self.log_info('Removed \'%s\'' % performance_file_name)
+            remove_file(self.performance_file_name)
+            self.log_info('Removed \'%s\'' % self.performance_file_name)
         except FileNotFoundError:
             pass
 
-    def plot_performance(self,
-                         performance_file_name,
-                         solver_name=None,
-                         **kw_args):
+    def cleanup_shuffles_file(self):
         try:
-            performance = read_pickle(performance_file_name)
+            remove_file(self.shuffles_file_name)
+            self.log_info('Removed \'%s\'' % self.shuffles_file_name)
         except FileNotFoundError:
-            self.log_error('Cannot find \'%s\'. Did you really want to plot rather than solve?' % performance_file_name)
+            pass
+
+    def plot_performance(self):
+        try:
+            performance = read_pickle(self.performance_file_name)
+        except FileNotFoundError:
+            self.log_error('Cannot find \'%s\'. Did you really want to plot rather than solve?' %
+                           self.performance_file_name)
             return
         self.log_info(performance)
-        if solver_name:
-            if not isinstance(solver_name, list):
-                solver_name = [solver_name]
-
-            def filter_sn(s_name):
-                return any(s_name.lower().find(w.lower()) >= 0 for w in solver_name)
-            performance = performance[performance.solver_name.apply(filter_sn)]
         assert 1 == len(set(performance.puzzle_type))
         assert 1 == len(set(performance.puzzle_dimension))
         assert inf in performance[Solver.nb_shuffles].values, 'Fix code so it uses normal axes if not inf in there'
@@ -422,7 +469,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
              Solver.avg_expanded_nodes,
              Solver.pct_solved]
         n = int(len(y)/2)
-        fig = plt.figure(performance_file_name)
+        fig = plt.figure(self.performance_file_name)
         sps = GridSpec(n, 2, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])

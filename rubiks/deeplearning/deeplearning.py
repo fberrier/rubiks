@@ -9,11 +9,12 @@ from torch.nn import Module
 from rubiks.core.loggable import Loggable
 from rubiks.core.factory import Factory
 from rubiks.puzzle.puzzled import Puzzled
+from rubiks.utils.utils import get_model_file_name
 ########################################################################################################################
 
 
 class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
-    """ TBD """
+    """ Essentially a Factory around Pytorch to instantiate networks """
 
     use_cuda = 'use_cuda'
 
@@ -27,6 +28,16 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
     network_type = 'network_type'
     fully_connected_net = 'fully_connected_net'
     state_dict_tag = 'state_dict'
+
+    @abstractmethod
+    def get_model_details(self):
+        """ Return something that can identify in the name of a file which config this model was using """
+        return
+
+    def get_model_name(self):
+        return get_model_file_name(self.get_puzzle_type(),
+                                   self.get_puzzle_dimension(),
+                                   model_name=self.get_model_details())
 
     @classmethod
     def populate_parser_impl(cls, parser):

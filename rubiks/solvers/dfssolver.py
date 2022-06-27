@@ -16,12 +16,9 @@ class DFSSolver(Solver):
         cls.add_argument(parser,
                          cls.limit,
                          type=int,
-                         default=31)
+                         default=cls.default_limit)
 
     def __init__(self, puzzle_type, **kw_args):
-        kw_args.update({__class__.limit: kw_args.get(__class__.limit,
-                                                     __class__.default_limit),
-                        })
         Solver.__init__(self,
                         puzzle_type=puzzle_type,
                         **kw_args)
@@ -32,15 +29,15 @@ class DFSSolver(Solver):
 
     def solve_impl(self, puzzle, **kw_args):
         strat = DepthFirstSearch(puzzle,
-                                 **{**self.kw_args, **kw_args})
+                                 **{**self.get_config(), **kw_args})
         strat.solve()
         return Solution(strat.get_path_cost(),
                         strat.get_path(),
                         strat.get_node_counts(),
-                        puzzle)
+                        puzzle,
+                        solver_name=self.get_name())
 
     def get_name(self):
-        return self.__class__.__name__ + '[%s=%d]' % (__class__.limit,
-                                                      self.kw_args.get(__class__.limit))
+        return self.__class__.__name__ + '[%s=%d]' % (__class__.limit, self.limit)
 
 ########################################################################################################################

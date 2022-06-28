@@ -21,14 +21,14 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_cleanup_performance_file
+    action_type = Solver.do_solve
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 2
-    m = 3
+    m = 2
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
-    nb_shuffles = 10
+    nb_shuffles = 6
     """ For performance test """
     nb_samples = 10
     min_nb_shuffles = 0
@@ -51,10 +51,10 @@ if '__main__' == __name__:
                          Heuristic.perfect,
                          Heuristic.deep_learning,
                          } """
-    heuristic_type = Heuristic.manhattan
+    heuristic_type = Heuristic.deep_learning
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net} """
     network_type = DeepLearning.fully_connected_net
-    layers_description = (600, 300, 100)
+    layers_description = (16, 8)  # (600, 300, 100)
     one_hot_encoding = True
     try:
         if heuristic_type == Heuristic.deep_learning:

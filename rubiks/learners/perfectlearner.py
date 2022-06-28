@@ -45,8 +45,10 @@ class PerfectLearner(Learner):
     solver_type = Solver.solver_type
     puzzle_generation = 'puzzle_generation'
     perfect_random_puzzle_generation = 'perfect_random_puzzle_generation'
+    random_from_goal_puzzle_generation = 'random_from_goal_puzzle_generation'
     permutation_puzzle_generation = 'permutation_puzzle_generation'
     flush_timed_out_puzzles = 'flush_timed_out_puzzles'
+    nb_shuffles_from_goal = 'nb_shuffles_from_goal'  # <- for random_from_goal_puzzle_generation
 
     most_difficult_puzzle_tag = 'most_difficult_puzzle'
     computing_time_tag = 'computing_time'
@@ -110,6 +112,10 @@ class PerfectLearner(Learner):
         cls.add_argument(parser,
                          field=cls.time_out,
                          type=float,
+                         default=0)
+        cls.add_argument(parser,
+                         field=cls.nb_shuffles_from_goal,
+                         type=int,
                          default=0)
 
     def __init__(self, **kw_args):
@@ -191,6 +197,13 @@ class PerfectLearner(Learner):
             for puzzle in self.data_base[self.__class__.timed_out_tag].values():
                 self.log_info('Retrying to solve ', puzzle)
                 yield puzzle
+        if self.puzzle_generation == self.random_from_goal_puzzle_generation:
+            while True:
+                puzzle = self.get_puzzle_type_class().goal()
+                for p in range(self.nb_shuffles_from_goal):
+                    next_puzzle = puzzle.apply_random_move()
+                    yield puzzle
+                    puzzle = next_puzzle
         if self.puzzle_generation == self.permutation_puzzle_generation:
             for puzzle in self.get_puzzle_type_class().generate_all_puzzles(**self.get_config()):
                 yield puzzle

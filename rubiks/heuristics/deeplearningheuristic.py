@@ -31,7 +31,7 @@ class DeepLearningHeuristic(Heuristic):
         Heuristic.__init__(self, **kw_args)
 
     def get_name(self):
-        return '%s[%s]' % (super().name(), split(self.model_file_name)[1])
+        return '%s[%s]' % (super().get_name(), split(self.model_file_name)[1])
 
     def cost_to_go_from_puzzle_impl(self, puzzle):
         assert isinstance(puzzle, self.get_puzzle_type_class()), \

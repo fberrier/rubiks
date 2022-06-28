@@ -195,133 +195,139 @@ class DeepReinforcementLearner(Learner):
         return decision
 
     def __construct_target__(self, known_values, puzzle):
-        if puzzle.is_goal():
-            target = 0
-        else:
-            target = inf
-            one_away_puzzles = [puzzle.apply(move) for move in puzzle.possible_moves()]
-            for one_away_puzzle in one_away_puzzles:
-                candidate_target = self.target_network.evaluate(one_away_puzzle).item()
-                one_away_puzzle_hash = hash(one_away_puzzle)
-                if one_away_puzzle_hash in known_values:
-                    candidate_target = min(candidate_target, known_values[one_away_puzzle_hash])
-                candidate_target += 1
-                target = min(target, candidate_target)
-                target = max(0, target)
+        try:
+            if puzzle.is_goal():
+                target = 0
+            else:
+                target = inf
+                one_away_puzzles = [puzzle.apply(move) for move in puzzle.possible_moves()]
+                for one_away_puzzle in one_away_puzzles:
+                    candidate_target = self.target_network.evaluate(one_away_puzzle).item()
+                    one_away_puzzle_hash = hash(one_away_puzzle)
+                    if one_away_puzzle_hash in known_values:
+                        candidate_target = min(candidate_target, known_values[one_away_puzzle_hash])
+                    candidate_target += 1
+                    target = min(target, candidate_target)
+                    target = max(0, target)
+        except KeyboardInterrupt:
+            return None
         return target
 
     def learn(self):
         cls = self.__class__
-        optimizer = RMSprop(self.current_network.parameters(),
-                            lr=self.learning_rate)
-        epoch = 0
-        target_network_count = 1
-        pool = Pool(self.pool_size)
-        best_current = (inf, self.current_network.clone())
-        puzzle_class = self.get_puzzle_type_class()
-        config = self.get_config()
-        while True:
-            epoch += 1
-            self.epoch_latency -= snap()
-            self.training_data_latency -= snap()
-            puzzles = puzzle_class.get_training_data(one_list=True, **config)
-            self.training_data_latency += snap()
-            self.target_data_latency -= snap()
-            hashes = [hash(puzzle) for puzzle in puzzles]
-            values = self.target_network.evaluate(puzzles).squeeze().tolist()
-            known_values = dict(zip(hashes, values))
-            pool_size = min(self.nb_cpus, len(puzzles))
-            if pool_size > 1:
-                if pool_size != self.pool_size:
-                    self.pool_size = pool_size
-                    pool = Pool(pool_size)
-                targets = pool.map(partial(self.__class__.__construct_target__,
-                                           self,
-                                           known_values),
-                                   puzzles)
-            else:
-                targets = list(map(partial(self.__class__.__construct_target__,
-                                           self,
-                                           known_values),
-                                   puzzles))
-            self.target_data_latency += snap()
-            targets = tensor(targets).float()
-            if self.use_cuda:
-                targets = targets.to()
-            if self.verbose:
-                puzzles_strings = [str(p) for p in puzzles]
-            self.evaluate_latency -= snap()
-            y_hat = self.current_network.evaluate(puzzles)
-            self.evaluate_latency += snap()
-            if self.use_cuda and self.current_network.cuda_device:
-                targets = targets.to(self.current_network.cuda_device)
-            self.loss_latency -= snap()
-            loss = self.loss_function(y_hat, targets)
-            self.loss_latency += snap()
-            self.epoch_latency += snap()
-            self.current_network.zero_grad()
-            optimizer.zero_grad()
-            self.back_prop_latency -= snap()
-            loss.backward()
-            self.back_prop_latency += snap()
-            optimizer.step()
-            loss = loss.item()
-            if loss < best_current[0]:
-                best_current = (loss, self.current_network.clone())
-            min_targets = min(targets).item()
-            max_targets = max(targets).item()
-            old_max_targets = 0 if self.convergence_data.empty else \
-                self.convergence_data[cls.max_target].iloc[-1]
-            max_max_targets = max(max_targets, old_max_targets)
-            latency = Series({'epoch': ms_format(self.epoch_latency/epoch),
-                              'training data': ms_format(self.training_data_latency/epoch),
-                              'target data': ms_format(self.target_data_latency/epoch),
-                              'evaluate': ms_format(self.evaluate_latency/epoch),
-                              'loss': ms_format(self.loss_latency/epoch),
-                              'back prop': ms_format(self.back_prop_latency/epoch),
-                              })
-            latency = pformat(latency)
-            convergence_data = Series({cls.epoch: epoch,
-                                       cls.nb_epochs: self.nb_epochs,
-                                       cls.loss: loss,
-                                       cls.latency: latency,
-                                       cls.min_target: min_targets,
-                                       cls.max_target: max_targets,
-                                       cls.max_max_target: max_max_targets,
-                                       cls.target_network_count: target_network_count,
-                                       cls.puzzle_type: self.get_puzzle_type(),
-                                       cls.puzzle_dimension: str(tuple(self.get_puzzle_dimension())),
-                                       cls.network_name: self.target_network.get_name(),
-                                       cls.decision: self.Decision.TBD,
-                                       cls.nb_shuffles: self.nb_shuffles,
-                                       cls.nb_sequences: self.nb_sequences,
-                                       cls.cuda: self.use_cuda})
-            self.log_info(convergence_data)
-            convergence_data = convergence_data.to_frame()
-            convergence_data = convergence_data.transpose()
-            self.convergence_data = concat([self.convergence_data, convergence_data],
-                                           ignore_index=True)
-            decision = self.get_decision(self.convergence_data)
-            if self.Decision.STOP == decision:
-                break
-            if decision in [self.Decision.TARGET_NET_REGULAR_UPDATE,
-                            self.Decision.TARGET_NET_CONVERGENCE_UPDATE]:
+        try:
+            optimizer = RMSprop(self.current_network.parameters(),
+                                lr=self.learning_rate)
+            epoch = 0
+            target_network_count = 1
+            pool = Pool(self.pool_size)
+            best_current = (inf, self.current_network.clone())
+            puzzle_class = self.get_puzzle_type_class()
+            config = self.get_config()
+            while True:
+                epoch += 1
+                self.epoch_latency -= snap()
+                self.training_data_latency -= snap()
+                puzzles = puzzle_class.get_training_data(one_list=True, **config)
+                self.training_data_latency += snap()
+                self.target_data_latency -= snap()
+                hashes = [hash(puzzle) for puzzle in puzzles]
+                values = self.target_network.evaluate(puzzles).squeeze().tolist()
+                known_values = dict(zip(hashes, values))
+                pool_size = min(self.nb_cpus, len(puzzles))
+                if pool_size > 1:
+                    if pool_size != self.pool_size:
+                        self.pool_size = pool_size
+                        pool = Pool(pool_size)
+                    targets = pool.map(partial(self.__class__.__construct_target__,
+                                               self,
+                                               known_values),
+                                       puzzles)
+                else:
+                    targets = list(map(partial(self.__class__.__construct_target__,
+                                               self,
+                                               known_values),
+                                       puzzles))
+                self.target_data_latency += snap()
+                targets = tensor(targets).float()
+                if self.use_cuda:
+                    targets = targets.to()
                 if self.verbose:
-                    self.log_debug('Updating target network')
-                    data = DataFrame({'puzzle': puzzles_strings,
-                                      'y_hat': list(y_hat.flatten().tolist()),
-                                      'hash': list(hash(p) for p in puzzles),
-                                      'target': list(targets.flatten().tolist())}).sort_values(['target', 'hash'])
-                    self.log_debug('/n', data)
-                self.log_info('Updating target network [%s]' % decision)
-                self.target_network = best_current[1]
-                best_current = (inf, self.target_network)
-                target_network_count += 1
+                    puzzles_strings = [str(p) for p in puzzles]
+                self.evaluate_latency -= snap()
+                y_hat = self.current_network.evaluate(puzzles)
+                self.evaluate_latency += snap()
+                if self.use_cuda and self.current_network.cuda_device:
+                    targets = targets.to(self.current_network.cuda_device)
+                self.loss_latency -= snap()
+                loss = self.loss_function(y_hat, targets)
+                self.loss_latency += snap()
+                self.epoch_latency += snap()
+                self.current_network.zero_grad()
+                optimizer.zero_grad()
+                self.back_prop_latency -= snap()
+                loss.backward()
+                self.back_prop_latency += snap()
+                optimizer.step()
+                loss = loss.item()
+                if loss < best_current[0]:
+                    best_current = (loss, self.current_network.clone())
+                min_targets = min(targets).item()
+                max_targets = max(targets).item()
+                old_max_targets = 0 if self.convergence_data.empty else \
+                    self.convergence_data[cls.max_target].iloc[-1]
+                max_max_targets = max(max_targets, old_max_targets)
+                latency = Series({'epoch': ms_format(self.epoch_latency/epoch),
+                                  'training data': ms_format(self.training_data_latency/epoch),
+                                  'target data': ms_format(self.target_data_latency/epoch),
+                                  'evaluate': ms_format(self.evaluate_latency/epoch),
+                                  'loss': ms_format(self.loss_latency/epoch),
+                                  'back prop': ms_format(self.back_prop_latency/epoch),
+                                  })
+                latency = pformat(latency)
+                convergence_data = Series({cls.epoch: epoch,
+                                           cls.nb_epochs: self.nb_epochs,
+                                           cls.loss: loss,
+                                           cls.latency: latency,
+                                           cls.min_target: min_targets,
+                                           cls.max_target: max_targets,
+                                           cls.max_max_target: max_max_targets,
+                                           cls.target_network_count: target_network_count,
+                                           cls.puzzle_type: self.get_puzzle_type(),
+                                           cls.puzzle_dimension: self.get_puzzle_dimension(),
+                                           cls.network_name: self.target_network.get_name(),
+                                           cls.decision: self.Decision.TBD,
+                                           cls.nb_shuffles: self.nb_shuffles,
+                                           cls.nb_sequences: self.nb_sequences,
+                                           cls.cuda: self.use_cuda})
+                self.log_info(convergence_data)
+                convergence_data = convergence_data.to_frame()
+                convergence_data = convergence_data.transpose()
+                self.convergence_data = concat([self.convergence_data, convergence_data],
+                                               ignore_index=True)
+                decision = self.get_decision(self.convergence_data)
+                if self.Decision.STOP == decision:
+                    break
+                if decision in [self.Decision.TARGET_NET_REGULAR_UPDATE,
+                                self.Decision.TARGET_NET_CONVERGENCE_UPDATE]:
+                    if self.verbose:
+                        self.log_debug('Updating target network')
+                        data = DataFrame({'puzzle': puzzles_strings,
+                                          'y_hat': list(y_hat.flatten().tolist()),
+                                          'hash': list(hash(p) for p in puzzles),
+                                          'target': list(targets.flatten().tolist())}).sort_values(['target', 'hash'])
+                        self.log_debug('/n', data)
+                    self.log_info('Updating target network [%s]' % decision)
+                    self.target_network = best_current[1]
+                    best_current = (inf, self.target_network)
+                    target_network_count += 1
+        except KeyboardInterrupt:
+            self.log_warning('Was interrupted. Exit and save')
         pool.close()
         pool.join()
         self.target_network = best_current[1].clone()
         if self.learning_file_name:
-            self.save(self.learning_file_name)
+            self.save()
 
     def save(self):
         touch(self.learning_file_name)
@@ -332,6 +338,7 @@ class DeepReinforcementLearner(Learner):
                       self.learning_file_name)
 
     def plot_learning(self):
+        cls = self.__class__
         learning_data = read_pickle(self.learning_file_name)[1]
         drl = DeepReinforcementLearner  # alias
         puzzle_type = self.get_puzzle_type()
@@ -342,12 +349,14 @@ class DeepReinforcementLearner(Learner):
         assert 1 == len(set(data[drl.nb_sequences]))
         assert 1 == len(set(data[drl.network_name]))
         network_name = data[drl.network_name].iloc[0]
-        title = '%s | %s | %s' % (network_name,
-                                  puzzle_type,
-                                  puzzle_dimension)
-        fig = plt.figure(title)
-        title = 'Learning data plot\n\n%s' % title
-        fig.suptitle(title)
+        title = {cls.network_name: network_name,
+                 cls.puzzle_type: puzzle_type,
+                 cls.puzzle_dimension: puzzle_dimension,
+                 }
+        title = pformat(title)
+        title = cls.__name__ + '\n' + title
+        fig = plt.figure(self.learning_file_name, figsize=(20, 10))
+        plt.title(title, fontname='Consolas')
         x = drl.epoch
         gs = fig.add_gridspec(4, 1)
         ax1 = fig.add_subplot(gs[0])
@@ -372,6 +381,7 @@ class DeepReinforcementLearner(Learner):
         add_plot(ax2, drl.max_target, 'r')
         add_plot(ax3, drl.loss, 'g')
         add_plot(ax4, loss_over_max_target, 'm')
+        plt.tight_layout()
         plt.show()
 
 ########################################################################################################################

@@ -75,8 +75,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         return Solution.failure(puzzle)
 
     def solve(self, puzzle, **kw_args) -> Solution:
+        kw_args = {**self.get_config(), **kw_args}
         try:
-            solution = self.solve_impl(puzzle, **{**self.get_config(), **kw_args})
+            solution = self.solve_impl(puzzle, **kw_args)
         except Exception as error:
             solution = Solution.failure(puzzle=puzzle,
                                         solver_name=self.get_name(),

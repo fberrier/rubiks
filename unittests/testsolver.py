@@ -105,7 +105,7 @@ class TestSolver(TestCase):
                                            nb_epochs=1000,
                                            one_hot_encoding=True,
                                            nb_shuffles=12,
-                                           max_target_not_increasing_epochs_pct=50,
+                                           max_target_not_increasing_epochs_pct=0.5,
                                            learning_rate=1e-2,
                                            nb_sequences=1)
         logger.log_info(learner.get_config())

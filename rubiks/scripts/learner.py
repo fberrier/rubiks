@@ -21,8 +21,8 @@ if '__main__' == __name__:
     action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 4
-    m = 2
+    n = 3
+    m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
@@ -31,33 +31,36 @@ if '__main__' == __name__:
     learner_type = Learner.perfect_learner
     """ If it's a perfect learner config here """
     time_out = 600
-    nb_cpus = 10
-    cpu_multiplier = 100
-    max_puzzles = 25000
-    regular_save = 1000
-    save_timed_out_max_puzzles = 1000
+    nb_cpus = 20
+    cpu_multiplier = 50
+    max_puzzles = 250000
+    regular_save = 2500
+    save_timed_out_max_puzzles = 10000
     after_round_save = True
     flush_timed_out_puzzles = True
     save_timed_out = True
     rerun_timed_out = True
     abort_after_that_many_consecutive_timed_out = 5
+    nb_shuffles_from_goal = 10
     """ puzzle generation process {PerfectLearner.perfect_random_puzzle_generation,
                                    PerfectLearner.permutation_puzzle_generation,
+                                   PerfectLearner.random_from_goal_puzzle_generation,
                                    } """
     puzzle_generation = PerfectLearner.permutation_puzzle_generation
     heuristic_type = Heuristic.manhattan
     """ If it's a DRL learner config is here ... """
     nb_epochs = 1000
-    nb_sequences = 100
-    nb_shuffles = 100
+    nb_sequences = 1
+    nb_shuffles = 12
     update_target_network_frequency = 100
-    update_target_network_threshold = 0.002
+    update_target_network_threshold = 1e-4
     max_nb_target_network_update = 50
-    max_target_not_increasing_epochs_pct = 0.50
+    max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
+    learning_rate = 1e-2
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
-    layers = (600, 300, 100)
+    layers_description = (16, 8)
     one_hot_encoding = True
     """ either way we make the learning_file_name to save learning results """
     if learner_type == Learner.perfect_learner:

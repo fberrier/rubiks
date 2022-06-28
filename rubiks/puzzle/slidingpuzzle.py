@@ -83,7 +83,8 @@ class SlidingPuzzle(Puzzle):
         if from_tiles:
             # we set n, m and empty
             self.tiles = kw_args[self.tiles]
-            assert isinstance(self.tiles, Tensor)
+            if not isinstance(self.tiles, Tensor):
+                self.tiles = tensor(self.tiles)
             self.empty = kw_args.get(self.empty,
                                      tuple(argwhere(0 == self.tiles).squeeze().tolist()))
             assert 2 == len(self.tiles.shape)

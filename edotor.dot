@@ -22,9 +22,8 @@ digraph g {
 	# 3rd PARTIES
 	nodebrokenaxes [label="brokenaxes",shape=rectangle, fillcolor=antiquewhite4]
 	# SCRIPTS
-	nodescriptperfectlearner [label="perfectlearner",shape=rectangle]
-	nodescriptdeeplearning [label="deeplearning",shape=rectangle]
-	nodescriptperformance [label="performance",shape=rectangle]
+	nodescriptlearner [label="learner",shape=rectangle]
+	nodescriptsolver [label="solver",shape=rectangle]
 	# LEGEND
 	nodelegendfactories [label="factories",color=cadetblue4,shape=rectangle,fontcolor=cadetblue4]
 	nodelegendexternal [label="3rd parties",color=antiquewhite4,shape=rectangle,fontcolor=antiquewhite4]
@@ -80,9 +79,8 @@ digraph g {
 		# SCRIPTS
 		subgraph clusterScripts {
 			label="scripts"
-			nodescriptperfectlearner
-			nodescriptdeeplearning
-			nodescriptperformance
+			nodescriptlearner
+			nodescriptsolver
 		}
 		# 3rd PARTIES
 		subgraph cluster3rdParties {
@@ -214,7 +212,7 @@ digraph g {
 		nodelegendfactories -> nodeutils [constraint=true,color=red, style=invis ];
 		nodelegendfactories -> nodebrokenaxes [constraint=true,color=red, style=invis ];
 		nodelegendfactories -> nodepytorch [constraint=true,color=red, style=invis ];
-		nodelegendfactories -> nodescriptdeeplearning [constraint=true,color=red, style=invis ];
+		nodelegendfactories -> nodescriptlearner [constraint=true,color=red, style=invis ];
 		nodeutils -> nodecorefactory [constraint=true,color=red, style=invis ];
 		nodeutils -> nodecoreloggable [constraint=true,color=red, style=invis ];
 		nodeutils -> nodecoreparsable [constraint=true,color=red, style=invis ];

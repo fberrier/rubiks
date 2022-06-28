@@ -21,8 +21,8 @@ if '__main__' == __name__:
     action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 4
-    m = 3
+    n = 2
+    m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
@@ -31,12 +31,12 @@ if '__main__' == __name__:
     learner_type = Learner.perfect_learner
     """ If it's a perfect learner config here """
     time_out = 600
-    nb_cpus = 5
-    cpu_multiplier = 10
-    max_puzzles = 1000
-    regular_save = 500
+    nb_cpus = 20
+    cpu_multiplier = 1
+    max_puzzles = 1
+    regular_save = 1
     save_timed_out_max_puzzles = 10000
-    after_round_save = True
+    after_round_save = False
     flush_timed_out_puzzles = True
     save_timed_out = True
     rerun_timed_out = True

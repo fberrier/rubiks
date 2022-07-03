@@ -59,7 +59,7 @@ digraph g {
 	nodebfssolver [label="BFSSolver"]
 	nodedfssolver [label="DFSSolver"]
 	nodestarsolver [label="AStarSolver"]
-	nodenaivesolver [label="NaiveSolver"]
+	nodenaiveslidingsolver [label="NaiveSlidingSolver"]
 	######################################################################################################
 	# CLUSTERS
 	subgraph clusterFB {
@@ -195,12 +195,12 @@ digraph g {
 			nodebfssolver [fillcolor=brown3]
 			nodedfssolver [fillcolor=brown3]
 			nodestarsolver [fillcolor=brown3]
-			nodenaivesolver
+			nodenaiveslidingsolver
 			nodesolution -> nodesolver [style=dashed, arrowhead=none]
 			nodesolver -> nodebfssolver
 			nodesolver -> nodedfssolver
 			nodesolver -> nodestarsolver
-			nodesolver -> nodenaivesolver
+			nodesolver -> nodenaiveslidingsolver
 		}
 		nodecorefactory -> nodesolver
 		nodecoreloggable -> nodesolver

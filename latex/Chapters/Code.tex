@@ -90,6 +90,14 @@ This module implements learners, which learn something from a puzzle, store what
 
 
 \subsection{rubiks.solvers}
+This module implements solvers, which solve puzzles. The base class Solver is a Factory of solvers, and in addition to being able to instantiating the following types of solvers, can run different solvers through a similal sequences of random puzzles (for various increasing degrees of difficulty (shuffling), and/or perfectly shuffled ones) and display a comparison of how they perform in a number of metrics.
+
+\begin{itemize}
+\item DFSSolver
+\item BFSSolver
+\item AStarSolver
+\item NaiveSlidingSolver
+\end{itemize}
 
 \subsection{rubiks.scripts}
 

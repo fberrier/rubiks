@@ -29,13 +29,13 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.perfect_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 60
     nb_cpus = 5
-    cpu_multiplier = 10
+    cpu_multiplier = 1
     max_puzzles = nb_cpus * cpu_multiplier * 1
     regular_save = nb_cpus * cpu_multiplier * 1
     save_timed_out_max_puzzles = 100000

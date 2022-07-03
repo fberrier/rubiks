@@ -21,7 +21,7 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 3
@@ -31,7 +31,7 @@ if '__main__' == __name__:
     nb_shuffles = 6
     """ For performance test """
     nb_samples = 1000
-    min_nb_shuffles = 10
+    min_nb_shuffles = 0
     max_nb_shuffles = 50
     step_nb_shuffles = 2
     add_perfect_shuffle = True
@@ -66,7 +66,7 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.deep_learning
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net} """
     network_type = DeepLearning.fully_connected_net
-    layers_description = (600, 300, 100)
+    layers_description = (599, 300, 100)
     one_hot_encoding = True
     try:
         if heuristic_type == Heuristic.deep_learning:

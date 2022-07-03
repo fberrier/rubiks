@@ -19,17 +19,17 @@ if '__main__' == __name__:
                             Learner.do_plot,
                             Learner.do_cleanup_learning_file,
                             } """
-    action_type = Learner.do_learn
+    action_type = Learner.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 4
-    m = 4
+    n = 3
+    m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.perfect_learner
+    learner_type = Learner.deep_reinforcement_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics
     """ If it's a perfect learner config here """

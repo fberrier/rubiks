@@ -441,7 +441,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     def action(self):
         config = self.get_config()
         if self.do_plot == self.action_type:
-            self.plot_performance()
+            try:
+                self.plot_performance()
+            except KeyboardInterrupt:
+                self.log_warning('KeyboardInterrupt raised')
         elif self.do_solve == self.action_type:
             puzzle = Puzzle.factory(**self.get_config())
             puzzle = puzzle.apply_random_moves(nb_moves=config[self.__class__.nb_shuffles])
@@ -493,7 +496,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         title = {cls.puzzle_type: puzzle_type,
                  cls.puzzle_dimension: puzzle_dimension,
                  cls.performance_file_name: self.performance_file_name}
-        fields_to_add = [cls.nb_samples]
+        fields_to_add = [cls.nb_samples, cls.time_out]
         for field in fields_to_add:
             title[field] = self.get_config()[field]
         fig = plt.figure(self.performance_file_name,

@@ -77,12 +77,12 @@ class TestSolver(TestCase):
         puzzle = Puzzle.factory(**solver.get_config()).apply_random_moves(inf)
         self.assertEqual(dimension, puzzle.dimension())
         logger.log_info(puzzle)
-        try:
-            solution = solver.solve(puzzle=puzzle)
-            self.assertTrue(False)
-        except TimeoutError:
-            pass
+        solution = solver.solve(puzzle=puzzle)
+        self.assertTrue(solution.failed())
+        self.assertTrue(str(solution).find('Exceeded timeout') >= 0)
+        logger.log_info(solution)
         solution = solver.solve(puzzle=puzzle, time_out=300)
+        self.assertFalse(solution.failed())
         logger.log_info(solution)
 
     def test_deep_reinforcement_learning_solver(self):

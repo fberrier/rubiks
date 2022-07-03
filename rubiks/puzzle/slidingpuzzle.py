@@ -29,6 +29,9 @@ class Slide(Move):
     def cost(self):
         return 1
 
+    def __repr__(self):
+        return '(%s, %s)' % self.tile
+
 ########################################################################################################################
 
     
@@ -38,6 +41,22 @@ class SlidingPuzzle(Puzzle):
     m = 'm'
     tiles = 'tiles'
     empty = 'empty'
+
+    def empty_left(self):
+        return Slide(self.empty[0],
+                     self.empty[1] - 1)
+
+    def empty_right(self):
+        return Slide(self.empty[0],
+                     self.empty[1] + 1)
+
+    def empty_up(self):
+        return Slide(self.empty[0] - 1,
+                     self.empty[1])
+
+    def empty_down(self):
+        return Slide(self.empty[0] + 1,
+                     self.empty[1])
 
     @classmethod
     def populate_parser(cls, parser):
@@ -103,6 +122,9 @@ class SlidingPuzzle(Puzzle):
             goal = self.goal_map[n][m]
             self.__init__(tiles=goal.tiles.detach().clone(),
                           empty=goal.empty)
+
+    def find_tile(self, value):
+        return tuple(argwhere(value == self.tiles).squeeze().tolist())
 
     def __repr__(self):
         tiles = array(self.tiles.numpy(), dtype=str)
@@ -254,5 +276,14 @@ class SlidingPuzzle(Puzzle):
 
     def is_solvable(self) -> bool:
         return self.signature() == self.goal_signature()
+
+    def in_order(self):
+        """ this is for the more general case where the tiles are not necessarily consecutive integers """
+        flat = self.tiles.flatten()
+        if 0 not in flat:
+            return False
+        flat_ordered = flat.sort().values.tolist()[1:]
+        return flat_ordered == flat.tolist()[:-1]
     
 ########################################################################################################################
+

@@ -11,6 +11,7 @@ from time import time as snap
 from torch import cuda, tensor
 from torch.nn import MSELoss
 from torch.optim import RMSprop
+from torch.optim.lr_scheduler import ExponentialLR
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.learner import Learner
@@ -39,6 +40,10 @@ class DeepReinforcementLearner(Learner):
     default_max_target_uptick = 0.01
     use_cuda = 'use_cuda'
     learning_rate = 'learning_rate'
+    scheduler = 'scheduler'
+    no_scheduler = 'none'
+    gamma_scheduler = 'gamma_scheduler'
+    exponential_scheduler = 'exponential_scheduler'
     default_learning_rate = 1e-6
     nb_cpus = 'nb_cpus'
     default_nb_cpus = 1
@@ -95,6 +100,15 @@ class DeepReinforcementLearner(Learner):
                          field=cls.nb_cpus,
                          type=int,
                          default=cls.default_nb_cpus)
+        cls.add_argument(parser,
+                         field=cls.scheduler,
+                         type=str,
+                         choices=[cls.no_scheduler, cls.exponential_scheduler],
+                         default=cls.no_scheduler)
+        cls.add_argument(parser,
+                         field=cls.gamma_scheduler,
+                         type=float,
+                         default=0.99)
 
     def __init__(self, **kw_args):
         Learner.__init__(self, **kw_args)
@@ -108,6 +122,7 @@ class DeepReinforcementLearner(Learner):
         self.convergence_data = DataFrame(columns=[cls.epoch,
                                                    cls.nb_epochs,
                                                    cls.loss,
+                                                   cls.learning_rate,
                                                    cls.latency,
                                                    cls.min_target,
                                                    cls.max_target,
@@ -213,11 +228,17 @@ class DeepReinforcementLearner(Learner):
             return None
         return target
 
+    def get_optimiser_and_scheduler(self):
+        optimizer = RMSprop(self.current_network.parameters(),
+                            lr=float(self.learning_rate))
+        scheduler = None if self.scheduler == self.no_scheduler else \
+            ExponentialLR(optimizer, gamma=self.gamma_scheduler)
+        return optimizer, scheduler
+
     def learn(self):
         cls = self.__class__
         try:
-            optimizer = RMSprop(self.current_network.parameters(),
-                                lr=self.learning_rate)
+            optimizer, scheduler = self.get_optimiser_and_scheduler()
             epoch = 0
             target_network_count = 1
             pool = Pool(self.pool_size)
@@ -269,6 +290,8 @@ class DeepReinforcementLearner(Learner):
                 loss.backward()
                 self.back_prop_latency += snap()
                 optimizer.step()
+                if scheduler:
+                    scheduler.step()
                 loss = loss.item()
                 if loss < best_current[0]:
                     best_current = (loss, self.current_network.clone())
@@ -285,9 +308,11 @@ class DeepReinforcementLearner(Learner):
                                   'back prop': ms_format(self.back_prop_latency/epoch),
                                   })
                 latency = pformat(latency)
+                learning_rate = self.learning_rate if scheduler is None else scheduler.get_last_lr()
                 convergence_data = Series({cls.epoch: epoch,
                                            cls.nb_epochs: self.nb_epochs,
                                            cls.loss: loss,
+                                           cls.learning_rate: learning_rate,
                                            cls.latency: latency,
                                            cls.min_target: min_targets,
                                            cls.max_target: max_targets,
@@ -321,6 +346,9 @@ class DeepReinforcementLearner(Learner):
                     self.target_network = best_current[1]
                     best_current = (inf, self.target_network)
                     target_network_count += 1
+                    optimizer, scheduler = self.get_optimiser_and_scheduler()
+                    if self.learning_file_name:
+                        self.save()
         except KeyboardInterrupt:
             self.log_warning('Was interrupted. Exit and save')
         pool.close()
@@ -358,11 +386,12 @@ class DeepReinforcementLearner(Learner):
         fig = plt.figure(self.learning_file_name, figsize=(20, 10))
         plt.title(title, fontname='Consolas')
         x = drl.epoch
-        gs = fig.add_gridspec(4, 1)
+        gs = fig.add_gridspec(5, 1)
         ax1 = fig.add_subplot(gs[0])
         ax2 = fig.add_subplot(gs[1])
         ax3 = fig.add_subplot(gs[2])
         ax4 = fig.add_subplot(gs[3])
+        ax5 = fig.add_subplot(gs[4])
         loss_over_max_target = 'loss_over_max_target'
 
         def add_plot(ax, y, c):
@@ -376,11 +405,12 @@ class DeepReinforcementLearner(Learner):
             ax.set_ylabel(y)
             if y in [drl.loss, loss_over_max_target]:
                 ax.set_yscale('log')
-        data[loss_over_max_target] = data[drl.loss] /  data[drl.max_target]
+        data[loss_over_max_target] = data[drl.loss] / data[drl.max_target]
         add_plot(ax1, drl.target_network_count, 'b')
         add_plot(ax2, drl.max_target, 'r')
         add_plot(ax3, drl.loss, 'g')
         add_plot(ax4, loss_over_max_target, 'm')
+        add_plot(ax5, drl.learning_rate, 'y')
         plt.tight_layout()
         plt.show()
 

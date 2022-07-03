@@ -136,6 +136,10 @@ class Puzzle(Factory, metaclass=ABCMeta):
         """ return the puzzle resulting from applying move or raise exception if invalid """
         return
 
+    def apply_move(self, move):
+        """ alias """
+        return self.apply(move)
+
     def get_puzzle_sequence(self, moves):
         puzzles = [self.clone()]
         for move in moves:

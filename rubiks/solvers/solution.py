@@ -15,6 +15,9 @@ class Solution:
     expanded_nodes = '# expanded nodes'
     puzzle = 'puzzle'
 
+    def apply(self, puzzle):
+        return puzzle.apply_moves(self.path)
+
     def __init__(self,
                  cost,
                  path,

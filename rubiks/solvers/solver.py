@@ -4,7 +4,7 @@
 from abc import abstractmethod, ABCMeta
 from functools import partial
 from itertools import product
-from math import inf
+from math import inf, ceil
 from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
 from multiprocessing import Pool
@@ -12,7 +12,7 @@ from numpy import isnan, isinf
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
 ########################################################################################################################
-from rubiks.thridparties import brokenaxes
+from rubiks.thridparties.brokenaxes import brokenaxes
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.core.factory import Factory
@@ -34,6 +34,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     bfs = SearchStrategy.bfs
     dfs = SearchStrategy.dfs
     astar = SearchStrategy.astar
+    naive = 'naive'
     known_solver_types = [bfs, dfs, astar]
     time_out = 'time_out'
     max_consecutive_timeout = 'max_consecutive_timeout'
@@ -57,9 +58,11 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         from rubiks.solvers.bfssolver import BFSSolver
         from rubiks.solvers.dfssolver import DFSSolver
         from rubiks.solvers.astarsolver import AStarSolver
+        from rubiks.solvers.naiveslidingsolver import NaiveSlidingSolver
         return {cls.bfs: BFSSolver,
                 cls.dfs: DFSSolver,
-                cls.astar: AStarSolver}
+                cls.astar: AStarSolver,
+                cls.naive: NaiveSlidingSolver}
 
     @classmethod
     def additional_dependencies(cls):
@@ -121,12 +124,12 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
-            solution = self.solve_impl(puzzle)
+            solution = self.solve_impl(puzzle, **self.get_config())
             run_time = snap() - start
             assert isinstance(solution.cost, int)
             assert isinstance(solution.path, list)
-            assert all(isinstance(move, self.get_puzzle_type().get_move_type()) for move in solution.path)
-            assert isinstance(solution.expanded_nodes, int)
+            assert all(isinstance(move, self.get_goal().get_move_type()) for move in solution.path)
+            assert isnan(solution.expanded_nodes) or isinstance(solution.expanded_nodes, int)
         except Exception as error:
             if error is not RecursionError:
                 self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
@@ -169,9 +172,19 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          do_cleanup_performance_file,
                          do_cleanup_shuffles_file,
                          ]
+    performance_metrics = 'performance_metrics'
+    default_performance_metrics = [avg_run_time,
+                                   pct_optimal,
+                                   avg_expanded_nodes,
+                                   pct_solved]
 
     @classmethod
     def populate_parser(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.performance_metrics,
+                         type=str,
+                         nargs='+',
+                         default=cls.default_performance_metrics)
         cls.add_argument(parser,
                          field=cls.time_out,
                          type=int,
@@ -251,8 +264,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         assert self.min_nb_shuffles <= self.max_nb_shuffles
         dimension = tuple(self.get_puzzle_dimension())
         cls = self.__class__
-        puzzle_type = self.get_puzzle_type().__name__
-        res = {cls.solver_name: self.name(),
+        puzzle_type = self.get_puzzle_type()
+        res = {cls.solver_name: self.get_name(),
                cls.puzzle_type: puzzle_type,
                cls.puzzle_dimension: str(dimension),
                cls.nb_shuffles: [0],
@@ -332,7 +345,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             sample = 0
             nb_not_optimal = 0
             for (cost, moves, expanded_nodes, run_time, timed_out, index) in results:
-                assert len(moves) == cost
+                assert cost < 0 or isinf(cost) or cost == len(moves), 'WTF?'
                 if timed_out:
                     consecutive_timeout += 1
                     nb_timeout += 1
@@ -440,15 +453,17 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         try:
             remove_file(self.performance_file_name)
             self.log_info('Removed \'%s\'' % self.performance_file_name)
-        except FileNotFoundError:
-            pass
+        except FileNotFoundError as error:
+            self.log_warning('Could not remove \'%s\':' % self.performance_file_name,
+                             error)
 
     def cleanup_shuffles_file(self):
         try:
             remove_file(self.shuffles_file_name)
             self.log_info('Removed \'%s\'' % self.shuffles_file_name)
-        except FileNotFoundError:
-            pass
+        except FileNotFoundError as error:
+            self.log_warning('Could not remove \'%s\':' % self.shuffles_file_name,
+                             error)
 
     def plot_performance(self):
         try:
@@ -465,21 +480,23 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         performance.loc[:, Solver.nb_shuffles] = \
             performance[Solver.nb_shuffles].replace(inf, shuffle_max)
         pprint(performance)
-        y = [Solver.avg_run_time,
-             Solver.pct_optimal,
-             Solver.avg_expanded_nodes,
-             Solver.pct_solved]
+        y = self.performance_metrics
         n = int(len(y)/2)
         fig = plt.figure(self.performance_file_name)
-        sps = GridSpec(n, 2, figure=fig)
+        n_rows = ceil(len(y) / 2)
+        n_cols = 1 if len(y) == 1 else 2
+        sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
-        for r, c in product(range(2), range(n)):
-            what = y[r * 2 + c]
+        for r, c in product(range(n_rows), range(n_cols)):
+            index = r * 2 + c
+            if index >= len(y):
+                continue
+            what = y[index]
             bax = brokenaxes(xlims=((0, max_shuffle/2 + 1),
                                     (max_shuffle - 1.5, max_shuffle + 1.5)),
                              subplot_spec=sps[r, c])
-            bax.set_title('%s vs %s' % (what, Solver.nb_shuffles))
+            #bax.set_title('%s vs %s' % (what, Solver.nb_shuffles))
             if r == 1:
                 bax.set_xlabel(Solver.nb_shuffles)
             bax.set_ylabel(what)

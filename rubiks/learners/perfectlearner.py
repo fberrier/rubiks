@@ -29,6 +29,7 @@ class PerfectLearner(Learner):
     data = 'data'
     timed_out_tag = 'timed_out'
     rerun_timed_out = 'rerun_timed_out'
+    rerun_timed_out_only = 'rerun_timed_out_only'
     save_timed_out = 'save_timed_out'
     save_timed_out_max_puzzles = 'save_timed_out_max_puzzles'
     abort_after_that_many_consecutive_timed_out = 'abort_after_that_many_consecutive_timed_out'
@@ -81,6 +82,10 @@ class PerfectLearner(Learner):
                          action=cls.store_true)
         cls.add_argument(parser,
                          field=cls.rerun_timed_out,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.rerun_timed_out_only,
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
@@ -193,13 +198,15 @@ class PerfectLearner(Learner):
 
     def generate_puzzles(self):
         self.log_info('Puzzles generation process:', self.puzzle_generation)
-        if self.rerun_timed_out:
+        if self.rerun_timed_out or self.rerun_timed_out_only:
             for puzzle in self.data_base[self.__class__.timed_out_tag].values():
                 self.log_info('Retrying to solve ', puzzle)
                 yield puzzle
+            if self.rerun_timed_out_only:
+                return
         if self.puzzle_generation == self.random_from_goal_puzzle_generation:
             while True:
-                puzzle = self.get_puzzle_type_class().goal()
+                puzzle = self.get_goal()
                 for p in range(self.nb_shuffles_from_goal):
                     next_puzzle = puzzle.apply_random_move()
                     yield puzzle
@@ -268,10 +275,10 @@ class PerfectLearner(Learner):
             self.log_warning('Was interrupted. Exit and save')
         pool.close()
         pool.join()
-        self.save()
         for h in self.data_base[cls.data].keys():
-            # We do that at the end, don't want to mess up with it while iterating thru it potentially
+            # We do that at the end, don't want to mess up with it while iterating through it potentially
             self.data_base[cls.timed_out_tag].pop(h, None)
+        self.save()
         if self.consecutive_time_outs > self.abort_after_that_many_consecutive_timed_out:
             self.log_warning('Aborted as too many consecutive [%d] time outs' %
                              self.abort_after_that_many_consecutive_timed_out)

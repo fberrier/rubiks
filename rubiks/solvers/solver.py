@@ -21,7 +21,7 @@ from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
-from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, pformat
+from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, pformat, ms_format
 ########################################################################################################################
 
 
@@ -80,7 +80,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     def solve(self, puzzle, **kw_args) -> Solution:
         kw_args = {**self.get_config(), **kw_args}
         try:
+            b4 = snap()
             solution = self.solve_impl(puzzle, **kw_args)
+            run_time = snap() - b4
+            solution.add_additional_info(run_time=ms_format(run_time))
         except Exception as error:
             solution = Solution.failure(puzzle=puzzle,
                                         solver_name=self.get_name(),
@@ -440,23 +443,23 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
 
     def action(self):
         config = self.get_config()
-        if self.do_plot == self.action_type:
-            try:
+        try:
+            if self.do_plot == self.action_type:
                 self.plot_performance()
-            except KeyboardInterrupt:
-                self.log_warning('KeyboardInterrupt raised')
-        elif self.do_solve == self.action_type:
-            puzzle = Puzzle.factory(**self.get_config())
-            puzzle = puzzle.apply_random_moves(nb_moves=config[self.__class__.nb_shuffles])
-            return self.solve(puzzle)
-        elif self.do_performance_test == self.action_type:
-            self.performance_test()
-        elif self.do_cleanup_performance_file == self.action_type:
-            self.cleanup_perf_file()
-        elif self.do_cleanup_shuffles_file == self.action_type:
-            self.cleanup_shuffles_file()
-        else:
-            raise NotImplementedError('Unknown action_type [%s]' % self.action_type)
+            elif self.do_solve == self.action_type:
+                puzzle = Puzzle.factory(**self.get_config())
+                puzzle = puzzle.apply_random_moves(nb_moves=config[self.__class__.nb_shuffles])
+                return self.solve(puzzle)
+            elif self.do_performance_test == self.action_type:
+                self.performance_test()
+            elif self.do_cleanup_performance_file == self.action_type:
+                self.cleanup_perf_file()
+            elif self.do_cleanup_shuffles_file == self.action_type:
+                self.cleanup_shuffles_file()
+            else:
+                raise NotImplementedError('Unknown action_type [%s]' % self.action_type)
+        except KeyboardInterrupt:
+            self.log_warning('KeyboardInterrupt raised')
 
     def cleanup_perf_file(self):
         try:
@@ -544,7 +547,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if what in [cls.pct_solved] and not labels_shown:
                 """ Ideally we can show the labels on one of these so we don't have to
                 display at top where it might overlap with the title. """
-                bax.legend(loc='best')
+                bax.legend(loc='center')
                 labels_shown = True
         if not labels_shown:
             fig.legend(handles, labels, loc='upper center')

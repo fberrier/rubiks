@@ -21,14 +21,15 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_plot
+    action_type = Solver.do_solve
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
+    tiles = [[8, 6, 7], [2, 5, 4], [3, 0, 1]]
     n = 3
     m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
-    nb_shuffles = 6
+    nb_shuffles = 0
     """ For performance test """
     nb_samples = 1000
     min_nb_shuffles = 0
@@ -55,7 +56,7 @@ if '__main__' == __name__:
                            } """
     solver_type = Solver.astar
     limit = 10
-    time_out = 60
+    time_out = 360
     log_solution = True
     check_optimal = True
     max_consecutive_timeout = 25

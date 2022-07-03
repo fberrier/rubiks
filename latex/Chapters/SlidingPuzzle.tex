@@ -78,11 +78,11 @@ and the most difficult puzzles (requiring a number of steps equal to their respe
 %	SECTION 2
 %-----------------------------------
 \section{Intermediary case - 3x3}
-\label{S33}
+\label{sec:S33}
 
 
 \subsection{Perfect learner}
-As seen in the previous section section \ref{sec:SPLowDimension}, the 3 by 3 SP is one of the cases we have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough to make trying deep reinforcement learning meaningful. The PerfectLearner's learning are shown in figure \ref{fig:33SPPerfectLearning}:
+As discussed in the previous section section \ref{sec:SPLowDimension}, the 3 by 3 SP is one of the cases I have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough that it is worth trying and comparing a few different methods, including deep reinforcement learning. To start with, I ran the PerfectLearner with n=m=3, and the results are shown below in figure \ref{fig:33SPPerfectLearning}. It is interesting to note that there are only two hardest configurations (cost 31) and 221 configurations of cost 30.
 
 
 \newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
@@ -120,7 +120,8 @@ As seen in the previous section section \ref{sec:SPLowDimension}, the 3 by 3 SP 
 
 
 \subsection{Solvers' comparison}
-Finally, to conclude this section on the 3x3 case, let's us discuss a comparison of several algorithms on 1000 random puzzles generated for a number of random shuffling (with best effort no backtracking) from 0 to 50 in step of 2, as well as for perfect shuffling (denoted by $\infty$) on the comparison graphs. The results are shown in figure \ref{fig:33SPPerformance}
+\label{ssec:33SPSC}
+Finally, to conclude this section on the 3x3 case, let me discuss a comparison of several algorithms on 1000 random puzzles generated for a number of random shuffling (with best effort no backtracking) from 0 to 50 in step of 2, as well as for perfect shuffling (denoted by $\infty$) on the comparison graphs. The results are shown in figure \ref{fig:33SPPerformance}
 
 \newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
 \begin{landscape}
@@ -135,6 +136,34 @@ Finally, to conclude this section on the 3x3 case, let's us discuss a comparison
 \vfill
 \end{landscape}
 \restoregeometry
+
+
+\subsection{Solving the hardest problem}
+To finish with the 3x3 SP, let me try to throw one of the two hardest 3x3 configurations (see subsection \ref{sec:SPLowDimension}) at the different solvers to see how they fare. The results are shown here
+
+\begin{center}
+\begin{tabular}{l*{5}{c}r}
+\hline
+\textbf{solver}      & & \textbf{cost} & \textbf{\# expanded nodes} & \textbf{run time (ms)} \\
+\hline
+AStarSolver[Manhattan]   &   &      31  & 58,859  & 11,327  \\
+\hline
+AStarSolver[PerfectHeuristic]  &   & 31 & 1,585 & 202 \\
+\hline
+AStarSolver[DeepLearningHeuristic]  &   & 31 & 101 & 58 \\
+\hline
+BFS  &   & - & - & time out \\
+\hline
+NaiveSlidingSolver  &   & 61 & n/a & 18 \\
+\hline
+\end{tabular}
+\end{center}
+On this specific configuration, there was obviously no chance that the BFS would complete, hence it timed out. It would have no matter what time out I set. Indeed, since it has no heuristic to guide its search, it would need to explore in the order of $3^{31}$ - roughly 617 trillions - nodes to reach the goal!
+\\
+Rather interestingly, my DRL heuristic performs much better than the manhattan heuristic (not super suprising), but also outperforms the perfect heuristic quite significantly both in terms of run time and of nodes expansion. Obviously there is no guarantee that the perfect heuristic will not be outperformed on some random configuration, and it does on this occasion. However, as we have seen in the previous subection \ref{ssec:33SPSC}, it is not the case on average.
+\\
+Finally, the naive solver outperforms every other solver in terms of run time, but finds a rather poor solution of 61 moves.
+
 
 
 %-----------------------------------

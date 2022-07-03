@@ -419,20 +419,28 @@ class DeepReinforcementLearner(Learner):
         axes = list()
         for a in range(len(self.plot_metrics)):
             axes.append(fig.add_subplot(gs[a]))
-        colors = ['b', 'r', 'g', 'm', 'y']
+        colors = ['royalblue', 'orangered', 'seagreen', 'darkmagenta', 'gold']
         colors = cycle(colors)
 
         def add_plot(ax, y, c):
+            if y in [drl.loss, drl.loss_over_max_target, drl.max_target]:
+                label = '%s -> %.2f' % (y, data[y].iloc[-1])
+            else:
+                label = None
             ax.scatter(x,
                        y=y,
                        data=data,
                        color=c,
                        s=10,
-                       marker='.')
+                       marker='.',
+                       label=label)
             ax.set_xlabel(x)
             ax.set_ylabel(y)
+            if label:
+                ax.legend()
             if y in [drl.loss, drl.loss_over_max_target]:
                 ax.set_yscale('log')
+
         data[drl.loss_over_max_target] = data[drl.loss] / data[drl.max_target]
         for a in range(len(self.plot_metrics)):
             add_plot(axes[a], self.plot_metrics[a], next(colors))

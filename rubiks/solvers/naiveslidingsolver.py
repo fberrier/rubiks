@@ -30,7 +30,8 @@ class NaiveSlidingSolver(Solver):
         solution = Solution(cost=0,
                             path=list(),
                             expanded_nodes=float('nan'),
-                            puzzle=puzzle)
+                            puzzle=puzzle,
+                            solver_name=self.get_name())
         offset_n = 0
         offset_m = 0
         sliding_puzzle = puzzle.clone()

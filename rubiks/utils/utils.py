@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from locale import format_string, LC_ALL, setlocale
-from math import isinf
+from math import isinf, isnan
 import numpy as np
 from os import makedirs, remove, getenv
 from os.path import exists, dirname
@@ -147,6 +147,10 @@ def pprint(*what):
 
 
 def number_format(what):
+    if isnan(what):
+        return 'nan'
+    elif isinf(what):
+        return 'inf'
     return format_string('%d',
                          int(what),
                          grouping=True)

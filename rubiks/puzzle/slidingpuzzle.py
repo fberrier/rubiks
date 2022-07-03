@@ -61,6 +61,7 @@ class SlidingPuzzle(Puzzle):
     @classmethod
     def populate_parser(cls, parser):
         cls.add_argument(parser, field=cls.m, type=int, default=None)
+        cls.add_argument(parser, field=cls.tiles, type=list, default=None)
 
     def possible_puzzles_nb(self):
         dimension = self.dimension()
@@ -99,7 +100,7 @@ class SlidingPuzzle(Puzzle):
 
     def __init__(self, **kw_args):
         from_tiles = self.tiles in kw_args
-        if from_tiles:
+        if from_tiles and kw_args[self.tiles] is not None:
             # we set n, m and empty
             self.tiles = kw_args[self.tiles]
             if not isinstance(self.tiles, Tensor):

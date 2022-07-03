@@ -4,7 +4,7 @@
 from math import inf, isinf
 from pandas import Series
 ########################################################################################################################
-from rubiks.utils.utils import pformat
+from rubiks.utils.utils import pformat, number_format
 ########################################################################################################################
 
 
@@ -41,6 +41,9 @@ class Solution:
     def failed(self):
         return isinf(self.cost)
 
+    def add_additional_info(self, **additional_info):
+        self.additional_info.update(additional_info)
+
     def to_str(self):
         cls = self.__class__
         if self.puzzle is None:
@@ -55,7 +58,7 @@ class Solution:
                                             dtype=str))
         string = {cls.puzzle: self.puzzle,
                   cls.cost: self.cost,
-                  cls.expanded_nodes: self.expanded_nodes,
+                  cls.expanded_nodes: number_format(self.expanded_nodes),
                   cls.path: path_string,
                   **{'%s' % k: '%s' % v for k, v in self.additional_info.items()},
                   }

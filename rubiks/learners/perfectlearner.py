@@ -199,8 +199,11 @@ class PerfectLearner(Learner):
     def generate_puzzles(self):
         self.log_info('Puzzles generation process:', self.puzzle_generation)
         if self.rerun_timed_out or self.rerun_timed_out_only:
+            self.log_info('Will be re-running ',
+                          len(self.data_base[self.__class__.timed_out_tag]),
+                          ' timed-out puzzles')
             for puzzle in self.data_base[self.__class__.timed_out_tag].values():
-                self.log_info('Retrying to solve ', puzzle)
+                self.log_debug('Retrying to solve ', puzzle)
                 yield puzzle
             if self.rerun_timed_out_only:
                 return
@@ -339,10 +342,12 @@ class PerfectLearner(Learner):
         title = pformat(title)
         fig = plt.figure(self.learning_file_name, figsize=(15, 10))
         ax = fig.gca()
-        self.puzzles_vs_cost(data).\
-            plot(kind='bar',
-                 label='# puzzles for each optimal cost',
-                 color='navy')
+        data = self.puzzles_vs_cost(data)
+        data.plot(kind='bar',
+                  label='# puzzles for each optimal cost',
+                  color='royalblue')
+        for index, value in zip(data.index, data.values):
+            plt.text(index, value, str(value))
         plt.legend()
         plt.xlabel('Optimal cost')
         plt.ylabel('# of puzzles')

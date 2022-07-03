@@ -19,11 +19,11 @@ if '__main__' == __name__:
                             Learner.do_plot,
                             Learner.do_cleanup_learning_file,
                             } """
-    action_type = Learner.do_plot
+    action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 3
-    m = 3
+    n = 2
+    m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
@@ -33,24 +33,24 @@ if '__main__' == __name__:
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics
     """ If it's a perfect learner config here """
-    time_out = 60
-    nb_cpus = 5
-    cpu_multiplier = 1
-    max_puzzles = nb_cpus * cpu_multiplier * 1
+    time_out = 360
+    nb_cpus = 10
+    cpu_multiplier = 10
+    max_puzzles = nb_cpus * cpu_multiplier * 100
     regular_save = nb_cpus * cpu_multiplier * 1
     save_timed_out_max_puzzles = 100000
     after_round_save = True
     flush_timed_out_puzzles = True
     save_timed_out = True
-    rerun_timed_out = False
-    rerun_timed_out_only = False
+    rerun_timed_out = True
+    rerun_timed_out_only = True
     abort_after_that_many_consecutive_timed_out = 100
     nb_shuffles_from_goal = 25
     """ puzzle generation process {PerfectLearner.perfect_random_puzzle_generation,
                                    PerfectLearner.permutation_puzzle_generation,
                                    PerfectLearner.random_from_goal_puzzle_generation,
                                    } """
-    puzzle_generation = PerfectLearner.perfect_random_puzzle_generation
+    puzzle_generation = PerfectLearner.permutation_puzzle_generation
     heuristic_type = Heuristic.manhattan
     """ If it's a DRL learner config is here ... """
     nb_epochs = 5000

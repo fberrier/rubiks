@@ -101,8 +101,18 @@ class TestNaiveSlidingSolver(TestCase):
         max_count = kw_args.get('max_count', inf)
         vars.pop('self', None)
         vars.pop('max_count', None)
+        random_puzzles = kw_args.get('random_puzzles', False)
+        vars.pop('random_puzzles', None)
         count = 0
-        for sliding_puzzle in SlidingPuzzle.generate_all_puzzles(**vars):
+
+        def get_puzzles():
+            if not random_puzzles:
+                for sliding_puzzle in SlidingPuzzle.generate_all_puzzles(**vars):
+                    yield sliding_puzzle
+            else:
+                while True:
+                    yield SlidingPuzzle.factory(**vars).perfect_shuffle()
+        for sliding_puzzle in get_puzzles():
             count += 1
             logger.log_info('Solving puzzle # ', count)
             solver = Solver.factory(**vars)
@@ -116,19 +126,32 @@ class TestNaiveSlidingSolver(TestCase):
         logger.log_info('count: ', count)
 
     def test_solve_2_2(self):
-        self.solve_all_puzzles(name='test_solve_2_2', n=2)
+        self.solve_all_puzzles(name='test_solve_2_2',
+                               n=2)
 
     def test_solve_2_3(self):
-        self.solve_all_puzzles(name='test_solve_2_3', n=2, m=3)
+        self.solve_all_puzzles(name='test_solve_2_3',
+                               n=2,
+                               m=3)
 
     def test_solve_3_3(self):
-        self.solve_all_puzzles(name='test_solve_3_3', n=3, max_count=10000)
+        self.solve_all_puzzles(name='test_solve_3_3',
+                               n=3,
+                               max_count=5000,
+                               random_puzzles=True)
 
     def test_solve_3_4(self):
-        self.solve_all_puzzles(name='test_solve_3_4', n=3, m=4, max_count=1)
+        self.solve_all_puzzles(name='test_solve_3_4',
+                               n=3,
+                               m=4,
+                               max_count=5000,
+                               random_puzzles=True)
 
     def test_solve_4_4(self):
-        self.solve_all_puzzles(name='test_solve_4_4', n=4, max_count=1)
+        self.solve_all_puzzles(name='test_solve_4_4',
+                               n=4,
+                               max_count=2500,
+                               random_puzzles=True)
 
     def test_naive_sliding_solver_moves_to_right_of(self):
         logger = Loggable(name='test_naive_sliding_solver_moves_to_right_of')

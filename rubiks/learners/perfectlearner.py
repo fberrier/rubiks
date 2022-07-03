@@ -226,7 +226,8 @@ class PerfectLearner(Learner):
         cls = self.__class__
         solver = Solver.factory(**self.get_config())
         assert solver.know_to_be_optimal(), \
-            'This cannot be a PerfectLearner if the solver is not optimal!'
+            'This cannot be a PerfectLearner if the solver is not optimal!'\
+            ' Did you mean to use \'%s\' as heuristic_type?' % self.heuristic_type
         pool = Pool(self.nb_cpus)
         puzzles = []
         self.puzzle_count = 1
@@ -325,11 +326,13 @@ class PerfectLearner(Learner):
             return
         hardest_puzzle = str(data[self.most_difficult_puzzle_tag])
         data = data[self.__class__.data]
-        total_puzzles = len(data)
+        solved_puzzles = len(data)
+        total_puzzles = self.get_goal().possible_puzzles_nb()
         max_cost = max(data.values())
         title = {Puzzle.puzzle_type: self.get_puzzle_type(),
                  'dimension': self.get_puzzle_dimension(),
-                 '# puzzles': number_format(total_puzzles),
+                 '# possible puzzles': number_format(total_puzzles),
+                 '# solved puzzles': number_format(solved_puzzles),
                  'max cost': number_format(max_cost),
                  'hardest puzzle': hardest_puzzle,
                  }

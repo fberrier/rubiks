@@ -3,7 +3,7 @@
 ########################################################################################################################
 from abc import abstractmethod, ABCMeta
 from functools import partial
-from itertools import product
+from itertools import product, cycle
 from math import inf, ceil
 from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
@@ -21,7 +21,7 @@ from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
-from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format
+from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, pformat
 ########################################################################################################################
 
 
@@ -177,6 +177,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                    pct_optimal,
                                    avg_expanded_nodes,
                                    pct_solved]
+    fig_size = 'fig_size'
 
     @classmethod
     def populate_parser(cls, parser):
@@ -250,6 +251,11 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          type=str,
                          default=None,
                          choices=cls.known_action_type)
+        cls.add_argument(parser,
+                         cls.fig_size,
+                         type=int,
+                         nargs='+',
+                         default=[16, 12])
     
     def performance_test(self):
         """
@@ -466,6 +472,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                              error)
 
     def plot_performance(self):
+        cls = self.__class__
         try:
             performance = read_pickle(self.performance_file_name)
         except FileNotFoundError:
@@ -481,25 +488,39 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             performance[Solver.nb_shuffles].replace(inf, shuffle_max)
         pprint(performance)
         y = self.performance_metrics
-        n = int(len(y)/2)
-        fig = plt.figure(self.performance_file_name)
-        n_rows = ceil(len(y) / 2)
-        n_cols = 1 if len(y) == 1 else 2
+        puzzle_type = self.get_puzzle_type()
+        puzzle_dimension = self.get_puzzle_dimension()
+        title = {cls.puzzle_type: puzzle_type,
+                 cls.puzzle_dimension: puzzle_dimension,
+                 cls.performance_file_name: self.performance_file_name}
+        fields_to_add = [cls.nb_samples]
+        for field in fields_to_add:
+            title[field] = self.get_config()[field]
+        fig = plt.figure(self.performance_file_name,
+                         figsize=tuple(self.fig_size))
+        plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+        plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
+        plt.axis('off')
+        title = pformat(title)
+        plt.title(title, fontname='Consolas')
+        n_rows = ceil(len(y) / 3)
+        n_cols = min(3, len(y))
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
+        markers = cycle(['x', '|', '.', 'v', '+'])
+        markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
+        labels_shown = False
         for r, c in product(range(n_rows), range(n_cols)):
-            index = r * 2 + c
+            index = r * 3 + c
             if index >= len(y):
                 continue
             what = y[index]
             bax = brokenaxes(xlims=((0, max_shuffle/2 + 1),
                                     (max_shuffle - 1.5, max_shuffle + 1.5)),
                              subplot_spec=sps[r, c])
-            #bax.set_title('%s vs %s' % (what, Solver.nb_shuffles))
-            if r == 1:
+            if r == n_rows - 1:
                 bax.set_xlabel(Solver.nb_shuffles)
-            bax.set_ylabel(what)
             ticks = bax.get_xticks()
             labels = [['%d' % t for t in ticks[0]],
                       ['\u221e' for _ in ticks[1]]]
@@ -508,9 +529,22 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 bax.scatter(x=Solver.nb_shuffles,
                             y=what,
                             data=grp,
-                            label=sn)
+                            label=sn,
+                            marker=markers[sn])
             (handles, labels) = bax.get_legend_handles_labels()[0]
-        fig.legend(handles, labels, loc='upper center')
+            if what in [cls.avg_expanded_nodes,
+                        cls.avg_run_time]:
+                bax.set_yscale('log')
+                bax.set_ylabel(what + ' (log scale)')
+            else:
+                bax.set_ylabel(what)
+            if what in [cls.pct_solved] and not labels_shown:
+                """ Ideally we can show the labels on one of these so we don't have to
+                display at top where it might overlap with the title. """
+                bax.legend(loc='best')
+                labels_shown = True
+        if not labels_shown:
+            fig.legend(handles, labels, loc='upper center')
         plt.show()
 
 ########################################################################################################################

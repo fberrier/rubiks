@@ -8,6 +8,7 @@ from pandas import read_pickle
 from rubiks.core.loggable import Loggable
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.deeplearning.deeplearning import DeepLearning
+from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 ########################################################################################################################
 
 
@@ -32,8 +33,12 @@ class DeepLearningHeuristic(Loggable, Heuristic):
         Loggable.__init__(self, **kw_args)
         Heuristic.__init__(self, **kw_args)
         try:
-            self.deep_learning = DeepLearning.restore(read_pickle(self.model_file_name)[0])
-        except FileNotFoundError as error:
+            if not self.model_file_name:
+                self.model_file_name = 'C:/no_file_name_provided.pkl'
+                raise ValueError('No model_file_name provided')
+            self.deep_learning = DeepLearning.restore(read_pickle(self.model_file_name)
+                                                      [DeepReinforcementLearner.network_data_tag])
+        except (ValueError, FileNotFoundError) as error:
             error_msg = 'Could not restore DeepLearning model from \'%s\': ' % self.model_file_name
             self.log_warning(error_msg, error)
             self.deep_learning = None

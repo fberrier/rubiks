@@ -3,6 +3,7 @@
 ########################################################################################################################
 from enum import Enum
 from functools import partial
+from itertools import cycle
 from matplotlib import pyplot as plt
 from math import inf
 from multiprocessing import Pool
@@ -15,7 +16,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.learner import Learner
-from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, touch
+from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle
 ########################################################################################################################
 
 
@@ -24,6 +25,22 @@ class DeepReinforcementLearner(Learner):
     @todo FB: maybe add ability to restore from a previous model and continue improving on it
     """
 
+    """ tags """
+    epoch = 'epoch'
+    loss = 'loss'
+    loss_over_max_target = 'loss_over_max_target'
+    latency = 'latency'
+    min_target = 'min_target'
+    max_target = 'max_target'
+    max_max_target = 'max_max_target'
+    target_network_count = 'target_network_count'
+    network_name = 'network_name'
+    puzzle_type = 'puzzle_type'
+    puzzle_dimension = 'puzzle_dimension'
+    decision = 'decision'
+    cuda = 'cuda'
+
+    """ config """
     nb_epochs = 'nb_epochs'
     nb_shuffles = 'nb_shuffles'
     min_no_loop = 'min_no_loop'
@@ -48,6 +65,12 @@ class DeepReinforcementLearner(Learner):
     nb_cpus = 'nb_cpus'
     default_nb_cpus = 1
     verbose = 'verbose'
+    plot_metrics = 'plot_metrics'
+    default_plot_metrics = [learning_rate,
+                            target_network_count,
+                            max_target,
+                            loss,
+                            loss_over_max_target]
 
     @classmethod
     def populate_parser_impl(cls, parser):
@@ -109,6 +132,11 @@ class DeepReinforcementLearner(Learner):
                          field=cls.gamma_scheduler,
                          type=float,
                          default=0.99)
+        cls.add_argument(parser,
+                         field=cls.plot_metrics,
+                         type=str,
+                         nargs='+',
+                         default=cls.default_plot_metrics)
 
     def __init__(self, **kw_args):
         Learner.__init__(self, **kw_args)
@@ -145,19 +173,6 @@ class DeepReinforcementLearner(Learner):
         self.pool_size = self.nb_cpus
         if not self.min_no_loop:
             self.min_no_loop = self.nb_shuffles
-
-    epoch = 'epoch'
-    loss = 'loss'
-    latency = 'latency'
-    min_target = 'min_target'
-    max_target = 'max_target'
-    max_max_target = 'max_max_target'
-    target_network_count = 'target_network_count'
-    network_name = 'network_name'
-    puzzle_type = 'puzzle_type'
-    puzzle_dimension = 'puzzle_dimension'
-    decision = 'decision'
-    cuda = 'cuda'
 
     class Decision(Enum):
         TBD = 'TBD'
@@ -325,7 +340,6 @@ class DeepReinforcementLearner(Learner):
                                            cls.nb_shuffles: self.nb_shuffles,
                                            cls.nb_sequences: self.nb_sequences,
                                            cls.cuda: self.use_cuda})
-                self.log_info(convergence_data)
                 convergence_data = convergence_data.to_frame()
                 convergence_data = convergence_data.transpose()
                 self.convergence_data = concat([self.convergence_data, convergence_data],
@@ -357,17 +371,23 @@ class DeepReinforcementLearner(Learner):
         if self.learning_file_name:
             self.save()
 
+    network_data_tag = 'network_data'
+    config_tag = 'config'
+    convergence_data_tag = 'convergence_data'
+
     def save(self):
-        touch(self.learning_file_name)
-        to_pickle((self.current_network.get_data(),
-                   self.convergence_data),
+        to_pickle({self.network_data_tag: self.current_network.get_data(),
+                   self.config_tag: self.get_config(),
+                   self.convergence_data_tag: self.convergence_data},
                   self.learning_file_name)
         self.log_info('Saved learner state & convergence data in ',
                       self.learning_file_name)
 
     def plot_learning(self):
         cls = self.__class__
-        learning_data = read_pickle(self.learning_file_name)[1]
+        data = read_pickle(self.learning_file_name)
+        config = data[self.config_tag]
+        learning_data = data[self.convergence_data_tag]
         drl = DeepReinforcementLearner  # alias
         puzzle_type = self.get_puzzle_type()
         puzzle_dimension = self.get_puzzle_dimension()
@@ -377,22 +397,30 @@ class DeepReinforcementLearner(Learner):
         assert 1 == len(set(data[drl.nb_sequences]))
         assert 1 == len(set(data[drl.network_name]))
         network_name = data[drl.network_name].iloc[0]
-        title = {cls.network_name: network_name,
-                 cls.puzzle_type: puzzle_type,
+        title = {cls.puzzle_type: puzzle_type,
                  cls.puzzle_dimension: puzzle_dimension,
-                 }
+                 cls.network_name: network_name}
+        fields_to_add = [cls.nb_sequences,
+                         cls.nb_shuffles,
+                         cls.learning_rate]
+        if config[cls.scheduler] != cls.no_scheduler:
+            fields_to_add.extend([cls.scheduler, cls.gamma_scheduler])
+        for field in fields_to_add:
+            title[field] = config[field]
         title = pformat(title)
         title = cls.__name__ + '\n' + title
         fig = plt.figure(self.learning_file_name, figsize=(20, 10))
+        plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+        plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
+        plt.axis('off')
         plt.title(title, fontname='Consolas')
         x = drl.epoch
-        gs = fig.add_gridspec(5, 1)
-        ax1 = fig.add_subplot(gs[0])
-        ax2 = fig.add_subplot(gs[1])
-        ax3 = fig.add_subplot(gs[2])
-        ax4 = fig.add_subplot(gs[3])
-        ax5 = fig.add_subplot(gs[4])
-        loss_over_max_target = 'loss_over_max_target'
+        gs = fig.add_gridspec(len(self.plot_metrics), 1)
+        axes = list()
+        for a in range(len(self.plot_metrics)):
+            axes.append(fig.add_subplot(gs[a]))
+        colors = ['b', 'r', 'g', 'm', 'y']
+        colors = cycle(colors)
 
         def add_plot(ax, y, c):
             ax.scatter(x,
@@ -403,14 +431,11 @@ class DeepReinforcementLearner(Learner):
                        marker='.')
             ax.set_xlabel(x)
             ax.set_ylabel(y)
-            if y in [drl.loss, loss_over_max_target]:
+            if y in [drl.loss, drl.loss_over_max_target]:
                 ax.set_yscale('log')
-        data[loss_over_max_target] = data[drl.loss] / data[drl.max_target]
-        add_plot(ax1, drl.target_network_count, 'b')
-        add_plot(ax2, drl.max_target, 'r')
-        add_plot(ax3, drl.loss, 'g')
-        add_plot(ax4, loss_over_max_target, 'm')
-        add_plot(ax5, drl.learning_rate, 'y')
+        data[drl.loss_over_max_target] = data[drl.loss] / data[drl.max_target]
+        for a in range(len(self.plot_metrics)):
+            add_plot(axes[a], self.plot_metrics[a], next(colors))
         plt.tight_layout()
         plt.show()
 

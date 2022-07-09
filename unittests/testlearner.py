@@ -7,6 +7,7 @@ from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.learners.learner import Learner
 from rubiks.learners.perfectlearner import PerfectLearner
+from rubiks.learners.deeplearner import DeepLearner
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 ########################################################################################################################
 
@@ -54,7 +55,7 @@ class TestLearner(TestCase):
         self.assertEqual(learner.cpu_multiplier, PerfectLearner.default_cpu_multiplier)
         self.assertEqual(learner.get_puzzle_dimension(), (4, 4))
 
-    def test_deep_learning_direct_construct(self):
+    def test_deep_reinforcement_learning_direct_construct(self):
         learner = DeepReinforcementLearner(puzzle_type=Puzzle.sliding_puzzle,
                                            n=4,
                                            m=7,
@@ -69,13 +70,21 @@ class TestLearner(TestCase):
         self.assertEqual(learner.get_puzzle_dimension(), (4, 7))
 
     def test_deep_learning_from_factory(self):
+        learner = Learner.factory(learner_type=Learner.deep_learner,
+                                  puzzle_type=Puzzle.sliding_puzzle,
+                                  n=7,
+                                  m=8,
+                                  network_type=DeepLearning.fully_connected_net)
+        self.assertEqual(learner.nb_cpus, DeepLearner.default_nb_cpus)
+        self.assertEqual(learner.get_puzzle_dimension(), (7, 8))
+
+    def test_deep_reinforcement_learning_from_factory(self):
         learner = Learner.factory(learner_type=Learner.deep_reinforcement_learner,
                                   puzzle_type=Puzzle.sliding_puzzle,
                                   n=4,
                                   m=5,
                                   network_type=DeepLearning.fully_connected_net)
         self.assertEqual(learner.nb_cpus, DeepReinforcementLearner.default_nb_cpus)
-        self.assertEqual(learner.get_puzzle_dimension(), (4, 5))
         self.assertEqual(learner.get_puzzle_dimension(), (4, 5))
 
 ########################################################################################################################

@@ -27,6 +27,7 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
 
     network_type = 'network_type'
     fully_connected_net = 'fully_connected_net'
+    convolutional_net = 'convolutional_net'
     state_dict_tag = 'state_dict'
 
     @abstractmethod
@@ -47,7 +48,8 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          action=cls.store_true)
         cls.add_argument(parser,
                          field=cls.network_type,
-                         choices=[cls.fully_connected_net])
+                         choices=[cls.fully_connected_net,
+                                  cls.convolutional_net])
 
     @classmethod
     def factory_key_name(cls):
@@ -61,7 +63,10 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
     @classmethod
     def widget_types(cls):
         from rubiks.deeplearning.fullyconnected import FullyConnected
-        return {cls.fully_connected_net: FullyConnected}
+        from rubiks.deeplearning.convolutional import Convolutional
+        return {cls.fully_connected_net: FullyConnected,
+                cls.convolutional_net: Convolutional,
+                }
 
     def get_data(self):
         return (self.get_config(),

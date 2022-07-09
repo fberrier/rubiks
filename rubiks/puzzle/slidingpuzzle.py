@@ -221,11 +221,13 @@ class SlidingPuzzle(Puzzle):
     def from_tensor(self):
         raise NotImplementedError('Please implement this ... need to de-one_hot then call init')
     
-    def to_tensor(self, one_hot_encoding=False):
+    def to_tensor(self, one_hot_encoding=False, flatten=True):
         tiles = self.tiles
         if one_hot_encoding:
             tiles = one_hot(tiles)
-        return tiles.flatten(1)
+        if flatten:
+            tiles = tiles.flatten(1)
+        return tiles
 
     def perfect_shuffle(self):
         """ We set up the tiles randomly, and then just swap the first two if the signature is not right """
@@ -285,6 +287,11 @@ class SlidingPuzzle(Puzzle):
             return False
         flat_ordered = flat.sort().values.tolist()[1:]
         return flat_ordered == flat.tolist()[:-1]
+
+    @classmethod
+    def hardest(cls, dimension):
+        return {(3, 3): [[8, 6, 7], [2, 5, 4], [3, 0, 1]],
+                }[dimension]
     
 ########################################################################################################################
 

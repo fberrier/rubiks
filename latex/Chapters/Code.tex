@@ -27,7 +27,7 @@ The code is organised in several sub modules and makes use of factories in plent
 Let me describe what each submodule does:
 
 \subsection{rubiks.core}
-This submodule contains bases classes that make the code base easier to use, debug, and extend. It contains three base classes:
+This submodule contains base classes that make the code base easier to use, debug, and extend. It contains the following:
 \begin{itemize}
 \item Loggable: a wrapper around Python's logger which automatically picks up classes' names at init and format things (dict, series and dataframes in particular) in a nicer way.
 \item Parsable: a wrapper around ArgumentParser, which allows to construct objects in the project from command line, to define dependencies between object's configurations and to help a bit with typing of configs. The end result is that you can pretty much pass **kw\_args everywhere and it just works.

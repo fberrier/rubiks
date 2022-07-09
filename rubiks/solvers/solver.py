@@ -8,7 +8,7 @@ from math import inf, ceil
 from matplotlib.gridspec import GridSpec
 from matplotlib import pyplot as plt
 from multiprocessing import Pool
-from numpy import isnan, isinf
+from numpy import isnan, isinf, median
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
 ########################################################################################################################
@@ -117,10 +117,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     optimal_solver.log_error('Could not check optimality as timed out')
         return solution
 
-    def __job__(self, nb_shuffles, index=-1):
+    def __job__(self, nb_shuffles, index=-1) -> Solution:
         """ A single puzzle to solve """
         start = snap()
-        timed_out = False
         try:
             if self.shuffles_data and index >= 0:
                 puzzle = self.shuffles_data[nb_shuffles][index][0]
@@ -129,17 +128,18 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                                             min_no_loop=nb_shuffles)
             solution = self.solve_impl(puzzle, **self.get_config())
             run_time = snap() - start
-            assert isinstance(solution.cost, int)
+            solution.set_run_time(run_time)
+            assert isinf(solution.cost) or isinstance(solution.cost, int)
             assert isinstance(solution.path, list)
             assert all(isinstance(move, self.get_goal().get_move_type()) for move in solution.path)
             assert isnan(solution.expanded_nodes) or isinstance(solution.expanded_nodes, int)
         except Exception as error:
             if error is not RecursionError:
                 self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
-            run_time = float(self.time_out)
             solution = Solution.failure(puzzle)
-            timed_out = True
-        return solution.cost, solution.path, solution.expanded_nodes, run_time, timed_out, index
+            solution.set_run_time(self.time_out)
+        solution.set_additional_info(index=index)
+        return solution
 
     nb_shuffles = 'nb_shuffles'
     min_nb_shuffles = 'min_nb_shuffles'
@@ -152,11 +152,14 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     performance_file_name = 'performance_file_name'
     shuffles_file_name = 'shuffles_file_name'
     avg_cost = 'avg_cost'
+    median_cost = 'median_cost'
     max_cost = 'max_cost'
     avg_expanded_nodes = 'avg_expanded_nodes'
+    median_expanded_nodes = 'median_expanded_nodes'
     max_expanded_nodes = 'max_expanded_nodes'
     nb_timeout = 'nb_timeout'
     avg_run_time = 'avg_run_time (ms)'
+    median_run_time = 'median_run_time (ms)'
     max_run_time = 'max_run_time (ms)'
     solver_name = 'solver_name'
     pct_solved = 'solved (%)'
@@ -176,9 +179,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          do_cleanup_shuffles_file,
                          ]
     performance_metrics = 'performance_metrics'
-    default_performance_metrics = [avg_run_time,
+    default_performance_metrics = [median_run_time,
                                    pct_optimal,
-                                   avg_expanded_nodes,
+                                   median_expanded_nodes,
                                    pct_solved]
     fig_size = 'fig_size'
 
@@ -280,11 +283,14 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                cls.nb_shuffles: [0],
                cls.nb_samples: [1],
                cls.avg_cost: [0],
+               cls.median_cost: [0],
                cls.max_cost: [0],
                cls.avg_expanded_nodes: [0],
+               cls.median_expanded_nodes: [0],
                cls.max_expanded_nodes: [0],
                cls.nb_timeout: [0],
                cls.avg_run_time: [0],
+               cls.median_run_time: [0],
                cls.max_run_time: [0],
                cls.pct_solved: [100],
                cls.pct_optimal: [100]}
@@ -353,17 +359,28 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             consecutive_timeout = 0
             sample = 0
             nb_not_optimal = 0
-            for (cost, moves, expanded_nodes, run_time, timed_out, index) in results:
-                assert cost < 0 or isinf(cost) or cost == len(moves), 'WTF?'
+            cost_list = list()
+            expanded_nodes_list = list()
+            run_time_list = list()
+            for solution in results:
+                cost = solution.cost
+                path = solution.path
+                expanded_nodes = solution.expanded_nodes
+                run_time = solution.run_time
+                timed_out = solution.time_out
+                index = solution.additional_info.get('index')
+                assert cost < 0 or isinf(cost) or cost == len(path), 'WTF?'
                 if timed_out:
                     consecutive_timeout += 1
                     nb_timeout += 1
-                    self.log_debug('not optimal (timeout)')
                 else:
                     if self.know_to_be_optimal():
                         if self.shuffles_data:
                             stored_cost = self.shuffles_data[nb_shuffles][index][1]
-                            assert isinf(stored_cost) or stored_cost == cost
+                            assert isinf(stored_cost) or stored_cost == cost, \
+                                'Optimal solver found cost = %d vs stored cost = %d for puzzle %s' % (cost,
+                                                                                                      stored_cost,
+                                                                                                      solution.puzzle)
                             self.shuffles_data[nb_shuffles][index] = (self.shuffles_data[nb_shuffles][index][0],
                                                                       cost)
                         optimal_cost = cost
@@ -381,35 +398,45 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     else:
                         self.log_debug('optimal')
                 sample += 1
-                total_cost += cost
-                max_cost = max(max_cost, cost)
+                if not isinf(cost) and not isnan(cost):
+                    total_cost += cost
+                    max_cost = max(max_cost, cost)
+                    cost_list.append(cost)
                 total_expanded_nodes += expanded_nodes
+                expanded_nodes_list.append(expanded_nodes)
                 max_expanded_nodes = max(max_expanded_nodes, expanded_nodes)
                 total_run_time += run_time
+                run_time_list.append(run_time)
                 max_run_time = max(max_run_time, run_time)
                 if self.max_consecutive_timeout and consecutive_timeout >= self.max_consecutive_timeout:
                     self.log_debug('break out for nb_shuffles=', nb_shuffles,
                                    'as timed-out/error-ed %d times' % self.max_consecutive_timeout)
                     early_breakout = True
                     break
-            div = self.nb_samples - nb_timeout
-            if 0 == div:
-                div = float('nan')
-            avg_cost = round(total_cost / div, 1)
+            nb_solved = sample - nb_timeout
+            if 0 == nb_solved:
+                nb_solved = float('nan')
+            avg_cost = round(total_cost / nb_solved, 1)
+            median_cost = median(cost_list)
             max_cost = max(max_cost, avg_cost)
-            avg_expanded_nodes = round(total_expanded_nodes / div, 0)
+            avg_expanded_nodes = round(total_expanded_nodes / sample, 0)
+            median_expanded_nodes = median(expanded_nodes_list)
             max_expanded_nodes = max(max_expanded_nodes, avg_expanded_nodes)
-            avg_run_time = round(total_run_time / div, 3)
+            avg_run_time = round(total_run_time / sample, 3)
+            median_run_time = median(run_time_list)
             max_run_time = max(max_run_time, avg_run_time)
             res[cls.nb_samples] = sample
             res[cls.avg_cost] = avg_cost
+            res[cls.median_cost] = median_cost
             res[cls.max_cost] = max_cost
             res[cls.avg_expanded_nodes] = avg_expanded_nodes
+            res[cls.median_expanded_nodes] = median_expanded_nodes
             res[cls.max_expanded_nodes] = max_expanded_nodes
             res[cls.nb_timeout] = nb_timeout
             res[cls.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
+            res[cls.median_run_time] = int(median_run_time * 1000)
             res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
-            res[cls.pct_solved] = int(100 * (sample - nb_timeout) / self.nb_samples)
+            res[cls.pct_solved] = int(100 * nb_solved / self.nb_samples)
             res[cls.pct_optimal] = int(100 * (sample - nb_not_optimal) / self.nb_samples)
             performance = concat([performance,
                                   Series(res).to_frame().transpose()],
@@ -514,7 +541,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
-        markers = cycle(['x', '|', '.', 'v', '+'])
+        markers = cycle(['x', '|', '.', 'v', '+', '1', '$...$'])
         markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
         labels_shown = False
         for r, c in product(range(n_rows), range(n_cols)):
@@ -539,7 +566,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                             marker=markers[sn])
             (handles, labels) = bax.get_legend_handles_labels()[0]
             if what in [cls.avg_expanded_nodes,
-                        cls.avg_run_time]:
+                        cls.avg_run_time,
+                        cls.median_expanded_nodes,
+                        cls.median_run_time,
+                        ]:
                 bax.set_yscale('log')
                 bax.set_ylabel(what + ' (log scale)')
             else:
@@ -547,7 +577,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if what in [cls.pct_solved] and not labels_shown:
                 """ Ideally we can show the labels on one of these so we don't have to
                 display at top where it might overlap with the title. """
-                bax.legend(loc='center')
+                bax.legend(loc='best')
                 labels_shown = True
         if not labels_shown:
             fig.legend(handles, labels, loc='upper center')

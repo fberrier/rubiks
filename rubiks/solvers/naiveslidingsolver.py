@@ -22,6 +22,7 @@ class NaiveSlidingSolver(Solver):
                puzzle,
                max_n=1,
                max_m=1) -> Solution:
+        # @todo add time_out functionality in this solver too
         assert isinstance(puzzle, SlidingPuzzle), \
             '%s can only solve %s' % (self.get_name(), SlidingPuzzle.__name__)
         self.log_debug('We need to solve ', puzzle)

@@ -10,6 +10,7 @@ from rubiks.puzzle.puzzle import Puzzle
 from rubiks.solvers.solver import Solver
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.perfectlearner import PerfectLearner
+from rubiks.learners.deeplearner import DeepLearner
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 from rubiks.utils.utils import get_model_file_name, remove_file
 ########################################################################################################################
@@ -127,13 +128,13 @@ class TestSolver(TestCase):
         remove_file(model_file_name)
 
     def test_deep_reinforcement_learning_solver_with_scheduler(self):
-        logger = Loggable(name='test_deep_reinforcement_learning_solver')
+        logger = Loggable(name='test_deep_reinforcement_learning_solver_with_scheduler')
         puzzle_type = Puzzle.sliding_puzzle
         dimension = (2, 2)
         # we learn first
         model_file_name = get_model_file_name(puzzle_type=puzzle_type,
                                               dimension=dimension,
-                                              model_name='test_deep_reinforcement_learning_solver')
+                                              model_name='test_deep_reinforcement_learning_solver_with_scheduler')
         remove_file(model_file_name)
         learner = DeepReinforcementLearner(puzzle_type=Puzzle.sliding_puzzle,
                                            learning_file_name=model_file_name,
@@ -166,6 +167,46 @@ class TestSolver(TestCase):
         puzzle = Puzzle.factory(**solver.get_config()).apply_random_moves(inf)
         logger.log_info(puzzle)
         solution = solver.solve(puzzle=puzzle)
+        self.assertTrue(solution.success)
+        logger.log_info(solution)
+        remove_file(model_file_name)
+
+    def test_deep_learning_solver_with_scheduler(self):
+        logger = Loggable(name='test_deep_learning_solver_with_scheduler')
+        puzzle_type = Puzzle.sliding_puzzle
+        dimension = (2, 2)
+        # we learn first
+        model_file_name = get_model_file_name(puzzle_type=puzzle_type,
+                                              dimension=dimension,
+                                              model_name='test_deep_learning_solver_with_scheduler')
+        remove_file(model_file_name)
+        learner = DeepLearner(puzzle_type=Puzzle.sliding_puzzle,
+                              learning_file_name=model_file_name,
+                              n=dimension[0],
+                              m=dimension[1],
+                              nb_cpus=1,
+                              network_type=DeepLearning.fully_connected_net,
+                              layers_description=(16, 8),
+                              nb_epochs=1000,
+                              one_hot_encoding=True,
+                              nb_shuffles=12,
+                              learning_rate=1e-2,
+                              scheduler=DeepLearner.exponential_scheduler,
+                              gamma_scheduler=0.9999,
+                              nb_sequences=1)
+        logger.log_info(learner.get_config())
+        learner.learn()
+        # Then we use this learning to solve
+        solver = Solver.factory(solver_type=Solver.astar,
+                                heuristic_type=Heuristic.deep_learning,
+                                model_file_name=model_file_name,
+                                puzzle_type=puzzle_type,
+                                n=dimension[0],
+                                m=dimension[1])
+        puzzle = Puzzle.factory(**solver.get_config()).apply_random_moves(inf)
+        logger.log_info(puzzle)
+        solution = solver.solve(puzzle=puzzle)
+        self.assertTrue(solution.success)
         logger.log_info(solution)
         remove_file(model_file_name)
 

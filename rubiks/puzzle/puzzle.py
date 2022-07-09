@@ -212,7 +212,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
                                                   min_no_loop=min_no_loop))
 
     @abstractmethod
-    def to_tensor(self, one_hot_encoding=False) -> Tensor:
+    def to_tensor(self, one_hot_encoding=False, flatten=True) -> Tensor:
         """ return a torch.Tensor to represent internal state """
         return
 

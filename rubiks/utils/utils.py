@@ -48,15 +48,37 @@ def snake_case(s):
 ########################################################################################################################
 
 
+class Extension:
+    pkl = 'pkl'
+
+########################################################################################################################
+
+
+class PossibleFileNames:
+    models = 'models'
+    perf = 'perf'
+    shuffles = 'shuffles'
+    training = 'training'
+    manhattan = 'manhattan'
+    all = [models,
+           perf,
+           shuffles,
+           training,
+           manhattan,
+           ]
+
+########################################################################################################################
+
+
 def get_file_name(puzzle_type,
                   dimension,
                   file_type,
-                  extension='pkl',
+                  extension=Extension.pkl,
                   name=None):
     data_folder = getenv('RUBIKSDATA')
     if not data_folder:
         data_folder = str(Path.home()) + '/rubiks/data'
-    possible_file_types = ['models', 'perf', 'shuffles', 'training']
+    possible_file_types = PossibleFileNames.all
     assert file_type in possible_file_types, 'Unknown file_type [%s]. Choose from %s' % (file_type, possible_file_types)
     assert name, 'Empty name'
     if isinstance(puzzle_type, type):
@@ -74,12 +96,12 @@ def get_file_name(puzzle_type,
 
 def get_performance_file_name(puzzle_type,
                               dimension,
-                              extension='pkl'):
+                              extension=Extension.pkl):
     return get_file_name(puzzle_type=puzzle_type,
                          dimension=dimension,
-                         file_type='perf',
+                         file_type=PossibleFileNames.perf,
                          extension=extension,
-                         name='perf')
+                         name=PossibleFileNames.perf)
 
 ########################################################################################################################
 
@@ -87,10 +109,10 @@ def get_performance_file_name(puzzle_type,
 def get_training_file_name(puzzle_type,
                            dimension,
                            model_name,
-                           extension='pkl'):
+                           extension=Extension.pkl):
     return get_file_name(puzzle_type=puzzle_type,
                          dimension=dimension,
-                         file_type='training',
+                         file_type=PossibleFileNames.training,
                          extension=extension,
                          name=model_name)
 
@@ -100,10 +122,10 @@ def get_training_file_name(puzzle_type,
 def get_model_file_name(puzzle_type,
                         dimension,
                         model_name,
-                        extension='pkl'):
+                        extension=Extension.pkl):
     return get_file_name(puzzle_type=puzzle_type,
                          dimension=dimension,
-                         file_type='models',
+                         file_type=PossibleFileNames.models,
                          extension=extension,
                          name=model_name)
 
@@ -112,12 +134,12 @@ def get_model_file_name(puzzle_type,
 
 def get_shuffles_file_name(puzzle_type,
                            dimension,
-                           extension='pkl'):
+                           extension=Extension.pkl):
     return get_file_name(puzzle_type=puzzle_type,
                          dimension=dimension,
-                         file_type='shuffles',
+                         file_type=PossibleFileNames.shuffles,
                          extension=extension,
-                         name='shuffles')
+                         name=PossibleFileNames.shuffles)
 
 ########################################################################################################################
 

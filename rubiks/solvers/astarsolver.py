@@ -27,7 +27,14 @@ class AStarSolver(Solver):
 
     def solve_impl(self, puzzle, **kw_args):
         strat = AStar(initial_state=puzzle, **kw_args)
-        strat.solve()
+        try:
+            strat.solve()
+        except TimeoutError:
+            solution = Solution.failure(puzzle,
+                                        time_out=True,
+                                        failure_reson='time out')
+            solution.expanded_nodes = strat.get_node_counts()
+            return solution
         return Solution(strat.get_path_cost(),
                         strat.get_path(),
                         strat.get_node_counts(),

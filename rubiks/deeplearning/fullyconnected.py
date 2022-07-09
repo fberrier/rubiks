@@ -3,7 +3,7 @@
 ########################################################################################################################
 from numpy import prod
 from torch import stack
-from torch.nn import Sequential, ReLU, BatchNorm1d, Linear
+from torch.nn import Sequential, ReLU, BatchNorm1d, Linear, Dropout
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.deeplearning.deeplearning import DeepLearning
@@ -18,10 +18,12 @@ class FullyConnected(DeepLearning):
         name = [snake_case(self.__class__.__name__)]
         layers = ['%d' % l for l in self.layers_description]
         ohe = ['ohe'] if self.one_hot_encoding else []
-        return '_'.join(name + layers + ohe)
+        drop_out = ['do%d' % int(100*self.drop_out)] if 0.0 < self.drop_out < 1.0 else []
+        return '_'.join(name + layers + ohe + drop_out)
 
     one_hot_encoding = 'one_hot_encoding'
     layers_description = 'layers_description'
+    drop_out = 'drop_out'
     default_layers = (1000, 500, 100)
 
     @classmethod
@@ -35,6 +37,10 @@ class FullyConnected(DeepLearning):
                          type=int,
                          nargs='+',
                          default=cls.default_layers)
+        cls.add_argument(parser,
+                         field=cls.drop_out,
+                         type=float,
+                         default=0.0)
 
     def __init__(self, **kw_args):
         DeepLearning.__init__(self, **kw_args)
@@ -47,11 +53,13 @@ class FullyConnected(DeepLearning):
         if layers[0] != in_channels:
             layers = (in_channels, *tuple(layers))
         self.layers_str = str(layers)
-        modules = []
+        modules = list()
         for x, y in zip(layers[:-1], layers[1:]):
             modules.append(Linear(x, y))
             modules.append(ReLU())
-        modules = modules[:-1]
+            if self.drop_out and 0 < self.drop_out < 1.0:
+                modules.append(Dropout(self.drop_out))
+        modules = modules[:-2 if self.drop_out else -1]
         self.layers = Sequential(*modules)
 
     def get_name(self):
@@ -59,6 +67,8 @@ class FullyConnected(DeepLearning):
         name += '[%s]' % self.layers_str
         if self.one_hot_encoding:
             name += '[one_hot_encoding]'
+        if 0.0 < self.drop_out < 1.0:
+            name += '[drop_out=%s]' % self.drop_out
         return name
 
     def massage_puzzles(self, puzzles):

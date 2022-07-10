@@ -100,7 +100,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
             list of puzzles
         """
         goal = cls(**kw_args)
-        training_data = []
+        training_data = list()
         for _ in range(nb_sequences):
             moves = goal.random_moves(nb_shuffles, min_no_loop=min_no_loop)
             puzzles = goal.get_puzzle_sequence(moves)
@@ -215,6 +215,10 @@ class Puzzle(Factory, metaclass=ABCMeta):
     def to_tensor(self, one_hot_encoding=False, flatten=True) -> Tensor:
         """ return a torch.Tensor to represent internal state """
         return
+
+    @classmethod
+    def optimal_solver_config(cls) -> dict:
+        return dict()
 
 ########################################################################################################################
 

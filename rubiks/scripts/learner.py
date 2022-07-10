@@ -29,12 +29,12 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.perfect_learner
+    learner_type = Learner.deep_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics
     """ If it's a perfect learner config here """
-    time_out = 60
-    nb_cpus = 12
+    time_out = 1200
+    nb_cpus = 1
     cpu_multiplier = 10
     max_puzzles = nb_cpus * cpu_multiplier * 100
     regular_save = nb_cpus * cpu_multiplier * 10
@@ -55,9 +55,9 @@ if '__main__' == __name__:
     plus = True
     """ If it's a DRL learner config is here ... """
     nb_epochs = 10000
-    nb_sequences = 50
-    nb_shuffles = 50
-    training_data_every_epoch = True
+    nb_sequences = 100
+    nb_shuffles = 45
+    training_data_every_epoch = False
     cap_target_at_network_count = True
     update_target_network_frequency = 125
     update_target_network_threshold = 5e-3
@@ -66,7 +66,15 @@ if '__main__' == __name__:
     max_target_uptick = 0.01
     learning_rate = 1e-3
     scheduler = DeepReinforcementLearner.gamma_scheduler
-    gamma_scheduler = 0.99
+    gamma_scheduler = 0.9999
+    """ DL learner """
+    save_at_each_epoch = False
+    threshold = 1e-3
+    training_data_freq = 250
+    high_target = nb_shuffles + 1
+    training_data_from_data_base = True
+    nb_shuffles_min = 25
+    nb_shuffles_max = 45
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
@@ -77,7 +85,8 @@ if '__main__' == __name__:
         learning_file_name = get_model_file_name(puzzle_type=puzzle_type,
                                                  dimension=dimension,
                                                  model_name=PerfectLearner.perfect)
-    elif learner_type == Learner.deep_reinforcement_learner:
+    elif learner_type in [Learner.deep_reinforcement_learner,
+                          Learner.deep_learner]:
         learning_file_name = Learner.factory(**globals()).get_model_name()
     """ And we fire the action """
     Learner.factory(**globals()).action()

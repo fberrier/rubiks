@@ -515,7 +515,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         self.log_info(performance)
         assert 1 == len(set(performance.puzzle_type))
         assert 1 == len(set(performance.puzzle_dimension))
-        assert inf in performance[Solver.nb_shuffles].values, 'Fix code so it uses normal axes if not inf in there'
+        assert inf in performance[Solver.nb_shuffles].values, \
+            'Fix code so it uses normal axes if not inf in there'
         shuffle_max = performance[Solver.nb_shuffles].replace(inf, -1).max() * 2
         performance.loc[:, Solver.nb_shuffles] = \
             performance[Solver.nb_shuffles].replace(inf, shuffle_max)

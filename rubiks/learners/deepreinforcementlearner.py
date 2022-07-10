@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.learner import Learner
-from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, get_model_file_name
+from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, get_model_file_name, snake_case, billion
 ########################################################################################################################
 
 
@@ -158,21 +158,26 @@ class DeepReinforcementLearner(Learner):
                          default=False,
                          action=cls.store_true)
 
+    def more_model_name(self):
+        return list()
+
     def get_model_name(self):
-        drl_details = '_'.join(['drl',
-                                self.optimiser,
-                                self.scheduler,
-                                '%dseq' % self.nb_sequences,
-                                '%dshf' % self.nb_shuffles,
-                                '%depc' % self.nb_epochs,
-                                'tng_' + ('epoch' if self.training_data_every_epoch else 'ntk_updt'),
-                                ])
-        if self.cap_target_at_network_count:
-            drl_details += '_captgt'
-        network_details = self.target_network.get_model_details()
+        details = '_'.join([snake_case(self.__class__.__name__),
+                            self.optimiser,
+                            self.scheduler,
+                            '%dgamma' % int(self.gamma_scheduler * billion),
+                            '%dseq' % int(self.nb_sequences),
+                            '%dshf' % int(self.nb_shuffles),
+                            '%depc' % int(self.nb_epochs),
+                            'tng_' + ('epoch' if self.training_data_every_epoch else 'ntk_updt'),
+                            *self.more_model_name(),
+                            ])
+        if hasattr(self, 'cap_target_at_network_count') and self.cap_target_at_network_count:
+            details += '_captgt'
+        network_details = self.current_network.get_model_details()
         return get_model_file_name(self.get_puzzle_type(),
                                    self.get_puzzle_dimension(),
-                                   model_name=drl_details + '_' + network_details)
+                                   model_name=details + '_' + network_details)
 
     class Decision(Enum):
         TBD = 'TBD'
@@ -189,8 +194,23 @@ class DeepReinforcementLearner(Learner):
     latency_loss_tag = 'loss'
     latency_back_prop_tag = 'back prop'
 
+    def recover_latency(self, latency_data=None):
+        cls = self.__class__
+        self.epoch_latency = latency_data[cls.latency_epoch_tag] if latency_data is not None else 0
+        self.training_data_latency = latency_data[cls.latency_training_data_tag] if latency_data is not None else 0
+        self.target_data_latency = latency_data[cls.latency_target_data_tag] if latency_data is not None else 0
+        self.evaluate_latency = latency_data[cls.latency_evaluate_tag] if latency_data is not None else 0
+        self.loss_latency = latency_data[cls.latency_loss_tag] if latency_data is not None else 0
+        self.back_prop_latency = latency_data[cls.latency_back_prop_tag] if latency_data is not None else 0
+
     def __init__(self, **kw_args):
         Learner.__init__(self, **kw_args)
+        self.epoch_latency = None
+        self.training_data_latency = None
+        self.target_data_latency = None
+        self.evaluate_latency = None
+        self.loss_latency = None
+        self.back_prop_latency = None
         # if the max value of target not increasing in that many epochs (as % of total epochs) by more than uptick
         # not much point going on
         self.use_cuda = self.use_cuda and cuda.is_available()
@@ -212,13 +232,7 @@ class DeepReinforcementLearner(Learner):
                 self.puzzles_seen = data[self.puzzles_seen_tag]
                 self.target_network = DeepLearning.restore(data[self.network_data_tag])
                 self.current_network = self.target_network.clone()
-                latency = data[self.latency_tag]
-                self.epoch_latency = latency[cls.latency_epoch_tag]
-                self.training_data_latency = latency[cls.latency_training_data_tag]
-                self.target_data_latency = latency[cls.latency_target_data_tag]
-                self.evaluate_latency = latency[cls.latency_evaluate_tag]
-                self.loss_latency = latency[cls.latency_loss_tag]
-                self.back_prop_latency = latency[cls.latency_back_prop_tag]
+                self.recover_latency(data[self.latency_tag])
                 self.target_network_count = 0
                 self.log_info('Recovering from convergence_data: ', self.convergence_data.iloc[-1])
             except Exception as error:
@@ -250,12 +264,7 @@ class DeepReinforcementLearner(Learner):
                                                    cls.nb_sequences,
                                                    cls.cuda])
         self.last_network_update = 0
-        self.epoch_latency = 0
-        self.training_data_latency = 0
-        self.target_data_latency = 0
-        self.evaluate_latency = 0
-        self.loss_latency = 0
-        self.back_prop_latency = 0
+        self.recover_latency()
         self.puzzles_seen = set()
         self.target_network_count = 0
 
@@ -331,7 +340,7 @@ class DeepReinforcementLearner(Learner):
         optimizer = optimizer(self.current_network.parameters(),
                               lr=float(self.learning_rate))
         scheduler = None if self.scheduler == self.no_scheduler else \
-            ExponentialLR(optimizer, gamma=self.gamma_scheduler)
+            ExponentialLR(optimizer, gamma=float(self.gamma_scheduler))
         return optimizer, scheduler
 
     def learn(self):

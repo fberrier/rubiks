@@ -119,6 +119,8 @@ class SlidingPuzzle(Puzzle):
         else:
             n = kw_args[self.n]
             m = kw_args.get(self.m, n)
+            if m is None:
+                m = n
             self.__populate_goal__(n, m) # except the first time this will do nothing
             goal = self.goal_map[n][m]
             self.__init__(tiles=goal.tiles.detach().clone(),
@@ -292,6 +294,17 @@ class SlidingPuzzle(Puzzle):
     def hardest(cls, dimension):
         return {(3, 3): [[8, 6, 7], [2, 5, 4], [3, 0, 1]],
                 }[dimension]
+
+    @classmethod
+    def optimal_solver_config(cls) -> dict:
+        from rubiks.solvers.solver import Solver
+        from rubiks.heuristics.heuristic import Heuristic
+        from rubiks.heuristics.manhattan import Manhattan
+        return {Solver.solver_type: Solver.astar,
+                Solver.time_out: inf,
+                Heuristic.heuristic_type: Heuristic.manhattan,
+                Manhattan.plus: True,
+                }
     
 ########################################################################################################################
 

@@ -23,7 +23,7 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 4
@@ -55,7 +55,7 @@ if '__main__' == __name__:
                            Solver.astar,
                            Solver.naive,
                            } """
-    solver_type = Solver.astar
+    solver_type = Solver.naive
     limit = 12
     time_out = 1200
     log_solution = True

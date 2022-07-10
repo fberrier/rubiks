@@ -16,6 +16,13 @@ setlocale(LC_ALL, '')
 ########################################################################################################################
 
 
+thousand = 1000
+million = 1000000
+billion = 1000000000
+
+########################################################################################################################
+
+
 def remove_file(file_name):
     try:
         remove(file_name)
@@ -108,13 +115,12 @@ def get_performance_file_name(puzzle_type,
 
 def get_training_file_name(puzzle_type,
                            dimension,
-                           model_name,
                            extension=Extension.pkl):
     return get_file_name(puzzle_type=puzzle_type,
                          dimension=dimension,
                          file_type=PossibleFileNames.training,
                          extension=extension,
-                         name=model_name)
+                         name=PossibleFileNames.training)
 
 ########################################################################################################################
 

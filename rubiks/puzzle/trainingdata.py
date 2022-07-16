@@ -67,17 +67,23 @@ class TrainingData(Loggable, Puzzled):
                  nb_sequences,
                  min_no_loop=None,
                  repeat=1):
-        goal = self.get_goal()
-        optimal_solver = Solver.factory(**{**self.get_config(),
-                                           **goal.optimal_solver_config(),
-                                           self.__class__.time_out: self.time_out})
         pool = Pool(min(self.nb_cpus, nb_sequences))
-        solutions = pool.map(partial(self.get_solution,
-                                     goal,
-                                     optimal_solver,
-                                     nb_shuffles,
-                                     min_no_loop),
-                             range(nb_sequences))
+        interrupted = False
+        try:
+            goal = self.get_goal()
+            optimal_solver = Solver.factory(**{**self.get_config(),
+                                               **goal.optimal_solver_config(),
+                                               self.__class__.time_out: self.time_out})
+            solutions = pool.map(partial(self.get_solution,
+                                         goal,
+                                         optimal_solver,
+                                         nb_shuffles,
+                                         min_no_loop),
+                                 range(nb_sequences))
+        except KeyboardInterrupt:
+            self.log_warning('Interrupted')
+            solutions = list()
+            interrupted = True
         pool.close()
         pool.join()
         for solution in solutions:
@@ -100,7 +106,7 @@ class TrainingData(Loggable, Puzzled):
         to_pickle(self.data, self.training_data_file_name)
         self.log_info(Series({optimal_cost: len(solutions) for optimal_cost, solutions in
                               self.data[self.solutions_tag].items()}).sort_index())
-        if repeat >= 1:
+        if repeat > 1 and not interrupted:
             self.generate(nb_shuffles=nb_shuffles,
                           nb_sequences=nb_sequences,
                           min_no_loop=min_no_loop,

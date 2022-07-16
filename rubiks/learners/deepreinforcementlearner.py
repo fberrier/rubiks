@@ -417,7 +417,7 @@ class DeepReinforcementLearner(Learner):
                 min_targets = min(targets).item()
                 max_targets = max(targets).item()
                 old_max_targets = 0 if self.convergence_data.empty else \
-                    self.convergence_data[cls.max_target].iloc[-1]
+                    self.convergence_data[cls.max_max_target].iloc[-1]
                 max_max_targets = max(max_targets, old_max_targets)
                 latency = Series({cls.latency_epoch_tag: ms_format(self.epoch_latency/epoch),
                                   cls.latency_training_data_tag: ms_format(self.training_data_latency/epoch),
@@ -506,7 +506,8 @@ class DeepReinforcementLearner(Learner):
         cls = self.__class__
         data = read_pickle(self.learning_file_name)
         if isinstance(data[self.convergence_data_tag][cls.learning_rate].iloc[0], list):
-            data[self.convergence_data_tag].loc[:, cls.learning_rate] = data[self.convergence_data_tag][cls.learning_rate].apply(lambda lr: lr[0])
+            data[self.convergence_data_tag].loc[:, cls.learning_rate] = \
+                data[self.convergence_data_tag][cls.learning_rate].apply(lambda lr: lr[0])
             to_pickle(data, self.learning_file_name)
             self.log_info('FIXED learning_rate -> ', self.learning_file_name)
         config = data[self.config_tag]
@@ -552,7 +553,7 @@ class DeepReinforcementLearner(Learner):
                      drl.max_target,
                      drl.puzzles_seen_pct,
                      ]:
-                label = '%s -> %.2f' % (y, data[y].iloc[-1])
+                label = '%s -> %.2g' % (y, data[y].iloc[-1])
             else:
                 label = None
             ax.scatter(x,

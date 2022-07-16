@@ -26,7 +26,7 @@ if '__main__' == __name__:
     action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 4
+    n = 3
     m = 4
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
@@ -34,10 +34,10 @@ if '__main__' == __name__:
     """ For performance test """
     nb_samples = 1000
     min_nb_shuffles = 31
-    max_nb_shuffles = 40
+    max_nb_shuffles = 45
     step_nb_shuffles = 1
     add_perfect_shuffle = False
-    nb_cpus = 16
+    nb_cpus = 10
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
@@ -55,9 +55,9 @@ if '__main__' == __name__:
                            Solver.astar,
                            Solver.naive,
                            } """
-    solver_type = Solver.naive
+    solver_type = Solver.astar
     limit = 12
-    time_out = 1200
+    time_out = 3600
     log_solution = True
     check_optimal = True
     max_consecutive_timeout = 25
@@ -65,23 +65,34 @@ if '__main__' == __name__:
                          Heuristic.perfect,
                          Heuristic.deep_learning,
                          } """
-    heuristic_type = Heuristic.manhattan
+    heuristic_type = Heuristic.deep_learning
     """ If manhattan """
     plus = True
-    """ If deep_learning, what network_type {DeepLearning.fully_connected_net} """
+    """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
+                                             DeepLearning.convolutional_net} """
+    learner_type = Learner.deep_reinforcement_learner
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
-    nb_epochs = 10000
-    nb_sequences = 100
-    nb_shuffles = 100
+    nb_epochs = 100000
+    nb_sequences = 150
+    nb_shuffles = 75
+    nb_shuffles_min = 37
+    nb_shuffles_max = 47
+    learning_rate = 1e-3
     scheduler = DeepReinforcementLearner.gamma_scheduler
+    gamma_scheduler = 0.9999
     training_data_every_epoch = False
     cap_target_at_network_count = True
     one_hot_encoding = True
     drop_out = 0.
+    """ Or for convo """
+    kernel_size = (2, 2)
+    convo_layers_description = (81, 300)
+    parallel_fully_connected_layers_description = (300,)
+    fully_connected_layers_description = (600, 300, 100,)
+    padding = 0
     try:
         if heuristic_type == Heuristic.deep_learning:
-            learner_type = Learner.deep_reinforcement_learner
             model_file_name = Learner.factory(**globals()).get_model_name()
             logger.log_info({DeepLearningHeuristic.model_file_name: model_file_name})
         elif heuristic_type == Heuristic.perfect:

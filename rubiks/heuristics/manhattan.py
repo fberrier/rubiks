@@ -136,9 +136,8 @@ class Manhattan(Heuristic):
                 possible = tuple(possible)
                 penalty = cls.penalty(expected, possible)
                 if penalty > 0:
-                    logger.log_info('Row ', row, ', ', expected, ' vs ', possible, '->', penalty)
                     if row not in data[cls.Line.row]:
-                        data[cls.Line.row] = {row: dict()}
+                        data[cls.Line.row][row] = dict()
                     data[cls.Line.row][row][possible] = penalty
                 total_precomputations += 1
         for col in range(m):
@@ -147,9 +146,8 @@ class Manhattan(Heuristic):
                 possible = tuple(possible)
                 penalty = cls.penalty(expected, possible)
                 if penalty > 0:
-                    logger.log_info('Col ', col, ', ', expected, ' vs ', possible, '->', penalty)
                     if col not in data[cls.Line.col]:
-                        data[cls.Line.col] = {col: dict()}
+                        data[cls.Line.col][col] = dict()
                     data[cls.Line.col][col][possible] = penalty
                 total_precomputations += 1
         to_pickle(data, manhattan_plus_file_name)

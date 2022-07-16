@@ -59,7 +59,11 @@ class DeepLearner(Learner):
     nb_cpus = DeepReinforcementLearner.nb_cpus
     default_nb_cpus = DeepReinforcementLearner.default_nb_cpus
     plot_metrics = DeepReinforcementLearner.plot_metrics
-    default_plot_metrics = DeepReinforcementLearner.default_plot_metrics
+    default_plot_metrics = [learning_rate,
+                            max_target,
+                            loss,
+                            loss_over_max_target,
+                            puzzles_seen_pct]
     training_data_every_epoch = DeepReinforcementLearner.training_data_every_epoch
     training_data_freq = 'training_data_freq'
     threshold = 'threshold'

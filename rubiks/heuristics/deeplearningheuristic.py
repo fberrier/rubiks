@@ -9,6 +9,10 @@ from rubiks.core.loggable import Loggable
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
+from rubiks.learners.deeplearner import DeepLearner
+from rubiks.deeplearning.fullyconnected import FullyConnected
+from rubiks.deeplearning.convolutional import Convolutional
+from rubiks.utils.utils import snake_case
 ########################################################################################################################
 
 
@@ -42,6 +46,30 @@ class DeepLearningHeuristic(Loggable, Heuristic):
             error_msg = 'Could not restore DeepLearning model from \'%s\': ' % self.model_file_name
             self.log_warning(error_msg, error)
             self.deep_learning = None
+
+    @staticmethod
+    def short_name(model_file_name):
+        try:
+            long_name = split(model_file_name)[1]
+            data = read_pickle(model_file_name)[DeepReinforcementLearner.convergence_data_tag]
+            expected_names = [snake_case(DeepReinforcementLearner.__name__),
+                              snake_case(DeepLearner.__name__)]
+            short_name = long_name
+            for expected_name in expected_names:
+                if long_name.startswith(expected_name):
+                    short_name = expected_name
+                    break
+            expected_names = [snake_case(FullyConnected.__name__),
+                              snake_case(Convolutional.__name__)]
+            for expected_name in expected_names:
+                if long_name.find(expected_name) >= 0:
+                    short_name += '_' + long_name[long_name.find(expected_name):]
+                    short_name = short_name[:short_name.find('.')]
+                    break
+            short_name += '[puzzles_seen=%.2f%%]' % data[DeepReinforcementLearner.puzzles_seen_pct].iloc[-1]
+        except FileNotFoundError:
+            return None
+        return short_name
 
     def get_name(self):
         return '%s[%s]' % (Heuristic.get_name(self), split(self.model_file_name)[1])

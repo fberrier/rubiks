@@ -95,7 +95,7 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
         return
 
     def clone(self):
-        cloned = self.__class__(**self.get_config())
+        cloned = self.factory(**self.get_config())
         cloned.load_state_dict(copy(self.state_dict()))
         return cloned
     

@@ -21,7 +21,7 @@ from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
-from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, pformat, ms_format
+from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, pformat, ms_format, get_model_file_name
 ########################################################################################################################
 
 
@@ -164,6 +164,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     solver_name = 'solver_name'
     pct_solved = 'solved (%)'
     pct_optimal = 'optimal (%)'
+    optimality_score = 'optimality_score (%)'
     puzzle_type = 'puzzle_type'
     puzzle_dimension = 'puzzle_dimension'
     action_type = 'action_type'
@@ -293,7 +294,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                cls.median_run_time: [0],
                cls.max_run_time: [0],
                cls.pct_solved: [100],
-               cls.pct_optimal: [100]}
+               cls.pct_optimal: [100],
+               cls.optimality_score: [100],
+               }
         performance = DataFrame(res)
         nan = float('nan')
         shuffles = list(range(self.min_nb_shuffles,
@@ -360,6 +363,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             sample = 0
             nb_not_optimal = 0
             cost_list = list()
+            optimal_cost_list = list()
             expanded_nodes_list = list()
             run_time_list = list()
             for solution in results:
@@ -402,6 +406,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     total_cost += cost
                     max_cost = max(max_cost, cost)
                     cost_list.append(cost)
+                    optimal_cost_list.append(optimal_cost)
                 total_expanded_nodes += expanded_nodes
                 expanded_nodes_list.append(expanded_nodes)
                 max_expanded_nodes = max(max_expanded_nodes, expanded_nodes)
@@ -438,6 +443,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
             res[cls.pct_solved] = int(100 * nb_solved / self.nb_samples)
             res[cls.pct_optimal] = int(100 * (sample - nb_not_optimal) / self.nb_samples)
+            res[cls.optimality_score] = int(100 * sum(optimal_cost_list) / sum(cost_list))
             performance = concat([performance,
                                   Series(res).to_frame().transpose()],
                                  ignore_index=True)
@@ -512,6 +518,20 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             self.log_error('Cannot find \'%s\'. Did you really want to plot rather than solve?' %
                            self.performance_file_name)
             return
+        from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
+
+        def short_name(solver_name):
+            pos = solver_name.find(DeepLearningHeuristic.__name__)
+            if pos < 0:
+                return solver_name
+            solver_name = solver_name[pos:]
+            solver_name = solver_name[solver_name.find('[') + 1:solver_name.find(']')].replace('.pkl', '')
+            solver_name = get_model_file_name(puzzle_type=self.get_puzzle_type(),
+                                              dimension=self.get_puzzle_dimension(),
+                                              model_name=solver_name)
+            solver_name = DeepLearningHeuristic.short_name(solver_name)
+            return solver_name
+        performance.loc[:, Solver.solver_name] = performance[Solver.solver_name].apply(short_name)
         self.log_info(performance)
         assert 1 == len(set(performance.puzzle_type))
         assert 1 == len(set(performance.puzzle_dimension))
@@ -542,7 +562,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
-        markers = cycle(['x', '|', '.', 'v', '+', '1', '$...$'])
+        markers = cycle(['x', '|', '.', 'v', '+', '1', '$f$', '$a$', '$t$'])
         markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
         labels_shown = False
         for r, c in product(range(n_rows), range(n_cols)):

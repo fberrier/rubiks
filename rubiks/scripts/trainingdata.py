@@ -14,12 +14,12 @@ if '__main__' == __name__:
     puzzle_type = Puzzle.sliding_puzzle
     n = 4
     m = 4
-    nb_cpus = 16
-    nb_sequences = 128
-    time_out = 1800
+    nb_cpus = 15
+    nb_sequences = nb_cpus * 10
+    time_out = 3600
     training_data = TrainingData(**globals())
-    repeat = 5
-    for nb_shuffles in [45]:
+    repeat = 10
+    for nb_shuffles in [inf]:
         training_data.generate(nb_shuffles=nb_shuffles,
                                nb_sequences=nb_sequences,
                                repeat=repeat)

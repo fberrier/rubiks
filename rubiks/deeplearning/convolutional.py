@@ -2,8 +2,8 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from numpy import prod
-from torch import stack, unsqueeze
-from torch.nn import Conv3d, Conv2d, Sequential, ReLU, Linear, Flatten, Dropout
+from torch import stack, unsqueeze, cat, tensor
+from torch.nn import Conv2d, Sequential, ReLU, Linear, Flatten
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.deeplearning.deeplearning import DeepLearning
@@ -16,8 +16,11 @@ class Convolutional(DeepLearning):
 
     def get_model_details(self):
         name = [snake_case(self.__class__.__name__)]
+        layers = ['%d' % l for l in self.convo_layers_description +
+                  self.parallel_fully_connected_layers_description +
+                  self.fully_connected_layers_description]
         ohe = ['ohe'] if self.one_hot_encoding else []
-        return '_'.join(name + ohe)
+        return '_'.join(name + layers + ohe)
 
     one_hot_encoding = 'one_hot_encoding'
     stride = 'stride'
@@ -25,6 +28,7 @@ class Convolutional(DeepLearning):
     convolution_dimension = 'convolution_dimension'
     kernel_size = 'kernel_size'
     convo_layers_description = 'convo_layers_description'
+    parallel_fully_connected_layers_description = 'parallel_fully_connected_layers_description'
     fully_connected_layers_description = 'fully_connected_layers_description'
 
     @classmethod
@@ -59,35 +63,55 @@ class Convolutional(DeepLearning):
                          type=int,
                          nargs='+',
                          default=list())
+        cls.add_argument(parser,
+                         field=cls.parallel_fully_connected_layers_description,
+                         type=int,
+                         nargs='+',
+                         default=list())
 
     def __init__(self, **kw_args):
         DeepLearning.__init__(self, **kw_args)
-        self.kernel_size = tuple(self.kernel_size)
+        kernel_size = tuple(self.kernel_size)
         self.convo_layers_description = tuple(self.convo_layers_description)
-        if self.one_hot_encoding:
-            self.convolution_dimension = 3
-            convo_layer = Conv3d
-        else:
-            self.convolution_dimension = 2
-            convo_layer = Conv2d
-        modules = list()
-        self.convo_layers_description = (1, *self.convo_layers_description)
-        for in_channels, out_channels in zip(self.convo_layers_description[:-1],
-                                             self.convo_layers_description[1:]):
-            modules.append(convo_layer(in_channels=in_channels,
-                                       out_channels=out_channels,
-                                       kernel_size=self.kernel_size,
-                                       padding=self.padding,
-                                       stride=self.stride))
-            modules.append(ReLU())
+        self.parallel_fully_connected_layers_description = tuple(self.parallel_fully_connected_layers_description)
+        convo_modules = list()
+        convo_layers_description = (prod(self.get_puzzle_dimension()) if self.one_hot_encoding else 1,
+                                    *self.convo_layers_description)
+        for in_channels, out_channels in zip(convo_layers_description[:-1],
+                                             convo_layers_description[1:]):
+            convo_modules.append(Conv2d(in_channels=in_channels,
+                                        out_channels=out_channels,
+                                        kernel_size=kernel_size,
+                                        padding=self.padding,
+                                        stride=self.stride))
+            convo_modules.append(ReLU())
+        self.convo_layers = Sequential(*convo_modules)
+        self.layers_str = 'CL[%s]' % str(convo_layers_description)
+        in_channels = prod(self.get_puzzle_dimension())
+        parallel_fully_connected_layers_description = (in_channels * in_channels
+                                                       if self.one_hot_encoding else in_channels,
+                                                       *self.parallel_fully_connected_layers_description,
+                                                       )
+        self.parallel_layers = None
+        if len(parallel_fully_connected_layers_description) > 1:
+            parallel_layers = list()
+            for x, y in zip(parallel_fully_connected_layers_description[:-1],
+                            parallel_fully_connected_layers_description[1:]):
+                parallel_layers.append(Linear(x, y))
+                parallel_layers.append(ReLU())
+            self.parallel_layers = Sequential(*parallel_layers)
+            self.layers_str += '//FCL[%s]' % str(parallel_fully_connected_layers_description)
+        fc_modules = list()
         if self.fully_connected_layers_description:
-            self.fully_connected_layers_description = (*tuple(self.fully_connected_layers_description), 1)
-            modules.append(Flatten())
-        for x, y in zip(self.fully_connected_layers_description[:-1],
-                        self.fully_connected_layers_description[1:]):
-            modules.append(Linear(x, y))
-            modules.append(ReLU())
-        self.layers = Sequential(*modules)
+            fully_connected_layers_description = (*tuple(self.fully_connected_layers_description), 1)
+            fc_modules.append(Flatten())
+            for x, y in zip(fully_connected_layers_description[:-1],
+                            fully_connected_layers_description[1:]):
+                fc_modules.append(Linear(x, y))
+                fc_modules.append(ReLU())
+            self.layers_str += '->FCL[%s]' % str(fully_connected_layers_description)
+            fc_modules = fc_modules[:-1]
+        self.fc_layers = Sequential(*fc_modules)
 
     def get_name(self):
         name = self.__class__.__name__
@@ -98,20 +122,30 @@ class Convolutional(DeepLearning):
 
     def massage_puzzles(self, puzzles):
         """ We need (n_samples, in_channels=1, n, m) """
+        one_hot_encoding = self.one_hot_encoding
         if isinstance(puzzles, Puzzle):
-            puzzles = puzzles.to_tensor(one_hot_encoding=self.one_hot_encoding,
+            puzzles = puzzles.to_tensor(one_hot_encoding=one_hot_encoding,
                                         flatten=False).float()
-            puzzles = unsqueeze(puzzles, dim=0)
+            if one_hot_encoding:
+                puzzles = puzzles.permute(2, 0, 1)
+            else:
+                puzzles = unsqueeze(puzzles, dim=0)
             puzzles = unsqueeze(puzzles, dim=0)
         elif isinstance(puzzles, list):
-            puzzles = stack([puzzle.to_tensor(one_hot_encoding=self.one_hot_encoding,
+            puzzles = stack([puzzle.to_tensor(one_hot_encoding=one_hot_encoding,
                                               flatten=False).float() for puzzle in puzzles])
-            puzzles = unsqueeze(puzzles, dim=1)
+            if one_hot_encoding:
+                puzzles = puzzles.permute(0, 3, 1, 2)
+            else:
+                puzzles = unsqueeze(puzzles, dim=1)
         else:
             raise NotImplementedError
         return puzzles
 
     def forward(self, x):
-        return self.layers(x).squeeze()
+        y1 = Flatten(start_dim=1)(self.convo_layers(x))
+        y2 = self.parallel_layers(Flatten(start_dim=1, end_dim=3)(x)) \
+            if self.parallel_layers is not None else tensor([])
+        return self.fc_layers(cat((y1, y2), dim=1)).squeeze()
     
 ########################################################################################################################

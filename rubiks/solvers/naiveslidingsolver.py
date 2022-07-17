@@ -242,7 +242,7 @@ class NaiveSlidingSolver(Solver):
 
     def solve_left_col(self, sliding_puzzle):
         assert sliding_puzzle.n >= 2
-        #self.log_debug('solve_left_col for ', sliding_puzzle)
+        self.log_debug('solve_left_col for ', sliding_puzzle)
         desired_left_col = sliding_puzzle.tiles.flatten().sort().values[1::sliding_puzzle.m].tolist()
         moves = list()
         end_state = sliding_puzzle.clone()
@@ -264,10 +264,10 @@ class NaiveSlidingSolver(Solver):
                                                   moves)
         target_empty_pos = (sliding_puzzle.n - 2, 0)
         new_moves = list()
-        #self.log_debug('target_empty_pos: ', target_empty_pos)
+        self.log_debug('target_empty_pos: ', target_empty_pos)
         while end_state.empty != target_empty_pos:
-            #self.log_debug('end_state.empty: ', end_state.empty)
-            #self.log_debug('target_empty_pos: ', target_empty_pos)
+            self.log_debug('end_state.empty: ', end_state.empty)
+            self.log_debug('target_empty_pos: ', target_empty_pos)
             if end_state.empty[0] > target_empty_pos[0]:
                 move = end_state.empty_up()
             elif end_state.empty[0] < target_empty_pos[0]:
@@ -278,19 +278,19 @@ class NaiveSlidingSolver(Solver):
                 move = end_state.empty_left()
             new_moves.append(move)
             end_state = end_state.apply(move)
-            #self.log_debug(end_state)
+            self.log_debug(end_state)
         moves.extend(new_moves)
         move = Slide(sliding_puzzle.n - 1, 0)
         end_state = end_state.apply(move)
-        #self.log_debug(end_state)
+        self.log_debug(end_state)
         moves.append(move)
         move = Slide(sliding_puzzle.n - 1, 1)
         end_state = end_state.apply(move)
-        #self.log_debug(end_state)
+        self.log_debug(end_state)
         moves.append(move)
         sliding_puzzle.tiles = end_state.tiles
         sliding_puzzle.empty = end_state.empty
-        #self.log_debug(sliding_puzzle)
+        self.log_debug(sliding_puzzle)
         return moves
 
     @staticmethod

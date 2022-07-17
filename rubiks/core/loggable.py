@@ -41,13 +41,17 @@ class Loggable(Parsable):
         self.setup_logger()
         self.re_named = False
 
+    def get_level(self, level=None):
+        if level is None:
+            level = self.log_level
+        return {self.__class__.debug: DEBUG,
+                self.__class__.info: INFO,
+                self.__class__.warning: WARNING,
+                self.__class__.error: ERROR}.get(level)
+
     def setup_logger(self):
         self.logger = getLogger(self.name)
-        level = {self.__class__.debug: DEBUG,
-                 self.__class__.info: INFO,
-                 self.__class__.warning: WARNING,
-                 self.__class__.error: ERROR}.get(self.log_level)
-        self.logger.setLevel(level)
+        self.logger.setLevel(self.get_level())
         coloredlogs.install(level=self.log_level.upper(), logger=self.logger)
 
     def do_init(self):

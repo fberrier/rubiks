@@ -23,21 +23,21 @@ if '__main__' == __name__:
     action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 2
-    m = 6
+    n = 4
+    m = 4
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.perfect_learner
+    learner_type = Learner.deep_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 3600
-    nb_cpus = 4
+    nb_cpus = 1
     cpu_multiplier = 25
     max_puzzles = nb_cpus * cpu_multiplier * 10000
     regular_save = nb_cpus * cpu_multiplier * 1
@@ -57,9 +57,9 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL learner config is here ... """
-    nb_epochs = 100000
-    nb_sequences = 150
-    nb_shuffles = 75
+    nb_epochs = 10000
+    nb_sequences = 100
+    nb_shuffles = 60
     training_data_every_epoch = False
     cap_target_at_network_count = True
     update_target_network_frequency = 1000
@@ -72,12 +72,12 @@ if '__main__' == __name__:
     gamma_scheduler = 0.9999
     """ DL learner """
     save_at_each_epoch = False
-    threshold = 0.005
+    threshold = 0.01
     training_data_freq = 1000
     high_target = nb_shuffles + 1
     training_data_from_data_base = True
-    nb_shuffles_min = 37
-    nb_shuffles_max = 47
+    nb_shuffles_min = 40
+    nb_shuffles_max = 60
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)

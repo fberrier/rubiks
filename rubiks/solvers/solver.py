@@ -133,11 +133,18 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             assert isinstance(solution.path, list)
             assert all(isinstance(move, self.get_goal().get_move_type()) for move in solution.path)
             assert isnan(solution.expanded_nodes) or isinstance(solution.expanded_nodes, int)
+            print('solved ',
+                  puzzle,
+                  ' # ',
+                  index,
+                  ' with cost ',
+                  solution.cost,
+                  ' in ',
+                  s_format(run_time))
         except Exception as error:
-            if error is not RecursionError:
-                self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
             solution = Solution.failure(puzzle)
             solution.set_run_time(self.time_out)
+            print('Failed to solve ', puzzle, ': ', error)
         solution.set_additional_info(index=index)
         return solution
 

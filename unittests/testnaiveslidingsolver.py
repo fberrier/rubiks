@@ -153,6 +153,9 @@ class TestNaiveSlidingSolver(TestCase):
                                max_count=2500,
                                random_puzzles=True)
 
+    #def test_dummy(self):
+    #    self.solve_all_puzzles('test_dummy', max_count=1, n=6, random_puzzles=True)
+
     def test_naive_sliding_solver_moves_to_right_of(self):
         logger = Loggable(name='test_naive_sliding_solver_moves_to_right_of')
         #logger.log_info('from_below=', from_below)

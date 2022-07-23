@@ -23,7 +23,7 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 4
@@ -32,21 +32,22 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 100
+    nb_samples = 30
     min_nb_shuffles = 0
     max_nb_shuffles = 0
     step_nb_shuffles = 5
     add_perfect_shuffle = True
-    nb_cpus = 8
+    nb_cpus = 1
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
     """ For plot """
     performance_metrics = [Solver.pct_solved,
-                           Solver.pct_optimal,
+                           #Solver.pct_optimal,
+                           #Solver.median_cost,
+                           #Solver.max_cost,
+                           Solver.optimality_score,
                            Solver.median_run_time,
-                           Solver.median_cost,
-                           Solver.max_cost,
                            Solver.median_expanded_nodes,
                            ]
     fig_size = [20, 12]
@@ -57,7 +58,7 @@ if '__main__' == __name__:
                            } """
     solver_type = Solver.astar
     limit = 12
-    time_out = 4 * 3600
+    time_out = 600
     log_solution = True
     check_optimal = True
     max_consecutive_timeout = 25
@@ -65,7 +66,7 @@ if '__main__' == __name__:
                          Heuristic.perfect,
                          Heuristic.deep_learning,
                          } """
-    heuristic_type = Heuristic.manhattan
+    heuristic_type = Heuristic.deep_learning
     """ If manhattan """
     plus = True
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
@@ -74,10 +75,10 @@ if '__main__' == __name__:
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
     nb_epochs = 100000
-    nb_sequences = 150
-    nb_shuffles = 75
-    nb_shuffles_min = 37
-    nb_shuffles_max = 47
+    nb_sequences = 200
+    nb_shuffles = 80
+    nb_shuffles_min = 40
+    nb_shuffles_max = 60
     learning_rate = 1e-3
     scheduler = DeepReinforcementLearner.gamma_scheduler
     gamma_scheduler = 0.9999
@@ -87,7 +88,7 @@ if '__main__' == __name__:
     drop_out = 0.
     """ Or for convo """
     kernel_size = (2, 2)
-    convo_layers_description = (81, 300)
+    convo_layers_description = (256, 300, 300)
     parallel_fully_connected_layers_description = (300,)
     fully_connected_layers_description = (600, 300, 100,)
     padding = 0

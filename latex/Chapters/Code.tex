@@ -8,7 +8,7 @@
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-\section{Code organisation}
+%\section{Code organisation}
 
 The code I have developed for this project is all publicly available on my github page (\cite{FB}). It can easily be installed using the setup file provided, which makes it easy to then use Python's customary import command to play with the code.
 The code is organised in several sub modules and makes use of factories in plenty of places so that I can easily try out different puzzles, dimensions, search techniques, heuristics, network architecture, etc... without having to change anything but configuration or parameter in the command line. Here is a visual overview of the code base with the main dependencies between the main submodules and classes:
@@ -26,7 +26,7 @@ The code is organised in several sub modules and makes use of factories in plent
 
 Let me describe what each submodule does:
 
-\subsection{rubiks.core}
+\section{rubiks.core}
 This submodule contains base classes that make the code base easier to use, debug, and extend. It contains the following:
 \begin{itemize}
 \item Loggable: a wrapper around Python's logger which automatically picks up classes' names at init and format things (dict, series and dataframes in particular) in a nicer way.
@@ -34,7 +34,7 @@ This submodule contains base classes that make the code base easier to use, debu
 \item Factory: a typical factory pattern. Concrete factories can just define what widget they produce and the factory will help construct them from **kw\_args (or command line, since Factory inherits from Parsable)
 \end{itemize}
 
-\subsection{rubiks.puzzle}
+\section{rubiks.puzzle}
 This submodule contains:
 \begin{itemize}
 \item Puzzle: a Factory of puzzles. It defines states and actions in the abstract, and provides useful functions to apply moves, shuffle, generate training sets, tell if a state is the goal, etc. Puzzle can manufacture the two following types of puzzles:
@@ -43,7 +43,7 @@ This submodule contains:
 In addition, in contains a Puzzled base class which most below inherit from. That allow e.g. heuristics, search algorithms, solvers and learners to know what puzzle and dimension they operate on, without having to reimplement these basic facts in each of them.
 \end{itemize}
 
-\subsection{rubiks.search}
+\section{rubiks.search}
 This modules contains graph search strategies. I have actually reused the code I implemented for one of the AIPnT assignments. It contains the following classes:
 \begin{itemize}
 \item Node: which contains the state of a graph, as well as link to the previous (parent) state, action that leads from the latter to the former and the cost of the path so far.
@@ -53,7 +53,7 @@ This modules contains graph search strategies. I have actually reused the code I
 \item AStar, which is optimal, and as efficient as the heuristic it makes use of is.
 \end{itemize}
 
-\subsection{rubiks.heuristics}
+\section{rubiks.heuristics}
 \label{HSS}
 This module contains base class Heuristic, also a Factory. Heuristic can instantiate the following heuristics, which we can use in the AStar strategy from the previous section:
 \begin{itemize}
@@ -64,7 +64,7 @@ This module contains base class Heuristic, also a Factory. Heuristic can instant
 
 
 
-\subsection{rubiks.deeplearning}
+\section{rubiks.deeplearning}
 This module is a wrapper around Pytorch. It contains:
 \begin{itemize}
 \item DeepLearning: a Puzzled Loggable Factory that can instantiate some configurable deep networks, and provide the necessary glue with the rest of the code base so that puzzles be seemlessly passed to the networks and trained on.
@@ -73,7 +73,7 @@ This module is a wrapper around Pytorch. It contains:
 \end{itemize}
 
 
-\subsection{rubiks.learners}
+\section{rubiks.learners}
 \label{PLcode}
 \label{DRLcode}
 This module implements learners, which learn something from a puzzle, store what they learnt, and can display interesting things about what they learnt.
@@ -89,7 +89,7 @@ This module implements learners, which learn something from a puzzle, store what
 \end{itemize}
 
 
-\subsection{rubiks.solvers}
+\section{rubiks.solvers}
 This module implements solvers, which solve puzzles. The base class Solver is a Factory of solvers, and in addition to being able to instantiating the following types of solvers, can run different solvers through a similal sequences of random puzzles (for various increasing degrees of difficulty (shuffling), and/or perfectly shuffled ones) and display a comparison of how they perform in a number of metrics.
 
 \begin{itemize}
@@ -99,179 +99,7 @@ This module implements solvers, which solve puzzles. The base class Solver is a 
 \item NaiveSlidingSolver
 \end{itemize}
 
-\subsection{rubiks.scripts}
+\section{rubiks.scripts}
 
 
 Finally it is worth noting that the code will save on disk a lot of data (e.g. the learners will save what they have learnt, e.g. a Pytorch network or a data base of optimal costs, the performance comparison will run solvers versus very many configurations of puzzles and save the results for later being able to display) etc... The base of the tree to save all this data can be chosen by setting up the "RUBIKSDATA" environment variable. If not, it will go somewhere in you HOME :)
-
-
-%-----------------------------------
-%	SECTION 2
-%-----------------------------------
-\section{Learners}
-
-Here I show how to run some examples... TBC
-
-%-----------------------------------
-%	SUBSECTION 2.1
-%-----------------------------------
-\subsection{Perfect Learner}
-\label{PLSS}
-
-
-%-----------------------------------
-%	SUBSECTION 2.2
-%-----------------------------------
-\subsection{Deep Learner}
-\label{DLSS}
-blabla
-
-%-----------------------------------
-%	SUBSECTION 2.3
-%-----------------------------------
-\subsection{Deep Reinforcement Learner}
-\label{DRLSS}
-
-blabla
-
-%-----------------------------------
-%	SECTION 3
-%-----------------------------------
-
-\section{Solvers}
-
-%-----------------------------------
-%	SUBSECTION 3.1
-%-----------------------------------
-\subsection{Blind search}
-%-----------------------------------
-%	SUBSECTION 3.1.1
-%-----------------------------------
-\subsubsection{BFS}
-\label{BFSSS}
-%-----------------------------------
-%	SUBSECTION 3.1.2
-%-----------------------------------
-\subsubsection{DFS}
-\label{DFSSS}
-
-
-
-%-----------------------------------
-%	SUBSECTION 3.2
-%-----------------------------------
-\subsection{Naive Sliding Puzzle Solver}
-As a comparison point, I have implemented a naive sliding puzzle solver, which does what most beginner players would intuitively do when solving the sliding puzzle by hand: solve the top row, then the left column, and keep iterating until done. Notice that once either the top row or left column is solved, there is no longer any need to modify it, we have simply reduced the problem to a sub-problem of reduced dimension. For the interested reader, the details of the algorithm are as follows:
-\begin{itemize}
-\item if n and m are both equal to 2, we just keep moving the empty tile clock-wise until the puzzle is solved. Notice that this is bound to work, since moving clock-wise or counter-clock-wise are the two ony possible moves, and one of them is just un-doing the other one.
-\item if n $\geq$ m, we solve the top row
-\item otherwise we solve the left column
-\end{itemize}
-Solving the top row of a n by m puzzle (left column is similar, mutatis mutandis, so I will not detail it) is accomplished as follows:
-\begin{enumerate}
-\item \label{s1} we sort the tiles (which since we are potentially dealing with a sub-problem, are no longer necessarily 1 to $m* n - 1$), and select the m smaller ones $t_{1}, ..., t_{m-1}, t_{m}$.
-\item \label{s2} we place $t_{m}$ in the bottom-right corner
-\item \label{s3} we place $t_{1}, ..., t_{m-2}$ to their respective positions (in that order, and making sure not to undo anything as we do so)
-\item \label{s4} we place $t_{m-1}$ in the top-right corner
-\item \label{s5} we then move $t_{m}$ just under $t_{m-1}$
-\item \label{s6} we move the empty tile to the left of $t_{m-1}$
-\item \label{s7} finally we move the empty tile right and then down to put $t_{m-1}$ and $t_{m}$ in place.
-\end{enumerate}
-In order to move the tiles, we have written a few simple routines which can move the empty tile from its current position next to (above, below, left or right) any tile, and then can move that tile to another position, all the while avoiding to go through previously moved tiles (hence the particular order in which we move the different tiles above). The only case where the above algorithm can get stuck is when both n and m are equal to 3 and that by step \ref{s6} we might end-up with $t_{3}$ under the empty tile. We have handcrafted a sequence of moves to solve this particular position.
-\\
-\\
-As a concrete example, let us assume we started with the following (n=6, m=6) puzzle:
-\\
-\begin{thityfive}
-\setrow{6}{14,27,6,  2,5,18}
-\setrow{5}{21,29,13,23,35,30}
-\setrow{4}{26,3,7,9,24,19}
-\setrow{3}{22,12,11,17,16,33}
-\setrow{2}{32,10,20,25,34,28}
-\setrow{1}{8,4,15,31, ,1}
-\end{thityfive}
-\\
-After one call to solve the top row and the left column, we are left with solving the following 5 by 5 sub-puzzle:
-\begin{twentyfour}
-\setrow{5}{9,17,27,18,35}
-\setrow{4}{23,11,15,24,21}
-\setrow{3}{20,8,29,33,10}
-\setrow{2}{22,30,14,32,16}
-\setrow{1}{ ,12,26,34,28}
-\end{twentyfour}
-\\
-step \ref{s1} above will decide to solve the top row by placing $t_{1}, ..., t_{5}$ = $8, 9, 10, 11, 12$ in that order as the top row. Steps \ref{s2} to \ref{s7} will yield in order:
-\\
-\begin{twentyfour}
-\setrow{5}{9,17,27,18,35}
-\setrow{4}{23,11,15,24,21}
-\setrow{3}{20,8,29,33,10}
-\setrow{2}{22,30,14,32,16}
-\setrow{1}{ ,12,26,34,28}
-\end{twentyfour}
-%
-\begin{twentyfour}
-\setrow{5}{9,17,27,18,35}
-\setrow{4}{23,11,15,24,21}
-\setrow{3}{20,8,29,33,10}
-\setrow{2}{22,30,14,32,16}
-\setrow{1}{\color{red}12\color{red}, ,26,34,28}
-\end{twentyfour}
-%
-\begin{twentyfour}
-\setrow{5}{\color{red}8\color{red},\color{red}9\color{red},\color{red}10\color{red},,18}
-\setrow{4}{17,15,27,24,35}
-\setrow{3}{11,23,29,21,33}
-\setrow{2}{20,22,14,32,16}
-\setrow{1}{\color{red}12\color{red},30,26,34,28}
-\end{twentyfour}
-\\
-\begin{twentyfour}
-\setrow{5}{\color{red}8\color{red},\color{red}9\color{red},\color{red}10\color{red},,\color{red}11\color{red}}
-\setrow{4}{23,29,21,18,24}
-\setrow{3}{17,15,27,33,35}
-\setrow{2}{20,22,14,32,16}
-\setrow{1}{\color{red}12\color{red},30,26,34,28}
-\end{twentyfour}
-%
-\begin{twentyfour}
-\setrow{5}{\color{red}8\color{red},\color{red}9\color{red},\color{red}10\color{red},18,\color{red}11\color{red}}
-\setrow{4}{29,27,32, ,\color{red}12\color{red}}
-\setrow{3}{23,21,33,35,24}
-\setrow{2}{15,17,22,14,16}
-\setrow{1}{30,20,26,34,28}
-\end{twentyfour}
-%
-\begin{twentyfour}
-\setrow{5}{\color{red}8\color{red},\color{red}9\color{red},\color{red}10\color{red},\color{red}11\color{red},\color{red}12\color{red}}
-\setrow{4}{29,27,32,18, }
-\setrow{3}{23,21,33,35,24}
-\setrow{2}{15,17,22,14,16}
-\setrow{1}{30,20,26,34,28}
-\end{twentyfour}
-\\
-and we are left with solving the bottom sub-puzzle (n=4,m=5), etc...
-
-
-%-----------------------------------
-%	SUBSECTION 3.3
-%-----------------------------------
-\subsection{Kociemba}
-BTD
-
-
-%-----------------------------------
-%	SUBSECTION 3.4
-%-----------------------------------
-\subsection{A*}
-\label{ASSS}
-
-\textbf{manhattan heuristic}
-
-\textbf{perfect heuristic}
-
-\textbf{deep learning heuristic}
-
-\textbf{deep reinforcement learning heuristic}
-
-

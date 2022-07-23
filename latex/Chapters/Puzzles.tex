@@ -16,7 +16,7 @@
 \subsection{History - The 15 Puzzle}
 
 
-The first puzzle I will focus on is the sliding puzzle (see \cite{SlidingPuzzleWiki}).The 15-puzzle seems to have been invented in the late 19th century by Noyes Chapman (see \cite{SlidingPuzzleWolfram}), who applied for a patent in 1980. In 1879, a couple of interesting notes (\cite{Johnson1879}), published in the American Journal of Mathematics proved that exactly half of the $16!$ possible ways of setting up the 16 tiles on the board lead to solvable puzzles. A more modern proof can be found in \cite{Archer1999}.
+The first puzzle I will focus on is the sliding puzzle (see \cite{SlidingPuzzleWiki}).The 15-puzzle seems to have been invented in the late 19th century by Noyes Chapman (see \cite{SlidingPuzzleWolfram}), who applied in 1880 for a patent on what was then called "Block Solitaire Puzzle". In 1879, a couple of interesting notes (\cite{Johnson1879}), published in the American Journal of Mathematics proved that exactly half of the $16!$ possible ways of setting up the 16 tiles on the board lead to solvable puzzles. A more modern proof can be found in \cite{Archer1999}.
 \\
 \\
 Since then, several variations of the 15-puzzle have become popular, such as the 24-puzzle. A rather contrived but interesting one is the coiled 15-puzzle (\cite{Coiled15Puzzle}), where the bottom-right and the top-left compartments are adjascent; the additional move that this allows renders all $16!$ configurations solvable. 
@@ -39,24 +39,24 @@ It is rather easy to see why this is the case, let us discuss why: given a confi
 \begin{fifteen}
 \setrow{4}{1,6,2,3}
 \setrow{3}{5,10,7,4}
-\setrow{2}{9,15,14,11}
-\setrow{1}{13,12,,8}
+\setrow{2}{9,15,\red14\black,\blue11}
+\setrow{1}{13,12,,\blue 8}
 \end{fifteen}
 \\
 \\
-we have p(c) = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, 14, 11, 8, 12, 13).
+we have p(c) = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, \red 14 \black, \blue 11, 8\black, 12, 13).
 \\
-It is easy to see that the parity of p(c) cannot change by a legal move of the puzzle. Indeed, p(c) is clearly invariant by lateral move of a tile, so its parity is invariant too. A vertical move of a tile will displace a number in p(c) by an even number of positions right or left. For instance, moving tile 14 into the empty compartment above it results in a new configuration $c_{2}$:
+It is easy to see that the parity of p(c) cannot change by a legal move of the puzzle. Indeed, p(c) is clearly invariant by lateral move of a tile, so its parity is invariant too. A vertical move of a tile will displace a number in p(c) by an even number of positions right or left. For instance, moving tile 14 into the empty compartment below it results in a new configuration $c_{2}$:
 
 \begin{fifteen}
 \setrow{4}{1,6,2,3}
 \setrow{3}{5,10,7,4}
-\setrow{2}{9,15,,11}
-\setrow{1}{13,12,14,8}
+\setrow{2}{9,15,,\blue11}
+\setrow{1}{13,12,\red14\black,\blue8}
 \end{fifteen}
 \\
 \\
-with $p(c_{2})$ = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, 11, 8, 14, 12, 13), which is equivalent to moving 14 by 2 positions on the right. This obviously cannot change the parity since exactly 2 pairs of numbers are now in a different order, that is (14, 11) and (14, 8) now appear in the respective opposite orders as (11, 14) and (8, 14).
+with $p(c_{2})$ = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, \blue11, 8\black, \red14\black, 12, 13), which is equivalent to moving 14 by 2 positions on the right. This obviously cannot change the parity since exactly 2 pairs of numbers are now in a different order, that is (14, 11) and (14, 8) now appear in the respective opposite orders as (11, 14) and (8, 14).
 \\
 \\
 This is the crux of the proof of the well known necessary condition (even parity of p(c)) for a configuration c to be solvable (see part I of \cite{Johnson1879}).
@@ -65,7 +65,8 @@ This is the crux of the proof of the well known necessary condition (even parity
 In the case of the coiled puzzle, we can clearly solve all configurations of even parity, since all the legal moves of the normal puzzle are allowed. In addition, we can for instance transition between the following 2 configurations, which clearly have respectively even and odd parities:
 
 \begin{fifteen}
-\setrow{4}{1,2,3,4}
+\centering
+\setrow{4}{\red1\black,2,3,4}
 \setrow{3}{5,6,7,8}
 \setrow{2}{9,10,11,12}
 \setrow{1}{13,14,15,}
@@ -75,11 +76,11 @@ In the case of the coiled puzzle, we can clearly solve all configurations of eve
 \setrow{4}{,2,3,4}
 \setrow{3}{5,6,7,8}
 \setrow{2}{9,10,11,12}
-\setrow{1}{13,14,15,1}
+\setrow{1}{13,14,15,\red1\black}
 \end{fifteen}
 \\
 \\
-Since it is possible to reach an odd parity configuration, and by symmetry arguments, we conclude we can solve all $16!$ configurations. 
+Since it is possible to reach an odd parity configuration, we conclude by invoking symmetry arguments that we can solve all $16!$ configurations. 
 
 
 %-----------------------------------

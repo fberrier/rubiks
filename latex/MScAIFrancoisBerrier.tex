@@ -96,6 +96,13 @@ headsepline, % Uncomment to get a line under the header
 \end{puzzleforeground}
 }{\end{logicpuzzle}}
 
+\newenvironment{twenty}[1][]{%
+\begin{logicpuzzle}[rows=4,columns=5,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
 \newenvironment{twentyfour}[1][]{%
 \begin{logicpuzzle}[rows=5,columns=5,#1]
 \begin{puzzleforeground}
@@ -110,7 +117,15 @@ headsepline, % Uncomment to get a line under the header
 \end{puzzleforeground}
 }{\end{logicpuzzle}}
 
+\newcommand{\red}{\color{red}}
+\newcommand{\black}{\color{black}}
+\newcommand{\blue}{\color{blue}}
+\newcommand{\green}{\color{green}}
 
+\newenvironment{titlemize}[1]{%
+  \paragraph{#1}
+  \begin{enumerate}}
+  {\end{enumerate}}
 
 \addbibresource{references.bib} % The filename of the bibliography
 
@@ -257,7 +272,7 @@ In this project, I will attempt to implement a variety of solvers combining $A^{
 \\
 \textbf{Organisation of this thesis}
 \\
-In the first chapter, I will quickly describe what I hope to get out of this project, both in terms of personal learning, as well as in terms of tangible results (solving some puzzles!). In chapter 2, I will do a quick recap of the different methods that I will use in the project. Chapter 3 will be dedicated to discussing the mathematics of the sliding puzzle (\textbf{SP}) and the (\textbf{RC}). I might throw a few random (but hopefully interesting) observations in there and give some references for the keen reader. I will then give an overview in chapter 4 of the code base I have developed - and put in the open on my github page (\cite{FB}) - to complete this project. Finally, in chapters 5 and 6, I will present all my various results on respecively the sliding puzzle and the Rubiks' cube.
+In the first chapter, I will quickly describe what I hope to get out of this project, both in terms of personal learning, as well as in terms of tangible results (solving some puzzles!). In chapter 2, I will do a quick recap of the different methods that I will use in the project. Chapter 3 will be dedicated to discussing the mathematics of the sliding puzzle (\textbf{SP}) and the (\textbf{RC}). I might throw a few random (but hopefully interesting) observations in there and give some references for the keen reader. I will then give an overview in chapter 4 of the code base I have developed - and put in the open on my github page (\cite{FB}) - to complete this project before detailing a few examples in chapter 5. Finally, in chapters 6 and 7, I will present all my various results on respectively the sliding puzzle and the Rubiks' cube.
 
 
 
@@ -364,6 +379,7 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 \include{Chapters/DRLSearch}
 \include{Chapters/Puzzles}
 \include{Chapters/Code}
+\include{Chapters/Examples}
 \include{Chapters/SlidingPuzzle}
 \include{Chapters/Rubiks}
 

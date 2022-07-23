@@ -30,14 +30,14 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.deep_learner
+    learner_type = Learner.deep_reinforcement_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 3600
-    nb_cpus = 1
+    nb_cpus = 5
     cpu_multiplier = 25
     max_puzzles = nb_cpus * cpu_multiplier * 10000
     regular_save = nb_cpus * cpu_multiplier * 1
@@ -57,9 +57,9 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL learner config is here ... """
-    nb_epochs = 10000
+    nb_epochs = 100000
     nb_sequences = 100
-    nb_shuffles = 60
+    nb_shuffles = 160
     training_data_every_epoch = False
     cap_target_at_network_count = True
     update_target_network_frequency = 1000
@@ -85,7 +85,7 @@ if '__main__' == __name__:
     drop_out = 0.
     """ Or for convo """
     kernel_size = (2, 2)
-    convo_layers_description = (81, 300)
+    convo_layers_description = (256, 300, 300)
     parallel_fully_connected_layers_description = (300,)
     fully_connected_layers_description = (600, 300, 100,)
     padding = 0

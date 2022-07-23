@@ -66,7 +66,7 @@ class DeepLearningHeuristic(Loggable, Heuristic):
                     short_name += '_' + long_name[long_name.find(expected_name):]
                     short_name = short_name[:short_name.find('.')]
                     break
-            short_name += '[puzzles_seen=%.2f%%]' % data[DeepReinforcementLearner.puzzles_seen_pct].iloc[-1]
+            short_name += '[puzzles_seen=%.2g%%]' % data[DeepReinforcementLearner.puzzles_seen_pct].iloc[-1]
         except FileNotFoundError:
             return None
         return short_name

@@ -510,7 +510,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 self.plot_performance()
             elif self.do_solve == self.action_type:
                 puzzle = Puzzle.factory(**self.get_config())
-                puzzle = puzzle.apply_random_moves(nb_moves=config[self.__class__.nb_shuffles])
+                nb_shuffles = config.get(self.__class__.nb_shuffles, None)
+                if nb_shuffles is not None:
+                    puzzle = puzzle.apply_random_moves(nb_moves=nb_shuffles)
                 return self.solve(puzzle)
             elif self.do_performance_test == self.action_type:
                 self.performance_test()

@@ -23,8 +23,8 @@ if '__main__' == __name__:
     action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 4
-    m = 4
+    n = 5
+    m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
@@ -58,13 +58,13 @@ if '__main__' == __name__:
     plus = True
     """ If it's a DRL learner config is here ... """
     nb_epochs = 100000
-    nb_sequences = 100
-    nb_shuffles = 160
+    nb_sequences = 50
+    nb_shuffles = 400
     training_data_every_epoch = False
     cap_target_at_network_count = True
-    update_target_network_frequency = 1000
+    update_target_network_frequency = 500
     update_target_network_threshold = 1e-3
-    max_nb_target_network_update = 100
+    max_nb_target_network_update = 300
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
     learning_rate = 1e-3

@@ -5,12 +5,14 @@
 \label{sec:Examples} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
 
 
+In this chapter, I will go through some examples, illustrating how to use the code base to learn and solve various puzzles. For each section, simple examples of code will be indicated in air force blue \afblue \textbf{python code} \black paragraphs, and can easily be run from command line or copied into a script and run from your favourite IDE.
+
+
 %-----------------------------------
 %	SECTION 1
 %-----------------------------------
 \section{Learners}
 
-Here I show how to run some examples... TBC
 
 %-----------------------------------
 %	SUBSECTION 1.1
@@ -61,14 +63,16 @@ blabla
 %	SUBSECTION 2.2
 %-----------------------------------
 \subsection{Naive Sliding Puzzle Solver}
-As a comparison point, I have implemented a naive sliding puzzle solver, which does what most beginner players would intuitively do when solving the sliding puzzle by hand: solve the top row, then the left column, and keep iterating until done. Notice that once either the top row or left column is solved, there is no longer any need to modify it, we have simply reduced the problem to a sub-problem of reduced dimension. For the interested reader, the details of the algorithm are as follows:
+As a comparison point for other sliding puzzle solvers, I have implemented a naive sliding puzzle solver, which does what most beginner players would intuitively do when solving the sliding puzzle by hand: solve the top row, then the left column, and keep iterating until done. Notice that once either the top row or left column is solved, there is no longer any need to modify it, we have simply reduced the problem to a sub-problem of reduced dimension. For the interested reader, the details of the algorithm are as follows:
 \begin{itemize}
 \item if n and m are both equal to 2, we just keep moving the empty tile clock-wise until the puzzle is solved. Notice that this is bound to work, since moving clock-wise or counter-clock-wise are the two ony possible moves, and one of them is just un-doing the other one, therefore the only possible sequence of move in a (n=2, m=2) puzzle is to either keep moving clock-wise or counter-clock-wise.
 \item if n $\geq$ m, we solve the top row
 \item otherwise we solve the left column
 \end{itemize}
 Solving the top row of a n by m puzzle (left column is similar, mutatis mutandis, so I will not detail it) is accomplished as follows:
-\begin{titlemize}{naive algorithm - top-row solver}
+\\
+\textbf{naive algorithm - top-row solver}
+\begin{enumerate}
 \item \label{s1} we sort the tiles (which since we are potentially dealing with a sub-problem, are not necessarily 1 to $m* n - 1$), and select the m smaller ones $t_{1}, ..., t_{m-1}, t_{m}$.
 \item \label{s2} we place $t_{m}$ in the bottom-left corner
 \item \label{s3} we place $t_{1}, ..., t_{m-2}$ to their respective positions (in that order, and making sure not to undo any previous steps as we do so)
@@ -76,7 +80,7 @@ Solving the top row of a n by m puzzle (left column is similar, mutatis mutandis
 \item \label{s5} we then move $t_{m}$ just under $t_{m-1}$
 \item \label{s6} we move the empty tile to the left of $t_{m-1}$
 \item \label{s7} finally we move the empty tile right and then down to put $t_{m-1}$ and $t_{m}$ in place.
-\end{titlemize}
+\end{enumerate}
 In order to move the tiles, we have written a few simple routines which can move the empty tile from its current position next to (above, below, left or right) any tile, and then can move that tile to another position, all the while avoiding to go through previously moved tiles (hence the particular order in which we move the different tiles above). The only case where the above algorithm can get stuck is when both n and m are equal to 3 and that by step \ref{s6} we end up with $t_{3}$ under the empty tile. We have handcrafted a sequence of moves to solve this particular position. Other than this one particular case, the above naive algorithm is guaranteed to succeed (and is obviously quite fast in terms of run time, though not elegant).
 \\
 \\
@@ -91,6 +95,7 @@ As a concrete example, let us assume we started with the following (n=6, m=6) pu
 \setrow{1}{8,4,15,31, ,1}
 \end{thityfive}
 \\
+\\
 After one call to solve the top row and the left column, we are left with solving the (n=5,m=5) sub-puzzle in blue:
 \\
 \begin{thityfive}
@@ -102,7 +107,8 @@ After one call to solve the top row and the left column, we are left with solvin
 \setrow{1}{11,\blue ,\blue12,\blue26,\blue34,\blue28}
 \end{thityfive}
 \\
-Let us now detail how the naive algorithm will solve the top row if that sub-puzzle:
+\\
+Let us now detail how the \textbf{naive algorithm} will solve the top row if that sub-puzzle:
 \\
 \begin{twentyfour}
 \setrow{5}{9,17,27,18,35}
@@ -111,6 +117,7 @@ Let us now detail how the naive algorithm will solve the top row if that sub-puz
 \setrow{2}{22,30,14,32,16}
 \setrow{1}{ ,12,26,34,28}
 \end{twentyfour}
+\\
 \\
 step \ref{s1} above will decide to solve the top row by placing $t_{1}, ..., t_{5}$ = $\blue 8, 9, 10, 11, 12$ in that order as the top row. Steps \ref{s2} to \ref{s7} will yield in order:
 \\
@@ -162,6 +169,7 @@ step \ref{s1} above will decide to solve the top row by placing $t_{1}, ..., t_{
 \setrow{1}{30,20,26,34,28}
 \end{twentyfour}
 \\
+\\
 and we are left with solving the bottom sub-puzzle (n=4,m=5):
 \\
 \begin{twenty}
@@ -170,6 +178,34 @@ and we are left with solving the bottom sub-puzzle (n=4,m=5):
 \setrow{2}{15,17,22,14,16}
 \setrow{1}{30,20,26,34,28}
 \end{twenty}
+
+\afblue
+\paragraph{}{\textbf{python code -- naive solver}}
+\begin{python}
+################################################
+from math import inf
+from rubiks.puzzle.puzzle import Puzzle
+from rubiks.solvers.solver import Solver
+################################################
+action_type=Solver.do_solve
+n=2
+puzzle_type=Puzzle.sliding_puzzle
+solver_type=Solver.naive
+nb_shuffles=inf
+################################################
+print(Solver.factory(**globals()).action())
+################################################
+\end{python}
+\black
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.39]{./Figures/examplenaivesolver}
+%\decoRule
+\caption[Examples]{naive solver}
+\label{fig:examplenaivesolver}
+\end{figure}
+
 
 
 %-----------------------------------

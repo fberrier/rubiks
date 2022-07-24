@@ -99,7 +99,7 @@ if '__main__' == __name__:
     """ DL learner """
     action_type = Learner.do_learn
     learner_type = Learner.deep_learner
-    nb_epochs = 1000
+    nb_epochs = 999
     learning_rate = 1e-3
     scheduler = DeepLearner.gamma_scheduler
     gamma_scheduler = 0.9999
@@ -110,19 +110,49 @@ if '__main__' == __name__:
     training_data_from_data_base = True
     nb_shuffles_min = 20
     nb_shuffles_max = 50
+    nb_sequences = 50
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
     layers_description = (100, 50, 10)
     one_hot_encoding = True
-    """ Kick-off the Deep Learner """
+    """ Kick-off the Deep Learner ... """
     learning_file_name = Learner.factory(**globals()).get_model_name()
     Learner.factory(**globals()).action()
-    """ Plot its learning """
+    """... and plot its learning data """
     action_type = Learner.do_plot
     Learner.factory(**globals()).action()
 ####################################################################
 \end{python}
 \black
+
+As can be seen in the code snipet, this example will generate 100 perfectly shuffled (n=5, m=2) SPs and solve them. Once done a summary of the training data is printed, indicating, for each optimal cost, how many sequences have been generated.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{./Figures/exampledeeplearnertraining}
+%\decoRule
+\caption[Examples]{deep learner training example}
+\label{fig:exampledeeplearnertraining}
+\end{figure}
+
+Then the Deep Learner will get trained on this data for 999 epochs. In the above example, I have chosen to fetch, every 100 epochs, 50 random sequences of puzzles from the training data. Each sequence is composed of a random puzzle of cost between 20 and 50, fetched from the training data, along with its optimal path to the solution. The default optimiser (rms\_prop) is used, together with an exponential scheduler starting with a learning rate of 0.001 and a gamma of 0.9999. We can see that the (MSE) loss on the value function decreases rapidly, and jumps back up every time we change the training data (since it has not yet seen some of it). By the end of the training, the in-sample MSE loss has dropped to 1.5 and the Deep Learner has seen 0.14\% of the possible (n=5, m=2) puzzles.
+
+\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
+\begin{landscape}
+\centering\vspace*{\fill}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.45]{./Figures/exampledeeplearnerlearning}
+%\decoRule
+\caption[Examples]{deep learner learning data example}
+\label{fig:exampledeeplearnerlearning}
+\end{figure}
+\vfill
+\end{landscape}
+\restoregeometry
+
+
+
 
 
 
@@ -276,7 +306,12 @@ and we are left with solving the bottom sub-puzzle (n=4,m=5):
 \setrow{2}{15,17,22,14,16}
 \setrow{1}{30,20,26,34,28}
 \end{twenty}
-
+\\
+\\
+which the naive solver can keep solving iteratively by taking care of the left-most column, etc...
+\\
+\\
+Below is a simple code snipet to run the naive solver on a randomly generated (n=2, m=2) SP:
 \afblue
 \paragraph{}{\textbf{python code -- naive solver}}
 \begin{python}

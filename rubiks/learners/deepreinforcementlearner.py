@@ -5,6 +5,7 @@ from enum import Enum
 from functools import partial
 from itertools import cycle
 from matplotlib import pyplot as plt
+from math import inf
 from multiprocessing import Pool
 from os.path import isfile
 from pandas import concat, DataFrame, Series, read_pickle

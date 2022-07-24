@@ -18,13 +18,13 @@ if '__main__' == __name__:
     time_out = 600
     nb_shuffles = inf
     nb_sequences = 100
-    TrainingData(**globals()).generate(**globals())
+    #TrainingData(**globals()).generate(**globals())
     """ DL learner """
     action_type = Learner.do_learn
     learner_type = Learner.deep_learner
-    nb_epochs = 1000
+    nb_epochs = 999
     learning_rate = 1e-3
-    scheduler = DeepLearner.gamma_scheduler
+    scheduler = DeepLearner.exponential_scheduler
     gamma_scheduler = 0.9999
     save_at_each_epoch = False
     threshold = 0.01
@@ -33,13 +33,14 @@ if '__main__' == __name__:
     training_data_from_data_base = True
     nb_shuffles_min = 20
     nb_shuffles_max = 50
+    nb_sequences = 50
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
     layers_description = (100, 50, 10)
     one_hot_encoding = True
     """ Kick-off the Deep Learner """
     learning_file_name = Learner.factory(**globals()).get_model_name()
-    Learner.factory(**globals()).action()
+    #Learner.factory(**globals()).action()
     """ Plot its learning """
     action_type = Learner.do_plot
     Learner.factory(**globals()).action()

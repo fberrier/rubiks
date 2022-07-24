@@ -101,7 +101,8 @@ if '__main__' == __name__:
     learner_type = Learner.deep_learner
     nb_epochs = 999
     learning_rate = 1e-3
-    scheduler = DeepLearner.gamma_scheduler
+    optimiser = DeepLearner.rms_prop
+    scheduler = DeepLearner.exponential_scheduler
     gamma_scheduler = 0.9999
     save_at_each_epoch = False
     threshold = 0.01
@@ -115,17 +116,17 @@ if '__main__' == __name__:
     network_type = DeepLearning.fully_connected_net
     layers_description = (100, 50, 10)
     one_hot_encoding = True
-    """ Kick-off the Deep Learner ... """
+    """ Kick-off the Deep Learner """
     learning_file_name = Learner.factory(**globals()).get_model_name()
     Learner.factory(**globals()).action()
-    """... and plot its learning data """
+    """ Plot its learning """
     action_type = Learner.do_plot
     Learner.factory(**globals()).action()
 ####################################################################
 \end{python}
 \black
 
-As can be seen in the code snipet, this example will generate 100 perfectly shuffled (n=5, m=2) SPs and solve them. Once done a summary of the training data is printed, indicating, for each optimal cost, how many sequences have been generated.
+As can be seen in the code snipet, this example will generate 100 perfectly shuffled (n=5, m=2) SPs and solve them. Once done, a summary of the training data is printed, indicating, for each optimal cost, how many sequences have been generated.
 
 \begin{figure}[H]
 \centering
@@ -162,7 +163,74 @@ Then the Deep Learner will get trained on this data for 999 epochs. In the above
 \subsection{Deep Reinforcement Learner}
 \label{DRLSS}
 
-blabla
+Unlike the Deep Learner, the Deep Reinforcement Learner learns unsupervised (in the sense that there is no need to pre-solve puzzles to tell if what the desired costs are), since it generates its own target using a combination of a target network and the simple min rule described in \ref{sec:codelearners}. Let us see here how to run it on the (n=4, m=2) SP for instance. The following code snipet will run a Deep Reinforcement Learner for a maximum of 25,000 epochs, generating randomly 10 sequences of puzzles shuffled 50 times from goal state every time it updates the target network. That update will happen either after 500 epochs or when the (MSE) loss on the value function gets under one thousands of the max target value. The learner will stop if it reaches 25,000 epochs or if the target network updates 40 times. The network trained is a fully connected network with 3 hidden layers and the puzzles are one-hot encoded. We use the same optimiser and scheduler as in the previous subsection.
+
+\afblue
+\paragraph{}{\textbf{python code -- deep reinforcement learner}}
+\begin{python}
+####################################################################
+from rubiks.deeplearning.deeplearning import DeepLearning
+from rubiks.learners.learner import Learner
+from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
+from rubiks.puzzle.puzzle import Puzzle
+####################################################################
+if '__main__' == __name__:
+    puzzle_type = Puzzle.sliding_puzzle
+    n = 4
+    m = 2
+    """ Generate training data - 100 sequences of fully 
+    solved perfectly shuffled puzzles. 
+    """
+    nb_cpus = 4
+    """ DRL learner """
+    action_type = Learner.do_learn
+    learner_type = Learner.deep_reinforcement_learner
+    nb_epochs = 25000
+    nb_shuffles = 50
+    nb_sequences = 10
+    training_data_every_epoch = False
+    cap_target_at_network_count = True
+    update_target_network_frequency = 500
+    update_target_network_threshold = 1e-3
+    max_nb_target_network_update = 40
+    max_target_not_increasing_epochs_pct = 0.5
+    max_target_uptick = 0.01
+    learning_rate = 1e-3
+    scheduler = DeepReinforcementLearner.exponential_scheduler
+    gamma_scheduler = 0.9999
+    """ ... and its network config """
+    network_type = DeepLearning.fully_connected_net
+    layers_description = (128, 64, 32)
+    one_hot_encoding = True
+    """ Kick-off the Deep Reinforcement Learner ... """
+    learning_file_name = Learner.factory(**globals()).get_model_name()
+    Learner.factory(**globals()).action()
+    """ ... and plot its learning data """
+    action_type = Learner.do_plot
+    Learner.factory(**globals()).action()
+####################################################################
+\end{python}
+\black
+As can be seen on the next page, which I obtained from running the above code snipet (keep in mind that every run is going to be slightly different due to the random puzzles being generated), the training stopped after about 17,100 epochs as the 40 target network updates had been reached. By that point, the DRL learner had seen 40\% of the possible puzzles, and the very last MSE loss (after update, so out-of-sample) was around 0.4, corresponding to 2\% of the max target cost. It is interesting to notice that since I have shuffled the sequences only 50 times, and since the (n=4, m=2) is quite constrained in terms of possible moves, the max target ever produced by the network was only around 25, whereas we know the the God number of this dimension is 36. It is therefore likely that the resulting network would not produce very optimal solutions for puzzles whose cost is in the region [25, 36]. 
+
+
+\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
+\begin{landscape}
+\centering\vspace*{\fill}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.55]{./Figures/exampledeepreinforcementlearnerlearning}
+%\decoRule
+\caption[Examples]{deep reinforcement learner learning data example}
+\label{fig:exampledeepreinforcementlearnerlearning}
+\end{figure}
+\vfill
+\end{landscape}
+\restoregeometry
+
+
+
+
 
 %-----------------------------------
 %	SECTION 2

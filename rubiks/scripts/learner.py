@@ -68,7 +68,7 @@ if '__main__' == __name__:
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
     learning_rate = 1e-3
-    scheduler = DeepReinforcementLearner.gamma_scheduler
+    scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
     """ DL learner """
     save_at_each_epoch = False

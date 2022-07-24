@@ -66,7 +66,8 @@ class TrainingData(Loggable, Puzzled):
                  nb_shuffles,
                  nb_sequences,
                  min_no_loop=None,
-                 repeat=1):
+                 repeat=1,
+                 **kw_args):
         pool = Pool(min(self.nb_cpus, nb_sequences))
         interrupted = False
         try:

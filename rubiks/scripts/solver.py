@@ -34,7 +34,7 @@ if '__main__' == __name__:
     """ For performance test """
     nb_samples = 100
     min_nb_shuffles = 0
-    max_nb_shuffles = 60
+    max_nb_shuffles = 40
     step_nb_shuffles = 5
     add_perfect_shuffle = False
     nb_cpus = 4

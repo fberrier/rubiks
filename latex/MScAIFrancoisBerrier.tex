@@ -223,31 +223,6 @@ headsepline, % Uncomment to get a line under the header
 \end{center}
 \end{titlepage}
 
-%----------------------------------------------------------------------------------------
-%	DECLARATION PAGE
-%----------------------------------------------------------------------------------------
-
-%\begin{declaration}
-%\addchaptertocentry{\authorshipname} % Add the declaration to the table of contents
-%\noindent I, \authorname, declare that this thesis titled, \enquote{\ttitle} and the work presented in it are my own. I confirm that:
-
-%\begin{itemize} 
-%\item This work was done wholly or mainly while in candidature for a research degree at this University.
-%\item Where any part of this thesis has previously been submitted for a degree or any other qualification at this University or any other institution, this has been clearly stated.
-%\item Where I have consulted the published work of others, this is always clearly attributed.
-%\item Where I have quoted from the work of others, the source is always given. With the exception of such quotations, this thesis is entirely my own work.
-%\item I have acknowledged all main sources of help.
-%\item Where the thesis is based on work done by myself jointly with others, I have made clear exactly what was done by others and what I have contributed myself.\\
-%\end{itemize}
- 
-%\noindent Signed:\\
-%\rule[0.5em]{25em}{0.5pt} % This prints a line for the signature
- 
-%\noindent Date:\\
-%\rule[0.5em]{25em}{0.5pt} % This prints a line to write the date
-%\end{declaration}
-
-%\cleardoublepage
 
 %----------------------------------------------------------------------------------------
 %	QUOTATION PAGE
@@ -269,7 +244,7 @@ headsepline, % Uncomment to get a line under the header
 \\
 Reinforcement Learning (\textbf{RL}), exposed with brilliant clarity in the Sutton book (\cite{Sutton1998}), has until recently known less success than we might have hoped for. Its framework is very appealing and intuitive. In particular, the mathematical beauty of Value iteration and Q iteration (\cite{WatkinsThesis}) for discrete state and action spaces, blindly iterating from \textit{any} initial value, is quite profound. Sadly, it had until recently proven hard to achieve practical success with these methods.
 \\
-Inspired however by the seminal success of Deep Mind's team in using Deep Reinforcement Learning (\textbf{DRL}) to play Atari games (\cite{Mnih2013})  and to master the game of Go (\cite{AlphaGo}), researchers have in recent years made a lot of progress towards designing algorithms capable of learning and solving, \textit{without human knowledge}, the Rubiks Cube (\textbf{RC}) - as well as similar single player puzzles - by using Deep Q-Learning (\textbf{DQR})  (\cite{DBLP:journals/corr/abs-1805-07470}) or search and (\textbf{DRL}) value iteration (\cite{https://doi.org/10.48550/arxiv.1805.07470}).
+Inspired however by the seminal success of Deep Mind's team in using Deep Reinforcement Learning (\textbf{DRL}) to play Atari games (\cite{Mnih2013})  and to master the game of Go (\cite{AlphaGo}), researchers have in recent years made a lot of progress towards designing algorithms capable of learning and solving, \textit{without human knowledge}, the Rubiks Cube (\textbf{RC}) - as well as similar single player puzzles - by using Deep Q-Learning (\textbf{DQL})  (\cite{DBLP:journals/corr/abs-1805-07470}) or search and (\textbf{DRL}) value iteration (\cite{https://doi.org/10.48550/arxiv.1805.07470}).
 \\
 In this project, I will attempt to implement a variety of solvers combining $A^{*}$ search and heuristics, some of which will be handcrafted, others which I will train on randomly generated sequences of puzzles using (\textbf{DL}) or (\textbf{DRL}), to solve the 15-puzzle (and variations of different dimensions), as well as the Rubik's cube.
 \\
@@ -306,7 +281,6 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 %	LIST OF CONTENTS/FIGURES/TABLES PAGES
 %----------------------------------------------------------------------------------------
 
-\tableofcontents % Prints the main table of contents
 
 %\listoffigures % Prints the list of figures
 
@@ -319,19 +293,24 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 \begin{abbreviations}{ll} % Include a list of abbreviations (a table of two columns)
 
 \textbf{AIPnT} & \textbf{A}rtificial \textbf{I}ntelligence \textbf{P}rinciples and \textbf{T}echniques\\
+\textbf{BFS} & \textbf{B}readth \textbf{F}irst \textbf{S}earch\\
 \textbf{CS} & \textbf{C}omputer \textbf{S}cience\\
 \textbf{CV} & \textbf{C}omputer \textbf{V}ision\\
+\textbf{DFS} & \textbf{D}epth \textbf{F}irst \textbf{S}earch\\
 \textbf{DL} & \textbf{D}eep \textbf{L}earning\\
 \textbf{DQL} & \textbf{D}eep \textbf{Q}-\textbf{L}earning\\
 \textbf{DRL} & \textbf{D}eep \textbf{R}einforcment \textbf{L}earning\\
 \textbf{ML} & \textbf{M}achine \textbf{L}earning\\
 \textbf{NLP} & \textbf{N}atural \textbf{L}anguage \textbf{P}rocessing\\
 \textbf{RC} & \textbf{R}ubiks' \textbf{C}ube\\
-\textbf{RL} & \textbf{R}einforcment \textbf{L}earning\\
+\textbf{RL} & \textbf{R}einforcement \textbf{L}earning\\
 \textbf{RHUL} & \textbf{R}oyal \textbf{H}olloway, \textbf{U}niversity of \textbf{L}ondon\\
 \textbf{SP} & \textbf{S}liding \textbf{P}uzzle\\
 
 \end{abbreviations}
+
+
+\tableofcontents % Prints the main table of contents
 
 %----------------------------------------------------------------------------------------
 %	PHYSICAL CONSTANTS/OTHER DEFINITIONS

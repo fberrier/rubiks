@@ -1,6 +1,9 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
+from os import environ
+environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.heuristics.heuristic import Heuristic
@@ -11,7 +14,6 @@ from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.utils.utils import get_model_file_name
 ########################################################################################################################
-
 
 if '__main__' == __name__:
     """ Just create a logger to print some stuff in this script """
@@ -24,7 +26,7 @@ if '__main__' == __name__:
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 2
-    m = 6
+    m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
@@ -39,7 +41,7 @@ if '__main__' == __name__:
     time_out = 3600
     nb_cpus = 4
     cpu_multiplier = 25
-    max_puzzles = nb_cpus * cpu_multiplier * 10000
+    max_puzzles = nb_cpus * cpu_multiplier * 100000
     regular_save = nb_cpus * cpu_multiplier * 1
     save_timed_out_max_puzzles = 100000
     after_round_save = True

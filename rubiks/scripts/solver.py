@@ -23,7 +23,7 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 4
@@ -32,12 +32,12 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 100
-    min_nb_shuffles = 0
-    max_nb_shuffles = 40
+    nb_samples = 10
+    min_nb_shuffles = 50
+    max_nb_shuffles = 60
     step_nb_shuffles = 5
     add_perfect_shuffle = False
-    nb_cpus = 4
+    nb_cpus = 1
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True

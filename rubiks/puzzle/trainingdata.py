@@ -66,7 +66,10 @@ class TrainingData(Loggable, Puzzled):
                  nb_shuffles,
                  nb_sequences,
                  min_no_loop=None,
-                 repeat=1):
+                 repeat=1,
+                 **kw_args):
+        if nb_sequences <= 0:
+            return
         pool = Pool(min(self.nb_cpus, nb_sequences))
         interrupted = False
         try:
@@ -114,7 +117,15 @@ class TrainingData(Loggable, Puzzled):
 
     def get(self, nb_shuffles):
         data = self.data[self.solutions_tag]
-        nb_shuffles = min(nb_shuffles, max(k for k in data.keys() if k < nb_shuffles))
+        if nb_shuffles not in data.keys():
+            min_k = min(data.keys())
+            max_k = max(data.keys())
+            if nb_shuffles > max_k:
+                nb_shuffles = max_k
+            elif nb_shuffles < min_k:
+                nb_shuffles = min_k
+            else:
+                nb_shuffles = min(k for k in data.keys() if k < nb_shuffles)
         if nb_shuffles not in self.counts:
             self.counts[nb_shuffles] = 0
         count = self.counts[nb_shuffles]

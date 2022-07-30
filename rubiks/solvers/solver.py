@@ -123,6 +123,11 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         try:
             if self.shuffles_data and index >= 0:
                 puzzle = self.shuffles_data[nb_shuffles][index][0]
+                if 3 <= len(self.shuffles_data[nb_shuffles][index]) and \
+                        self.get_name() in self.shuffles_data[nb_shuffles][index][2] and \
+                        not self.shuffles_data[nb_shuffles][index][2][self.get_name()].failed():
+                    print('Already solved this one ', puzzle, ' with ', self.get_name())
+                    return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
@@ -133,11 +138,21 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             assert isinstance(solution.path, list)
             assert all(isinstance(move, self.get_goal().get_move_type()) for move in solution.path)
             assert isnan(solution.expanded_nodes) or isinstance(solution.expanded_nodes, int)
+            if solution.failed():
+                print('failed to solve ', puzzle, ' # ', index)
+            else:
+                print('solved ',
+                      puzzle,
+                      ' # ',
+                      index,
+                      ' with cost ',
+                      solution.cost,
+                      ' in ',
+                      s_format(run_time))
         except Exception as error:
-            if error is not RecursionError:
-                self.log_error(error, '. nb_shuffles = ', nb_shuffles, '. index=', index)
             solution = Solution.failure(puzzle)
             solution.set_run_time(self.time_out)
+            print('Failed to solve ', puzzle, ': ', error)
         solution.set_additional_info(index=index)
         return solution
 
@@ -325,10 +340,12 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     required = max(0, self.nb_samples - len(self.shuffles_data[nb_shuffles]))
                 else:
                     required = self.nb_samples
-                    self.shuffles_data[nb_shuffles] = []
+                    self.shuffles_data[nb_shuffles] = list()
                 new_shuffles = [(goal.apply_random_moves(nb_moves=nb_shuffles,
                                                          min_no_loop=nb_shuffles),
-                                 inf) for r in range(required)]
+                                 inf,
+                                 dict(),
+                                 ) for _ in range(required)]
                 self.shuffles_data[nb_shuffles].extend(new_shuffles)
                 if required > 0:
                     self.log_info('Saved %d more (overall %d) random puzzles for [%s, nb_shuffles=%s]' %
@@ -374,6 +391,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 timed_out = solution.time_out
                 index = solution.additional_info.get('index')
                 assert cost < 0 or isinf(cost) or cost == len(path), 'WTF?'
+                if len(self.shuffles_data[nb_shuffles][index]) < 3:
+                    self.shuffles_data[nb_shuffles][index] = (self.shuffles_data[nb_shuffles][index][0],
+                                                              self.shuffles_data[nb_shuffles][index][1],
+                                                              dict())
                 if timed_out:
                     consecutive_timeout += 1
                     nb_timeout += 1
@@ -386,7 +407,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                                                                                       stored_cost,
                                                                                                       solution.puzzle)
                             self.shuffles_data[nb_shuffles][index] = (self.shuffles_data[nb_shuffles][index][0],
-                                                                      cost)
+                                                                      cost,
+                                                                      self.shuffles_data[nb_shuffles][index][2])
                         optimal_cost = cost
                         self.log_debug('Setting up optimal cost for nb_shuffles=',
                                        nb_shuffles,
@@ -396,6 +418,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                        optimal_cost)
                     if self.shuffles_data:
                         optimal_cost = self.shuffles_data[nb_shuffles][index][1]
+                    self.shuffles_data[nb_shuffles][index][2][self.get_name()] = solution
                     if cost > optimal_cost:
                         nb_not_optimal += 1
                         self.log_debug('not optimal (cost=', cost, ' vs optimal=', optimal_cost, ')')
@@ -443,7 +466,13 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
             res[cls.pct_solved] = int(100 * nb_solved / self.nb_samples)
             res[cls.pct_optimal] = int(100 * (sample - nb_not_optimal) / self.nb_samples)
-            res[cls.optimality_score] = int(100 * sum(optimal_cost_list) / sum(cost_list))
+            optimality_score = [0, 0]
+            for opt_c, c in zip(optimal_cost_list, cost_list):
+                if isnan(opt_c) or isinf(opt_c) or isnan(c) or isinf(c):
+                    continue
+                optimality_score[0] += opt_c
+                optimality_score[1] += c
+            res[cls.optimality_score] = int(100 * optimality_score[0] / optimality_score[1])
             performance = concat([performance,
                                   Series(res).to_frame().transpose()],
                                  ignore_index=True)
@@ -481,7 +510,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 self.plot_performance()
             elif self.do_solve == self.action_type:
                 puzzle = Puzzle.factory(**self.get_config())
-                puzzle = puzzle.apply_random_moves(nb_moves=config[self.__class__.nb_shuffles])
+                nb_shuffles = config.get(self.__class__.nb_shuffles, None)
+                if nb_shuffles is not None:
+                    puzzle = puzzle.apply_random_moves(nb_moves=nb_shuffles)
                 return self.solve(puzzle)
             elif self.do_performance_test == self.action_type:
                 self.performance_test()
@@ -557,8 +588,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         plt.axis('off')
         title = pformat(title)
         plt.title(title, fontname='Consolas')
-        n_rows = ceil(len(y) / 3)
-        n_cols = min(3, len(y))
+        n_cols = ceil(len(y) / 2)
+        n_rows = ceil(len(y) / n_cols)
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
@@ -566,7 +597,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
         labels_shown = False
         for r, c in product(range(n_rows), range(n_cols)):
-            index = r * 3 + c
+            index = r * n_cols + c
             if index >= len(y):
                 continue
             what = y[index]
@@ -598,7 +629,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if what in [cls.pct_solved] and not labels_shown:
                 """ Ideally we can show the labels on one of these so we don't have to
                 display at top where it might overlap with the title. """
-                bax.legend(loc='best')
+                bax.legend(loc='center')
                 labels_shown = True
         if not labels_shown:
             fig.legend(handles, labels, loc='upper center')

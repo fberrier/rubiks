@@ -19,9 +19,12 @@ digraph g {
     nodepytorch [label="Module", fillcolor=antiquewhite4]
 	# UTILS
 	nodeutils [label="utils",shape=rectangle]
+	# UNITESTS
+	nodeunittests [label="unittests",shape=rectangle]
 	# 3rd PARTIES
 	nodebrokenaxes [label="brokenaxes",shape=rectangle, fillcolor=antiquewhite4]
 	# SCRIPTS
+	nodescripttrainingdata [label="trainingdata",shape=rectangle]
 	nodescriptlearner [label="learner",shape=rectangle]
 	nodescriptsolver [label="solver",shape=rectangle]
 	# LEGEND
@@ -49,10 +52,12 @@ digraph g {
 	# DEEPLEARNING
     nodedeeplearning [label="DeepLearning", fillcolor=cadetblue4]
     nodefullyconnected [label="FullyConnected"]
+    nodeconvolutional [label="Convolutional"]
 	# LEARNERS
 	nodelearner [label="Learner", fillcolor=cadetblue4]
 	nodeperfectlearner [label="PerfectLearner"]
 	nodedeepreinforcementlearner [label="DeepReinforcementLearner"]
+	nodedeeplearner [label="DeepLearner"]
 	# SOLVERS
 	nodesolver [label="Solver", fillcolor=cadetblue4]
 	nodesolution [label="Solution"]
@@ -80,6 +85,7 @@ digraph g {
 		# SCRIPTS
 		subgraph clusterScripts {
 			label="scripts"
+			nodescripttrainingdata
 			nodescriptlearner
 			nodescriptsolver
 		}
@@ -92,6 +98,11 @@ digraph g {
 		subgraph clusterUtils {
 			label="utils"
 			nodeutils
+		}
+		# UTILS
+		subgraph clusterUnittests {
+			label="unittests"
+			nodeunittests
 		}
 		# PYTORCH
 		subgraph clusterPytorch {
@@ -167,7 +178,9 @@ digraph g {
 			label="deeplearning"
 			nodedeeplearning
 			nodefullyconnected [fillcolor=violetred4]
+			nodeconvolutional [fillcolor=violetred4]
 			nodedeeplearning -> nodefullyconnected
+			nodedeeplearning -> nodeconvolutional
 		}
 		nodepytorch -> nodedeeplearning
 		nodecorefactory -> nodedeeplearning
@@ -180,8 +193,10 @@ digraph g {
 			label="learners"
 			nodelearner
 			nodeperfectlearner
+			nodedeeplearner [fillcolor=violetred4]
 			nodedeepreinforcementlearner [fillcolor=violetred4]
 			nodelearner -> nodeperfectlearner
+			nodelearner -> nodedeeplearner
 			nodelearner -> nodedeepreinforcementlearner
 		}
 		nodepuzzled -> nodelearner
@@ -212,13 +227,19 @@ digraph g {
 		nodeastar-> nodestarsolver [style=dashed, arrowhead=none]
 
 
+		nodedeeplearning -> nodedeeplearner [style=dashed, arrowhead=none]
+		nodedeeplearning -> nodedeepreinforcementlearner [style=dashed, arrowhead=none]
+
+
 		nodelegendfactories -> nodeutils [constraint=true,color=red, style=invis ];
+		nodelegendfactories -> nodeunittests [constraint=true,color=red, style=invis ];
 		nodelegendfactories -> nodebrokenaxes [constraint=true,color=red, style=invis ];
 		nodelegendfactories -> nodepytorch [constraint=true,color=red, style=invis ];
 		nodelegendfactories -> nodescriptlearner [constraint=true,color=red, style=invis ];
 		nodeutils -> nodecorefactory [constraint=true,color=red, style=invis ];
 		nodeutils -> nodecoreloggable [constraint=true,color=red, style=invis ];
 		nodeutils -> nodecoreparsable [constraint=true,color=red, style=invis ];
+		nodelegendfactories -> nodeunittests [constraint=true,color=red, style=invis ];
 		nodesbfs -> nodedeeplearning [constraint=true,color=red, style=invis ];
 		nodesbfs -> nodelearner [constraint=true,color=red, style=invis ];
 		nodesbfs -> nodesolver [constraint=true,color=red, style=invis ];

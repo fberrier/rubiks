@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.learner import Learner
-from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, get_model_file_name, snake_case, billion
+from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, get_model_file_name, snake_case, billion, isinf
 ########################################################################################################################
 
 
@@ -162,12 +162,18 @@ class DeepReinforcementLearner(Learner):
         return list()
 
     def get_model_name(self):
+        if isinstance(self.nb_shuffles, (int, float)) and not isinf(self.nb_shuffles):
+            nb_shuffles = ['%dshf' % int(self.nb_shuffles)]
+        elif isinf(self.nb_shuffles):
+            nb_shuffles = []
+        else:
+            assert False, 'Unknown type for nb_shuffles [%s]' % self.nb_shuffles
         details = '_'.join([snake_case(self.__class__.__name__),
                             self.optimiser,
                             self.scheduler,
                             '%dgamma' % int(self.gamma_scheduler * billion),
                             '%dseq' % int(self.nb_sequences),
-                            '%dshf' % int(self.nb_shuffles),
+                            *nb_shuffles,
                             '%depc' % int(self.nb_epochs),
                             'tng_' + ('epoch' if self.training_data_every_epoch else 'ntk_updt'),
                             *self.more_model_name(),

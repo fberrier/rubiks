@@ -32,14 +32,14 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.perfect_learner
+    learner_type = Learner.deep_reinforcement_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 3600
-    nb_cpus = 4
+    nb_cpus = 5
     cpu_multiplier = 25
     max_puzzles = nb_cpus * cpu_multiplier * 100000
     regular_save = nb_cpus * cpu_multiplier * 1
@@ -60,26 +60,26 @@ if '__main__' == __name__:
     plus = True
     """ If it's a DRL learner config is here ... """
     nb_epochs = 100000
-    nb_sequences = 150
-    nb_shuffles = 75
+    nb_sequences = 50
+    nb_shuffles = 400
     training_data_every_epoch = False
     cap_target_at_network_count = True
-    update_target_network_frequency = 1000
+    update_target_network_frequency = 500
     update_target_network_threshold = 1e-3
-    max_nb_target_network_update = 100
+    max_nb_target_network_update = 300
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
     learning_rate = 1e-3
-    scheduler = DeepReinforcementLearner.gamma_scheduler
+    scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
     """ DL learner """
     save_at_each_epoch = False
-    threshold = 0.005
+    threshold = 0.01
     training_data_freq = 1000
     high_target = nb_shuffles + 1
     training_data_from_data_base = True
-    nb_shuffles_min = 37
-    nb_shuffles_max = 47
+    nb_shuffles_min = 40
+    nb_shuffles_max = 60
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
@@ -87,7 +87,7 @@ if '__main__' == __name__:
     drop_out = 0.
     """ Or for convo """
     kernel_size = (2, 2)
-    convo_layers_description = (81, 300)
+    convo_layers_description = (256, 300, 300)
     parallel_fully_connected_layers_description = (300,)
     fully_connected_layers_description = (600, 300, 100,)
     padding = 0

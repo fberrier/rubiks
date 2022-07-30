@@ -82,4 +82,11 @@ class Solution:
     def __repr__(self):
         return self.to_str()
 
+    def get_path(self):
+        puzzles = [self.puzzle]
+        for move in self.path:
+            puzzle = puzzles[-1].apply(move)
+            puzzles.append(puzzle)
+        return puzzles
+
 ########################################################################################################################

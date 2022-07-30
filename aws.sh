@@ -10,3 +10,11 @@ curl --output anaconda.sh https://repo.anaconda.com/archive/Anaconda3-5.3.1-Linu
 bash anaconda.sh
 cd
 source .bashrc
+
+cd
+pip install -e rubiks
+conda create -n rubiks python=3.8
+conda activate rubiks
+conda install coloredlogs tabulate pandas numpy -y
+conda install -c pytorch pytorch -y
+

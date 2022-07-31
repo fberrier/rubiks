@@ -23,21 +23,21 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_plot
+    action_type = Solver.do_performance_test
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 4
-    m = 4
+    n = 2
+    m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 10
-    min_nb_shuffles = 50
+    nb_samples = 100
+    min_nb_shuffles = 0
     max_nb_shuffles = 60
     step_nb_shuffles = 5
-    add_perfect_shuffle = False
-    nb_cpus = 1
+    add_perfect_shuffle = True
+    nb_cpus = 16
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
@@ -58,7 +58,7 @@ if '__main__' == __name__:
                            } """
     solver_type = Solver.astar
     limit = 12
-    time_out = 3600
+    time_out = 7200
     log_solution = True
     check_optimal = True
     max_consecutive_timeout = 25
@@ -66,9 +66,9 @@ if '__main__' == __name__:
                          Heuristic.perfect,
                          Heuristic.deep_learning,
                          } """
-    heuristic_type = Heuristic.deep_learning
+    heuristic_type = Heuristic.manhattan
     """ If manhattan """
-    plus = True
+    plus = False
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
                                              DeepLearning.convolutional_net} """
     learner_type = Learner.deep_reinforcement_learner

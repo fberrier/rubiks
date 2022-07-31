@@ -28,14 +28,17 @@ I obtained the following God numbers for these puzzles:
 \begin{tabular}{l*{6}{c}r}
 n              & m & 2 & 3 & 4 & 5\\
 \hline
-2              &   & 6 & 21 & 36 & 51* \\
+2              &   & 6 & 21 & 36 & 53* \\
 3              &   &   & 31 &  &    \\
 \end{tabular}
 \end{center}
 * provisional result
 \\
 \\
-and the most difficult puzzles (requiring a number of steps equal to their respective God number to solves):
+Notice that among the above dimensions, (n=2, m=5) is the largest and hardest one. I had to run its PerfectLearner over a couple of days, on a c5.18xlarge instance (72 cores) on Amazon EC2.
+\\
+\\
+The perfectLearner also keeps track of (one of) the hardest puzzles it has encountered (i.e. requiring a number of steps equal to their respective God number to solves):
 \\
 \\
 \underline{Most difficult 2x2 (6 moves)}:
@@ -59,11 +62,11 @@ and the most difficult puzzles (requiring a number of steps equal to their respe
 \setrow{1}{4,3,6,5}
 \end{seven}
 \end{center}
-\underline{Most difficult 2x5 (51* moves)}:
+\underline{Most difficult 2x5 (53* moves)}:
 \begin{center}
 \begin{nine}
-\setrow{2}{,3,4,2,6}
-\setrow{1}{5,9,8,7,1}
+\setrow{2}{,4,9,2,1}
+\setrow{1}{5,8,3,7,6}
 \end{nine}
 \end{center}
 * provisional result

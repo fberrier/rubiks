@@ -1,17 +1,19 @@
 ####################################################################
-from rubiks.solvers.solver import Solver
+from rubiks.heuristics.heuristic import Heuristic
 from rubiks.puzzle.puzzle import Puzzle
+from rubiks.solvers.solver import Solver, Solution
 ####################################################################
 if '__main__' == __name__:
     puzzle_type = Puzzle.sliding_puzzle
-    n=3
-    m=3
-    nb_shuffles=8
-    limit=15
-    time_out=60
-    solver_type=Solver.dfs
-    check_optimal=True
-    log_solution=True
+    tiles=[[3, 8, 6], [4, 1, 5], [0, 7, 2]]
+    solver_type=Solver.astar
+    heuristic_type=Heuristic.manhattan
+    plus=True
     action_type=Solver.do_solve
-    Solver.factory(**globals()).action()
+    print(Solver.factory(**globals()).action().to_str([Solution.puzzle,
+                                                       Solution.cost,
+                                                       Solution.expanded_nodes,
+                                                       Solution.success,
+                                                       Solution.solver_name,
+                                                       Solution.run_time]))
 ####################################################################

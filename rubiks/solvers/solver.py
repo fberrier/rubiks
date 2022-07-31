@@ -492,7 +492,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                   cls.puzzle_type,
                   cls.puzzle_dimension,
                   cls.nb_shuffles]
-        performance = performance.drop_duplicates(subset=subset).sort_values(subset)
+        performance = performance.sort_values(subset).drop_duplicates(subset=subset)
         if self.performance_file_name:
             to_pickle(performance, self.performance_file_name)
             self.log_info('Saved ',

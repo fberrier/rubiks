@@ -59,7 +59,7 @@ class TestHeuristics(TestCase):
         self.assertEqual(16, cost)
         self.assertEqual(16, cost_plus)
 
-    def manhattan_plus_check(self, name, n, m=None):
+    def manhattan_plus_check(self, name, n, m=None, modulo=100):
         logger = Loggable(name=name)
         manhattan = Solver.factory(solver_type=Solver.astar,
                                    heuristic_type=Heuristic.manhattan,
@@ -87,8 +87,9 @@ class TestHeuristics(TestCase):
                              'manhattan = %d, manhattan+ = %d for %s' % (solution.cost,
                                                                          solution_plus.cost,
                                                                          sliding_puzzle))
-            if 0 == count % 100:
-                logger.log_info('Checked ', count, ' puzzles')
+            if 0 == count % modulo:
+                logger.log_info('Checked', count, 'puzzles')
+        logger.log_info('Checked', count, 'puzzles')
 
     def test_manhattan_distance_2_2_plus(self):
         self.manhattan_plus_check('test_manhattan_distance_2_2_plus', n=2, m=2)
@@ -97,10 +98,13 @@ class TestHeuristics(TestCase):
         self.manhattan_plus_check('test_manhattan_distance_2_2_plus', n=2, m=3)
 
     def test_manhattan_distance_2_4_plus(self):
-        self.manhattan_plus_check('test_manhattan_distance_2_2_plus', n=2, m=4)
+        self.manhattan_plus_check('test_manhattan_distance_2_4_plus', n=2, m=4)
+
+    def test_manhattan_distance_2_5_plus(self):
+        self.manhattan_plus_check('test_manhattan_distance_2_5_plus', n=2, m=5, modulo=1)
 
     def test_manhattan_distance_3_3_plus(self):
-        self.manhattan_plus_check('test_manhattan_distance_2_2_plus', n=3, m=3)
+        self.manhattan_plus_check('test_manhattan_distance_3_3_plus', n=3, m=3)
 
     def test_something(self):
         logger = Loggable(name='test_something')

@@ -490,12 +490,56 @@ TBI \& TBD
 \subsection{A*}
 \label{ASSS}
 
-\textbf{manhattan heuristic}
+\subsubsection{Manhattan heuristic}
 
-\textbf{perfect heuristic}
 
-\textbf{deep learning heuristic}
 
-\textbf{deep reinforcement learning heuristic}
+\afblue
+\paragraph{}{\textbf{python code -- depth first search solver}}
+\begin{python}
+####################################################################
+from rubiks.heuristics.heuristic import Heuristic
+from rubiks.puzzle.puzzle import Puzzle
+from rubiks.solvers.solver import Solver, Solution
+####################################################################
+if '__main__' == __name__:
+    puzzle_type = Puzzle.sliding_puzzle
+    tiles=[[3, 8, 6], [4, 1, 5], [0, 7, 2]]
+    solver_type=Solver.astar
+    heuristic_type=Heuristic.manhattan
+    plus=False
+    action_type=Solver.do_solve
+    print(Solver.factory(**globals()).action().to_str([Solution.puzzle,
+                                                       Solution.cost,
+                                                       Solution.expanded_nodes,
+                                                       Solution.success,
+                                                       Solution.solver_name,
+                                                       Solution.run_time]))
+####################################################################
+\end{python}
+\black
+We run this example twice, one with simple Manhattan and one with Manhattan++. As can be seen from the output below, the Manhattan++ improves on the number of expanded nodes (as expected, since the heuristic is less optimistic while retaining its optimality property). As we have seen before, the overhead of adding penalty for the linear constraint (which have all been precomputed and stored in a database) is more than compensated for by the reduction in node expansion!
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.39]{./Figures/exampleastarmanhattansolver}
+%\decoRule
+\caption[Examples]{a* manhattan solver example}
+\label{fig:exampleastarmanhattansolver}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.39]{./Figures/exampleastarmanhattanplussolver}
+%\decoRule
+\caption[Examples]{a* manhattan++ solver example}
+\label{fig:exampleastarmanhattanplussolver}
+\end{figure}
+
+
+
+\subsubsection{Perfect Heuristic}
+\subsubsection{Deep Learning Heuristic}
+\subsubsection{Deep Reinforcement Learning Heuristic}
 
 

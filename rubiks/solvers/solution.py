@@ -15,6 +15,8 @@ class Solution:
     expanded_nodes = '# expanded nodes'
     puzzle = 'puzzle'
     success = 'success'
+    solver_name = 'solver_name'
+    run_time = 'run_time'
 
     def apply(self, puzzle):
         return puzzle.apply_moves(self.path)
@@ -58,7 +60,7 @@ class Solution:
     def add_additional_info(self, **additional_info):
         self.additional_info.update(additional_info)
 
-    def to_str(self):
+    def to_str(self, fields=None):
         cls = self.__class__
         if self.puzzle is None:
             raise ValueError('Cannot convert solution to string as missing initial puzzle')
@@ -77,6 +79,10 @@ class Solution:
                   cls.success: 'Y' if self.success else 'N',
                   **{'%s' % k: '%s' % v for k, v in self.additional_info.items()},
                   }
+        string_fields = list(string.keys())
+        for field in string_fields:
+            if fields is not None and field not in fields:
+                string.pop(field, None)
         return '\n' + pformat(string)
 
     def __repr__(self):

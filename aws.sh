@@ -1,3 +1,8 @@
+
+
+c5a.16xlarge
+
+
 sudo apt-get update
 sudo apt install build-essential
 sudo apt-get install emacs
@@ -17,4 +22,7 @@ conda create -n rubiks python=3.8
 conda activate rubiks
 conda install coloredlogs tabulate pandas numpy -y
 conda install -c pytorch pytorch -y
+conda install -c conda-forge matplotlib -y
+conda install -c conda-forge/label/gcc7 sortedcontainers -y
+
 

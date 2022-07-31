@@ -58,7 +58,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
 
     @classmethod
     def get_puzzle(cls, nb_shuffles, **kw_args):
-        """ return a puzzle shuffled nb_shuffles times randomly from goal state
+        """ return a puzzle shuffled nb_shuffles times randomly from init state
         kw_args allow to construct the puzzle with e.g. puzzle dimension
         """
         puzzle = cls.factory(**kw_args)
@@ -74,12 +74,11 @@ class Puzzle(Factory, metaclass=ABCMeta):
         return '%s[%s]' % (self.__class__.__name__, str(tuple(self.dimension())))
 
     def is_solvable(self) -> bool:
-        """ is this puzzle the goal state? """
         raise NotImplementedError('Cannot tell if a %s is solvable' % self.__class__)
 
     @abstractmethod
     def is_goal(self) -> bool:
-        """ is this puzzle the goal state? """
+        """ True if puzzle in solved state """
         return
 
     @classmethod
@@ -92,18 +91,18 @@ class Puzzle(Factory, metaclass=ABCMeta):
         """
         Produces training data.
         params:
-            nb_shuffles: number of shuffles we do from goal state
+            nb_shuffles: number of shuffles we do from init state
             nb_sequences: how many such sequences we produce
             min_no_loop: (best effort) making sequences with no loop of length <= min_no_loop
             one_list: results is a list, otherwise a list of lists
         returns:
             list of puzzles
         """
-        goal = cls(**kw_args)
+        init = cls(**kw_args)
         training_data = list()
         for _ in range(nb_sequences):
-            moves = goal.random_moves(nb_shuffles, min_no_loop=min_no_loop)
-            puzzles = goal.get_puzzle_sequence(moves)
+            moves = init.random_moves(nb_shuffles, min_no_loop=min_no_loop)
+            puzzles = init.get_puzzle_sequence(moves)
             if one_list:
                 training_data += puzzles
             else:
@@ -125,11 +124,6 @@ class Puzzle(Factory, metaclass=ABCMeta):
     @classmethod
     def factory_key_name(cls):
         return cls.puzzle_type
-
-    @abstractmethod
-    def goal(self):
-        """ return the unique goal state for that puzzle """
-        return
 
     @abstractmethod
     def apply(self, move):

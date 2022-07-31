@@ -72,12 +72,12 @@ class SlidingPuzzle(Puzzle):
 
     @classmethod
     def generate_all_puzzles(cls, **kw_args):
-        goal = SlidingPuzzle(**kw_args)
-        goal_signature = goal.signature()
-        (n, m) = goal.dimension()
+        init = SlidingPuzzle(**kw_args)
+        init_signature = init.signature()
+        (n, m) = init.dimension()
         for perm in permutations(range(n * m)):
             puzzle = SlidingPuzzle(tiles=tensor(perm).reshape((n, m)))
-            if puzzle.signature() == goal_signature:
+            if puzzle.signature() == init_signature:
                 yield puzzle
 
     move_type = Slide

@@ -84,7 +84,7 @@ rubiks_int_to_color_map = {1: Color.r,
 
 
 rubiks_color_to_print_color_map = {Color.r: '\033[91m',
-                                   Color.w: '',
+                                   Color.w: '\033[90m',
                                    Color.g: '\033[92m',
                                    Color.b: '\033[94m',
                                    Color.o: '\033[38;2;255;165;0m',
@@ -104,7 +104,7 @@ def rubiks_to_int(what):
 
 class CubeMove(Move):
 
-    def __init__(self, face: Face, clock_wise: bool):
+    def __init__(self, face: Face, clock_wise: bool = True):
         self.face = face
         self.clock_wise = clock_wise
 
@@ -116,6 +116,17 @@ class CubeMove(Move):
 
     def cost(self):
         return 1
+
+    def __repr__(self):
+        return '%s%s' % (self.face.name, '' if self.clock_wise else '\'')
+
+    def opposite(self):
+        return CubeMove(self.face, False if self.clock_wise else True)
+
+rubiks_all_moves = list()
+for _ in Face:
+    rubiks_all_moves.append(CubeMove(_, True))
+    rubiks_all_moves.append(CubeMove(_, False))
 
 ########################################################################################################################
 
@@ -181,20 +192,21 @@ class RubiksCube(Puzzle):
         tiles[2 * self.n:3 * self.n, self.n:2 * self.n] = self.tiles[Face.D]
         tiles = DataFrame(tiles)
         tiles = tiles.stack()
-        tiles[tiles == 0] = '%s%s%s%s' % ('\033[30m',
-                                          '\u2588',
-                                          '\u2588',
-                                          '\033[0m')
+        black = '%s%s%s%s' % ('\033[30m',
+                              '\u2588',
+                              '\u2588',
+                              '\033[0m')
+        tiles[tiles == 0] = ''
         tiles = tiles.unstack()
         for color in Color:
             col_int = rubiks_int_map[color]
-            if color is Color.w:
-                fill = ''
-            else:
-                fill = '%s%s%s%s' % (rubiks_color_to_print_color_map[color],
-                                     '\u2588',
-                                     '\u2588',
-                                     '\033[0m')
+            #if color is Color.w:
+            #    fill = ''
+            #else:
+            fill = '%s%s%s%s' % (rubiks_color_to_print_color_map[color],
+                                 '\u2588',
+                                 '\u2588',
+                                 '\033[0m')
             tiles = tiles.stack()
             tiles[tiles == col_int] = fill
             tiles = tiles.unstack()
@@ -233,11 +245,85 @@ class RubiksCube(Puzzle):
         self.__populate_goals__(self.n)
         return self.goals_map[self.n]
 
+    @staticmethod
+    def clock_wise_front(tiles):
+        save = tiles[Face.U][-1, :].clone()
+        tiles[Face.U][-1, :] = tiles[Face.L][:, -1].flip(0)
+        tiles[Face.L][:, -1] = tiles[Face.D][0, :]
+        tiles[Face.D][0, :] = tiles[Face.R][:, 0].flip(0)
+        tiles[Face.R][:, 0] = save
+        tiles[Face.F] = tiles[Face.F].rot90()
+
+    @staticmethod
+    def anti_clock_wise_front(tiles):
+        save = tiles[Face.U][-1, :].clone().flip(0)
+        tiles[Face.U][-1, :] = tiles[Face.R][:, 0]
+        tiles[Face.R][:, 0] = tiles[Face.D][0, :].flip(0)
+        tiles[Face.D][0, :] = tiles[Face.L][:, -1]
+        tiles[Face.L][:, -1] = save
+        tiles[Face.F] = tiles[Face.F].rot90(-1)
+
+    @staticmethod
+    def clock_wise_right(tiles):
+        save = tiles[Face.F][:, -1].clone()
+        tiles[Face.F][:, -1] = tiles[Face.D][:, -1]
+        tiles[Face.D][:, -1] = tiles[Face.B][:, 0].flip(0)
+        tiles[Face.B][:, 0] = tiles[Face.U][:, -1].flip(0)
+        tiles[Face.U][:, -1] = save
+        tiles[Face.R] = tiles[Face.R].rot90()
+
+    @staticmethod
+    def anti_clock_wise_right(tiles):
+        save = tiles[Face.F][:, -1].clone()
+        tiles[Face.F][:, -1] = tiles[Face.U][:, -1]
+        tiles[Face.U][:, -1] = tiles[Face.B][:, 0].flip(0)
+        tiles[Face.B][:, 0] = tiles[Face.D][:, -1].flip(0)
+        tiles[Face.D][:, -1] = save
+        tiles[Face.R] = tiles[Face.R].rot90(-1)
+
+    @staticmethod
+    def clock_wise_left(tiles):
+        save = tiles[Face.F][:, 0].clone()
+        tiles[Face.F][:, 0] = tiles[Face.U][:, 0]
+        tiles[Face.U][:, 0] = tiles[Face.B][:, -1].flip(0)
+        tiles[Face.B][:, -1] = tiles[Face.D][:, 0].flip(0)
+        tiles[Face.D][:, 0] = save
+        tiles[Face.L] = tiles[Face.L].rot90()
+
+    @staticmethod
+    def anti_clock_wise_left(tiles):
+        save = tiles[Face.F][:, 0].clone()
+        tiles[Face.F][:, 0] = tiles[Face.D][:, 0]
+        tiles[Face.D][:, 0] = tiles[Face.B][:, -1].flip(0)
+        tiles[Face.B][:, -1] = tiles[Face.U][:, 0].flip(0)
+        tiles[Face.U][:, 0] = save
+        tiles[Face.L] = tiles[Face.L].rot90(-1)
+
+    @staticmethod
+    def clock_wise_back(tiles):
+        pass
+
+    @staticmethod
+    def anti_clock_wise_back(tiles):
+        pass
+
+    move_functions = dict()
+    move_functions[Face.F] = {True: clock_wise_front.__get__(object),
+                              False: anti_clock_wise_front.__get__(object)}
+    move_functions[Face.R] = {True: clock_wise_right.__get__(object),
+                              False: anti_clock_wise_right.__get__(object)}
+    move_functions[Face.L] = {True: clock_wise_left.__get__(object),
+                              False: anti_clock_wise_left.__get__(object)}
+    move_functions[Face.B] = {True: clock_wise_back.__get__(object),
+                              False: anti_clock_wise_back.__get__(object)}
+
     def apply(self, move: CubeMove):
-        return self.clone()
+        puzzle = self.clone()
+        self.move_functions[move.face][move.clock_wise](puzzle.tiles)
+        return puzzle
 
     def possible_moves(self):
-        return
+        return rubiks_all_moves
 
     def random_move(self):
         return
@@ -250,5 +336,9 @@ class RubiksCube(Puzzle):
 
     def perfect_shuffle(self):
         return
+
+    @staticmethod
+    def opposite(moves):
+        return [move.opposite() for move in reversed(moves)]
     
 ########################################################################################################################

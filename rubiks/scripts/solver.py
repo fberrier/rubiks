@@ -23,7 +23,7 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 2
@@ -32,7 +32,7 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 100
+    nb_samples = 250
     min_nb_shuffles = 0
     max_nb_shuffles = 60
     step_nb_shuffles = 5
@@ -41,12 +41,13 @@ if '__main__' == __name__:
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
+    verbose = False
     """ For plot """
-    performance_metrics = [Solver.pct_solved,
+    performance_metrics = [#Solver.pct_solved,
                            #Solver.pct_optimal,
                            #Solver.median_cost,
                            #Solver.max_cost,
-                           Solver.optimality_score,
+                           #Solver.optimality_score,
                            Solver.median_run_time,
                            Solver.median_expanded_nodes,
                            ]
@@ -59,8 +60,8 @@ if '__main__' == __name__:
     solver_type = Solver.astar
     limit = 12
     time_out = 7200
-    log_solution = True
-    check_optimal = True
+    log_solution = False
+    check_optimal = False
     max_consecutive_timeout = 25
     """ Heuristic if a* {Heuristic.manhattan,
                          Heuristic.perfect,

@@ -85,6 +85,14 @@ class Solution:
                 string.pop(field, None)
         return '\n' + pformat(string)
 
+    def to_str_light(self):
+        return self.to_str(fields=[Solution.puzzle,
+                                   Solution.cost,
+                                   Solution.expanded_nodes,
+                                   Solution.success,
+                                   Solution.solver_name,
+                                   Solution.run_time])
+
     def __repr__(self):
         return self.to_str()
 

@@ -163,7 +163,7 @@ Then the Deep Learner will get trained on this data for 999 epochs. In the above
 \subsection{Deep Reinforcement Learner}
 \label{DRLSS}
 
-Unlike the Deep Learner, the Deep Reinforcement Learner learns unsupervised (in the sense that there is no need to pre-solve puzzles to tell if what the desired costs are), since it generates its own target using a combination of a target network and the simple min rule described in \ref{sec:codelearners}. Let us see here how to run it on the (n=4, m=2) SP for instance. The following code snipet will run a Deep Reinforcement Learner for a maximum of 25,000 epochs, generating randomly 10 sequences of puzzles shuffled 50 times from goal state every time it updates the target network. That update will happen either after 500 epochs or when the (MSE) loss on the value function gets under one thousands of the max target value. The learner will stop if it reaches 25,000 epochs or if the target network updates 40 times. The network trained is a fully connected network with 3 hidden layers and the puzzles are one-hot encoded. We use the same optimiser and scheduler as in the previous subsection.
+Unlike the Deep Learner, the Deep Reinforcement Learner learns unsupervised (in the sense that there is no need to pre-solve puzzles to tell if what the actual (target) costs are), since it generates its own target using a combination of a target network and the simple min rule described in \ref{sec:codelearners}. Let us see here how to run it on the (n=4, m=2) SP for instance. The following code snipet will run a Deep Reinforcement Learner for a maximum of 25,000 epochs, generating randomly 10 sequences of puzzles shuffled 50 times from goal state every time it updates the target network. That update will happen either after 500 epochs or when the (MSE) loss on the value function gets under one thousands of the max target value. The learner will stop if it reaches 25,000 epochs or if the target network updates 40 times. The network trained is a fully connected network with 3 hidden layers and the puzzles are one-hot encoded. We use the same optimiser and scheduler as in the previous subsection.
 
 \afblue
 \paragraph{}{\textbf{python code -- deep reinforcement learner}}
@@ -500,7 +500,7 @@ TBI \& TBD
 ####################################################################
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.puzzle.puzzle import Puzzle
-from rubiks.solvers.solver import Solver, Solution
+from rubiks.solvers.solver import Solver
 ####################################################################
 if '__main__' == __name__:
     puzzle_type = Puzzle.sliding_puzzle
@@ -509,20 +509,15 @@ if '__main__' == __name__:
     heuristic_type=Heuristic.manhattan
     plus=False
     action_type=Solver.do_solve
-    print(Solver.factory(**globals()).action().to_str([Solution.puzzle,
-                                                       Solution.cost,
-                                                       Solution.expanded_nodes,
-                                                       Solution.success,
-                                                       Solution.solver_name,
-                                                       Solution.run_time]))
+    print(Solver.factory(**globals()).action().to_str_light())
 ####################################################################
 \end{python}
 \black
-We run this example twice, one with simple Manhattan and one with Manhattan++. As can be seen from the output below, the Manhattan++ improves on the number of expanded nodes (as expected, since the heuristic is less optimistic while retaining its optimality property). As we have seen before, the overhead of adding penalty for the linear constraint (which have all been precomputed and stored in a database) is more than compensated for by the reduction in node expansion!
+We run this example twice, one with simple Manhattan and one with Manhattan++. As can be seen from the output below, the Manhattan++ improves on the number of expanded nodes (as expected, since the heuristic is less optimistic while retaining its optimality property). As we have seen before, the overhead of adding penalty for the linear constraint (which have all been precomputed and stored in a database) is more than compensated for by the reduction in nodes expansion!
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.39]{./Figures/exampleastarmanhattansolver}
+\includegraphics[scale=0.5]{./Figures/exampleastarmanhattansolver}
 %\decoRule
 \caption[Examples]{a* manhattan solver example}
 \label{fig:exampleastarmanhattansolver}
@@ -530,7 +525,7 @@ We run this example twice, one with simple Manhattan and one with Manhattan++. A
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.39]{./Figures/exampleastarmanhattanplussolver}
+\includegraphics[scale=0.5]{./Figures/exampleastarmanhattanplussolver}
 %\decoRule
 \caption[Examples]{a* manhattan++ solver example}
 \label{fig:exampleastarmanhattanplussolver}
@@ -539,6 +534,45 @@ We run this example twice, one with simple Manhattan and one with Manhattan++. A
 
 
 \subsubsection{Perfect Heuristic}
+To run A{*} with a perfect heuristic, we just need to specify the heuristic type as such, and set the parameter \textit{model\_file\_name} to point to a pre-recorded database populated by the PerfectLearner (see earlier section \ref{PLSS}).
+
+
+\afblue
+\paragraph{}{\textbf{python code -- depth first search solver}}
+\begin{python}
+####################################################################
+from rubiks.heuristics.heuristic import Heuristic
+from rubiks.puzzle.puzzle import Puzzle
+from rubiks.solvers.solver import Solver
+from rubiks.utils.utils import get_model_file_name
+####################################################################
+if '__main__' == __name__:
+    puzzle_type = Puzzle.sliding_puzzle
+    n=3
+    nb_shuffles=40
+    solver_type=Solver.astar
+    heuristic_type=Heuristic.perfect
+    model_file_name = get_model_file_name(puzzle_type=puzzle_type,
+                                          dimension=(n, n),
+                                          model_name=Heuristic.perfect)
+    action_type=Solver.do_solve
+    print(Solver.factory(**globals()).action().to_str_light())
+####################################################################
+\end{python}
+\black
+Running this code snipet will output something like (the shuffle is random obviously):
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{./Figures/exampleastarperfectsolver}
+%\decoRule
+\caption[Examples]{a* perfect solver example}
+\label{fig:exampleastarperfectsolver}
+\end{figure}
+
+
+
 \subsubsection{Deep Learning Heuristic}
 \subsubsection{Deep Reinforcement Learning Heuristic}
 

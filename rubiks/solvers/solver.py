@@ -126,7 +126,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 if 3 <= len(self.shuffles_data[nb_shuffles][index]) and \
                         self.get_name() in self.shuffles_data[nb_shuffles][index][2] and \
                         not self.shuffles_data[nb_shuffles][index][2][self.get_name()].failed():
-                    print('Already solved this one ', puzzle, ' with ', self.get_name())
+                    if self.verbose:
+                        print('Already solved this one ', puzzle, ' with ', self.get_name())
                     return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
@@ -138,17 +139,18 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             assert isinstance(solution.path, list)
             assert all(isinstance(move, self.get_goal().get_move_type()) for move in solution.path)
             assert isnan(solution.expanded_nodes) or isinstance(solution.expanded_nodes, int)
-            if solution.failed():
-                print('failed to solve ', puzzle, ' # ', index)
-            else:
-                print('solved ',
-                      puzzle,
-                      ' # ',
-                      index,
-                      ' with cost ',
-                      solution.cost,
-                      ' in ',
-                      s_format(run_time))
+            if self.verbose:
+                if solution.failed():
+                    print('failed to solve ', puzzle, ' # ', index)
+                else:
+                    print('solved ',
+                          puzzle,
+                          ' # ',
+                          index,
+                          ' with cost ',
+                          solution.cost,
+                          ' in ',
+                          s_format(run_time))
         except Exception as error:
             solution = Solution.failure(puzzle)
             solution.set_run_time(self.time_out)
@@ -199,6 +201,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                    pct_optimal,
                                    median_expanded_nodes,
                                    pct_solved]
+    verbose = 'verbose'
     fig_size = 'fig_size'
 
     @classmethod
@@ -278,6 +281,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          type=int,
                          nargs='+',
                          default=[16, 12])
+        cls.add_argument(parser,
+                         cls.verbose,
+                         default=False,
+                         action=cls.store_true)
     
     def performance_test(self):
         """
@@ -492,7 +499,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                   cls.puzzle_type,
                   cls.puzzle_dimension,
                   cls.nb_shuffles]
-        performance = performance.sort_values(subset).drop_duplicates(subset=subset)
+        performance = performance.sort_values(subset).drop_duplicates(subset=subset, keep='last')
         if self.performance_file_name:
             to_pickle(performance, self.performance_file_name)
             self.log_info('Saved ',
@@ -615,7 +622,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                             y=what,
                             data=grp,
                             label=sn,
-                            marker=markers[sn])
+                            marker=markers[sn],
+                            linewidths=5,
+                            s=50)
             (handles, labels) = bax.get_legend_handles_labels()[0]
             if what in [cls.avg_expanded_nodes,
                         cls.avg_run_time,

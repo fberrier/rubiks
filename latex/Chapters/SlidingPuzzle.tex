@@ -87,6 +87,7 @@ The perfectLearner also keeps track of (one of) the hardest puzzles it has encou
 
 
 \subsection{Manhattan heuristic}
+\label{MHComp}
 In this section, I verify empirically that, as expected, the overhead of adding penalty in Manhattan++ for the linear constraint (which have all been precomputed and stored in a database) is more than compensated for by the reduction in nodes expansion. I have run my solver script for (n=2, m=5) in performance test mode, for both Manhattan and Manhattan++, with 250 randomly shuffled puzzles with \textit{nb\_shuffles} from 0 to 60 by increment of 5, as well as with \textit{nb\_shuffles = $\inf$}. The resulting run time and nodes expansions are as follows:
 
 \begin{figure}[H]

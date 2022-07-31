@@ -120,7 +120,7 @@ class Manhattan(Heuristic):
         logger = Loggable(name='pre_compute_linear_constraints(%d, %d)' % dimension)
         manhattan_plus_file_name = cls.get_manhattan_plus_file_name(dimension)
         """ There are n rows, each can have (n * m)!/(n * m - m)! values
-                      n columns, each can have (n * m)!/(n * m - n)! values
+                      m columns, each can have (n * m)!/(n * m - n)! values
         Better get going!
         """
         data = dict()

@@ -59,7 +59,7 @@ class TestHeuristics(TestCase):
         self.assertEqual(16, cost)
         self.assertEqual(16, cost_plus)
 
-    def manhattan_plus_check(self, name, n, m=None, modulo=100):
+    def manhattan_plus_check(self, name, n, m=None, modulo=100, max_puzzle=inf):
         logger = Loggable(name=name)
         manhattan = Solver.factory(solver_type=Solver.astar,
                                    heuristic_type=Heuristic.manhattan,
@@ -89,6 +89,8 @@ class TestHeuristics(TestCase):
                                                                          sliding_puzzle))
             if 0 == count % modulo:
                 logger.log_info('Checked', count, 'puzzles')
+            if count > max_puzzle:
+                break
         logger.log_info('Checked', count, 'puzzles')
 
     def test_manhattan_distance_2_2_plus(self):
@@ -105,6 +107,12 @@ class TestHeuristics(TestCase):
 
     def test_manhattan_distance_3_3_plus(self):
         self.manhattan_plus_check('test_manhattan_distance_3_3_plus', n=3, m=3)
+
+    def test_manhattan_distance_4_4_plus(self):
+        self.manhattan_plus_check('test_manhattan_distance_4_4_plus', n=4, m=4, max_puzzle=1)
+
+    def test_manhattan_distance_5_5_plus(self):
+        self.manhattan_plus_check('test_manhattan_distance_5_5_plus', n=5, m=5, max_puzzle=1)
 
     def test_something_2_3(self):
         logger = Loggable(name='test_something_2_3')

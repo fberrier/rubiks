@@ -24,7 +24,7 @@ The code is organised in several sub modules and makes use of factories in plent
 \end{landscape}
 
 
-Let me describe what each submodule does:
+Let me now describe what each submodule does in more details:
 
 \section{rubiks.core}
 \begin{figure}[H]
@@ -87,7 +87,38 @@ This modules contains graph search strategies. I have actually reused the code I
 \label{HSS}
 This module contains base class Heuristic, also a Factory. Heuristic can instantiate the following heuristics, which we can use in the AStar strategy from the previous section:
 \begin{itemize}
-\item \textbf{Manhattan}: at current time of writing, this is specific to the SP and will be discussed in more details in \ref{S33},
+\item \textbf{Manhattan}: This heuristic is specific to the SP. It simply adds for each tile (other than the empty tile) the $L_{1}$ distance between their current position and their target position. We can quickly see that this heuristic is admissible. Indeeed, each move in the SP moves one (and one only) tile by one position. In other puzzles, it is generally the case that a move will affect the position of many tiles (e.g. RC). Therefore, if tiles could somehow freely move on top of one-another (that is, we remove the constraint that there can be at most one tile per compartment, the number of moves necessary to solve the SP would exactly be the Manhattan distance.
+\\
+\\
+The reason why it is interesting to have a known admissible heuristic is that we can obvioulsy compare other heuristics (DL, DRL, DQL, etc) in terms of optimality.
+\\
+\\
+I have also implemented an improvement to the Manhattan distance, which I shall call Manhattan++ in here (and in code logs and graphs) and can be activated by simply passing \textit{plus=True} to the Manhattan Heuristic (see example \ref{ASSS} as well as a thorougher performance comparison on the (n=2, m=5) SP in \ref{MHComp}). It is based on the concept of linear constraints that I read about in lecture notes from Washington University (\cite{SlidingPuzzleLectureNotes}). The idea is simply that when tiles are already placed on their target row or column, but not in the expected order, we will need to get the tiles out of the way of one another to get to the goal state, and this is not accounted for by the Manhattan distance. For instance, in the following (n=2, m=3) SP, the Manhattan distance does not account for the fact that, at best, tile \red 3 \black needs to get out of the way for tiles \blue 1 \black and \blue 2 \black to move, and then needs to get back in its row, adding a cost of 2 to the Manhattan distance.
+
+\begin{center}
+\begin{five}
+\setrow{2}{\red 3, \blue 1, \blue 2}
+\setrow{1}{4, 5, 0}
+\end{five}
+\end{center}
+
+Two important things to notice are that linear constraints across rows and columns (which I might generically refer to as \textit{lines} in the following) can to be added without breaking admissibility (hence giving more pessimistic, or accurate, cost estimates than simple Manhattan). This is because if a tile is involved in two linear constraints, it will need to get out of the way both horizontally and vertically. The second thing is that when several pairs in a line are not in order, we cannot simply add 2 for each distinct out-of-order pair, the right penalty to add is more subtle than that and needs to be computed recursively. For instance, let us now consider the following configuration:
+\begin{center}
+\begin{five}
+\setrow{2}{\red 3, \red 2, \red 1}
+\setrow{1}{4, 5, 0}
+\end{five}
+\end{center}
+The correct penalty to add is not 6 (3 times 2 since all pairs (1, 2), (1, 3) and (2, 3) are out of order, but only 4. Indeed if, say, tile 3 got somehow out of the way at the back of the SP (imagine just another dimension there where we can move tiles) and tile 2 got out of the way by moving down to let tile 1 pass across, we could be done by simply adding 4 to the Manhattan distance (2 to move tile 3 out and back, and 2 to move tile 2 out and back). The correct way to compute the penalty cost for linear constraints is therefore to do it recursively, taking the minimum additional cost of moving either left-most or right-most tile of the line under consideration out of the way (that additional cost to move these left-most or right-most tile is 2 if not at their expected order in the line, 0 otherwise) plus the penalty of reordering the rest of the line.
+\\
+\\
+Finally, as suggested by the reference lecture notes (which give very vague details about the above subtleties), I have precomputed all the penalties for all possible rows, columns and all possible tiles ordering they could have and saved the corresponding penalties in a database. For memory efficiency, I also only saved penalties which are non-zero. The very first time any call to Manhattan++ is made, for a given dimension (n, m), the appropriate data base is computed and populated.
+\\
+\\
+Notice that for an (n, m) SP, there are n rows, each of which can have $\frac{(n * m)!}{(n * m - m)!}$ different ordering of tiles and m columns which can have n columns, each can have $\frac{(n * m)!}{(n * m - n)!}$ different ordering of tiles. This means the pre-computations and data-base sizes for the Manhattan++ heuristic are actually manageable, as it grows much slower than the number of possible puzzles. Taking into account that we only store non-zero penalties, for instance the (n=4, m=4) Manhattan++ database only has  records, and the (n=5, m=5) has .
+
+
+
 \item \textbf{PerfectHeuristic}: this reads from a data base the optimal costs, pre-computed by the PerfectLearner (see below \ref{PLcode})
 \item \textbf{DeepLearningHeuristic}: this uses a network which has been trained using DRL by the DeepReinforcementLearner (see below \ref{DRLcode})
 \end{itemize}

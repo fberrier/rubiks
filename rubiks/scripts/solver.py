@@ -68,7 +68,7 @@ if '__main__' == __name__:
                          } """
     heuristic_type = Heuristic.manhattan
     """ If manhattan """
-    plus = False
+    plus = True
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
                                              DeepLearning.convolutional_net} """
     learner_type = Learner.deep_reinforcement_learner

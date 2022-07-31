@@ -105,19 +105,19 @@ class Manhattan(Heuristic):
         actual = [a for a in actual if 0 != a and a in expected]
         if len(actual) <= 1:
             return 0
+        if len(actual) == 2:
+            return 2 * (actual[0] > actual[1])
         m = min(actual)
         M = max(actual)
         to_compare = list()
-        if m != actual[0]:
-            to_compare.append(2 + cls.penalty(expected, actual[1:]))
-        if M != actual[-1]:
-            to_compare.append(2 + cls.penalty(expected, actual[:-1]))
-        return 0 if not to_compare else min(to_compare)
+        to_compare.append(2 * (m != actual[0]) + cls.penalty(expected, actual[1:]))
+        to_compare.append(2 * (M != actual[-1]) + cls.penalty(expected, actual[:-1]))
+        return min(to_compare)
 
     @classmethod
     def pre_compute_linear_constraints(cls, n, m):
         dimension = (n, m)
-        logger = Loggable(name='pre_compute_linear_constraints(%d, %d)'% dimension)
+        logger = Loggable(name='pre_compute_linear_constraints(%d, %d)' % dimension)
         manhattan_plus_file_name = cls.get_manhattan_plus_file_name(dimension)
         """ There are n rows, each can have (n * m)!/(n * m - m)! values
                       n columns, each can have (n * m)!/(n * m - n)! values

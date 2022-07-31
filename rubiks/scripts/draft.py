@@ -5,10 +5,11 @@ from rubiks.solvers.solver import Solver, Solution
 ####################################################################
 if '__main__' == __name__:
     puzzle_type = Puzzle.sliding_puzzle
-    tiles=[[3, 8, 6], [4, 1, 5], [0, 7, 2]]
+    tiles=[[3, 1, 2, 0, 5], [7, 6, 4, 8, 9]]
     solver_type=Solver.astar
     heuristic_type=Heuristic.manhattan
-    plus=True
+    time_out=60
+    plus=False
     action_type=Solver.do_solve
     print(Solver.factory(**globals()).action().to_str([Solution.puzzle,
                                                        Solution.cost,

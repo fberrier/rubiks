@@ -106,14 +106,26 @@ class TestHeuristics(TestCase):
     def test_manhattan_distance_3_3_plus(self):
         self.manhattan_plus_check('test_manhattan_distance_3_3_plus', n=3, m=3)
 
-    def test_something(self):
-        logger = Loggable(name='test_something')
+    def test_something_2_3(self):
+        logger = Loggable(name='test_something_2_3')
         sliding_puzzle = Puzzle.factory(puzzle_type=Puzzle.sliding_puzzle,
                                         tiles=[[5, 3, 4], [1, 0, 2]])
         logger.log_info(sliding_puzzle)
         logger.log_info(Manhattan(n=2, m=3).cost_to_go_from_puzzle(sliding_puzzle))
         logger.log_info(Manhattan(n=2, m=3, plus=True).cost_to_go_from_puzzle(sliding_puzzle))
+        self.assertEqual(Manhattan(n=2, m=3).cost_to_go_from_puzzle(sliding_puzzle),
+                         Manhattan(n=2, m=3, plus=True).cost_to_go_from_puzzle(sliding_puzzle))
 
+    def test_penalty_2(self):
+        expected = (1, 2, 3, 4, 5)
+        actual = (3, 0, 4, 2, 5)
+        self.assertEqual(2, Manhattan.penalty(expected=expected,
+                                              actual=actual))
 
+    def test_penalty_4(self):
+        expected = (1, 2, 3, 4, 5)
+        actual = (4, 3, 2)
+        self.assertEqual(4, Manhattan.penalty(expected=expected,
+                                              actual=actual))
 
 ########################################################################################################################

@@ -76,8 +76,8 @@ class TestHeuristics(TestCase):
         count = 0
         for sliding_puzzle in SlidingPuzzle.generate_all_puzzles(n=n, m=m):
             count += 1
-            solution = manhattan.solve(sliding_puzzle, time_out=inf)
             solution_plus = manhattan_plus.solve(sliding_puzzle, time_out=inf)
+            solution = manhattan.solve(sliding_puzzle, time_out=inf)
             if solution.cost != solution_plus.cost:
                 logger.log_error(solution)
                 logger.log_error(solution_plus)
@@ -106,10 +106,10 @@ class TestHeuristics(TestCase):
         self.manhattan_plus_check('test_manhattan_distance_2_5_plus', n=2, m=5, modulo=1)
 
     def test_manhattan_distance_3_3_plus(self):
-        self.manhattan_plus_check('test_manhattan_distance_3_3_plus', n=3, m=3)
+        self.manhattan_plus_check('test_manhattan_distance_3_3_plus', n=3, m=3, max_puzzle=1)
 
-    def test_manhattan_distance_4_4_plus(self):
-        self.manhattan_plus_check('test_manhattan_distance_4_4_plus', n=4, m=4, max_puzzle=1)
+    def test_manhattan_distance_plus(self):
+        self.manhattan_plus_check('test_manhattan_distance_plus', n=3, m=3, max_puzzle=1)
 
     def test_manhattan_distance_5_5_plus(self):
         self.manhattan_plus_check('test_manhattan_distance_5_5_plus', n=5, m=5, max_puzzle=1)

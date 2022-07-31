@@ -115,7 +115,7 @@ class Manhattan(Heuristic):
         return min(to_compare)
 
     @classmethod
-    def pre_compute_linear_constraints(cls, n, m):
+    def pre_compute_linear_constraints(cls, n, m, verbose=False):
         dimension = (n, m)
         logger = Loggable(name='pre_compute_linear_constraints(%d, %d)' % dimension)
         manhattan_plus_file_name = cls.get_manhattan_plus_file_name(dimension)
@@ -130,16 +130,19 @@ class Manhattan(Heuristic):
                               n=n,
                               m=m)
         total_precomputations = 0
+        total_non_zero_penalties = 0
         for row in range(n):
             expected = tuple(goal.tiles[row].tolist())
             for possible in permutations(range(n * m), m):
                 possible = tuple(possible)
                 penalty = cls.penalty(expected, possible)
                 if penalty > 0:
+                    total_non_zero_penalties += 1
                     if row not in data[cls.Line.row]:
                         data[cls.Line.row][row] = dict()
                     data[cls.Line.row][row][possible] = penalty
-                    logger.log_info(cls.Line.row, ' ', row, ' ', possible, ' -> ', penalty)
+                    if verbose:
+                        logger.log_info(cls.Line.row, ' ', row, ' ', possible, ' -> ', penalty)
                 total_precomputations += 1
         for col in range(m):
             expected = tuple(goal.tiles[:, col].tolist())
@@ -147,16 +150,20 @@ class Manhattan(Heuristic):
                 possible = tuple(possible)
                 penalty = cls.penalty(expected, possible)
                 if penalty > 0:
+                    total_non_zero_penalties += 1
                     if col not in data[cls.Line.col]:
                         data[cls.Line.col][col] = dict()
                     data[cls.Line.col][col][possible] = penalty
-                    logger.log_info(cls.Line.col, ' ', col, ' ', possible, ' -> ', penalty)
+                    if verbose:
+                        logger.log_info(cls.Line.col, ' ', col, ' ', possible, ' -> ', penalty)
                 total_precomputations += 1
         to_pickle(data, manhattan_plus_file_name)
         logger.log_info('Saved ',
-                        total_precomputations,
-                        'pre-computations in',
-                        manhattan_plus_file_name)
+                        total_non_zero_penalties,
+                        'non-zero-penalties in',
+                        manhattan_plus_file_name,
+                        'total-pre-computations: ',
+                        total_precomputations)
 
 ########################################################################################################################
 

@@ -1,6 +1,9 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
+from os import environ
+environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.heuristics.heuristic import Heuristic
@@ -12,7 +15,6 @@ from rubiks.puzzle.puzzle import Puzzle
 from rubiks.utils.utils import get_model_file_name
 ########################################################################################################################
 
-
 if '__main__' == __name__:
     """ Just create a logger to print some stuff in this script """
     logger = Loggable(name=__file__)
@@ -23,23 +25,23 @@ if '__main__' == __name__:
     action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 5
+    n = 2
     m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.perfect_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 3600
-    nb_cpus = 5
-    cpu_multiplier = 25
-    max_puzzles = nb_cpus * cpu_multiplier * 10000
+    nb_cpus = 1
+    cpu_multiplier = 1
+    max_puzzles = nb_cpus * cpu_multiplier * 1
     regular_save = nb_cpus * cpu_multiplier * 1
     save_timed_out_max_puzzles = 100000
     after_round_save = True

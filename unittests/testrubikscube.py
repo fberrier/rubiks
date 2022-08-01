@@ -1,7 +1,6 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from numpy.random import randint
 from unittest import TestCase
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
@@ -26,6 +25,10 @@ class TestRubiksCube(TestCase):
         logger.log_info(puzzle)
         puzzle = puzzle.apply(CubeMove(face, False))
         logger.log_info(puzzle)
+        puzzle = puzzle.apply(CubeMove(face, False))
+        logger.log_info(puzzle)
+        puzzle = puzzle.apply(CubeMove(face))
+        logger.log_info(puzzle)
         self.assertTrue(puzzle.is_goal())
         for _ in range(4):
             puzzle = puzzle.apply(CubeMove(face))
@@ -43,13 +46,20 @@ class TestRubiksCube(TestCase):
     def test_move_left(self):
         self.simple_face(Face.L)
 
+    def test_move_back(self):
+        self.simple_face(Face.B)
+
+    def test_move_down(self):
+        self.simple_face(Face.D)
+
+    def test_move_up(self):
+        self.simple_face(Face.U)
+
     def random_moves_and_back(self, size, nb_shuffles):
         logger = Loggable(name='test_random_moves_and_back_%d_%d' % (size, nb_shuffles))
         moves = list()
         for _ in range(nb_shuffles):
-            face_rand = randint(0, 3)
-            move = CubeMove(Face.F if face_rand == 0 else Face.R if face_rand == 1 else Face.L,
-                            True if randint(0, 2) == 0 else False)
+            move = RubiksCube.__random_move__()
             moves.append(move)
         puzzle = RubiksCube(n=size)
         self.assertTrue(puzzle.is_goal())
@@ -60,8 +70,21 @@ class TestRubiksCube(TestCase):
         logger.log_info(puzzle)
         self.assertTrue(puzzle.is_goal())
 
-    def test_random_moves_and_back_3_100(self):
-        self.random_moves_and_back(3, 100)
+    def test_random_moves_and_back_2(self):
+        self.random_moves_and_back(2, 1)
+        self.random_moves_and_back(2, 10)
+        self.random_moves_and_back(2, 100)
+        self.random_moves_and_back(2, 1000)
 
+    def test_random_moves_and_back_3(self):
+        self.random_moves_and_back(3, 1)
+        self.random_moves_and_back(3, 10)
+        self.random_moves_and_back(3, 100)
+        self.random_moves_and_back(3, 1000)
+
+    def test_to_kociemba(self):
+        logger = Loggable(name='test_to_kociemba')
+        kociemba_repr = RubiksCube(n=3).to_kociemba()
+        logger.log_info(kociemba_repr)
 
 ########################################################################################################################

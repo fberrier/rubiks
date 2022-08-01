@@ -2,6 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from enum import Enum
+from numpy.random import randint
 from pandas import DataFrame
 from tabulate import tabulate
 from torch import ones, zeros, equal
@@ -13,10 +14,10 @@ from rubiks.puzzle.puzzle import Move, Puzzle
 class Face(Enum):
     F = 'FRONT'
     U = 'UP'
+    L = 'LEFT'
     R = 'RIGHT'
     B = 'BACK'
     D = 'DOWN'
-    L = 'LEFT'
 
 ########################################################################################################################
 
@@ -63,10 +64,10 @@ rubiks_int_map = {Color.r: 1,
                   Color.y: 6,
                   Face.F: 1,
                   Face.U: 2,
-                  Face.R: 3,
-                  Face.B: 4,
-                  Face.D: 5,
-                  Face.L: 6,
+                  Face.L: 3,
+                  Face.R: 4,
+                  Face.B: 5,
+                  Face.D: 6,
                   }
 
 ########################################################################################################################
@@ -79,6 +80,17 @@ rubiks_int_to_color_map = {1: Color.r,
                            5: Color.o,
                            6: Color.y,
                            }
+
+########################################################################################################################
+
+
+rubiks_int_to_face_map = {1: Face.F,
+                          2: Face.U,
+                          3: Face.L,
+                          4: Face.R,
+                          5: Face.B,
+                          6: Face.D,
+                          }
 
 ########################################################################################################################
 
@@ -301,11 +313,57 @@ class RubiksCube(Puzzle):
 
     @staticmethod
     def clock_wise_back(tiles):
-        pass
+        save = tiles[Face.U][0, :].clone().flip(0)
+        tiles[Face.U][0, :] = tiles[Face.R][:, -1]
+        tiles[Face.R][:, -1] = tiles[Face.D][-1, :].flip(0)
+        tiles[Face.D][-1, :] = tiles[Face.L][:, 0]
+        tiles[Face.L][:, 0] = save
+        tiles[Face.B] = tiles[Face.B].rot90()
 
     @staticmethod
     def anti_clock_wise_back(tiles):
-        pass
+        save = tiles[Face.U][0, :].clone()
+        tiles[Face.U][0, :] = tiles[Face.L][:, 0].flip(0)
+        tiles[Face.L][:, 0] = tiles[Face.D][-1, :]
+        tiles[Face.D][-1, :] = tiles[Face.R][:, -1].flip(0)
+        tiles[Face.R][:, -1] = save
+        tiles[Face.B] = tiles[Face.B].rot90(-1)
+
+    @staticmethod
+    def clock_wise_down(tiles):
+        save = tiles[Face.F][-1, :].clone()
+        tiles[Face.F][-1, :] = tiles[Face.L][-1, :]
+        tiles[Face.L][-1, :] = tiles[Face.B][-1, :]
+        tiles[Face.B][-1, :] = tiles[Face.R][-1, :]
+        tiles[Face.R][-1, :] = save
+        tiles[Face.D] = tiles[Face.D].rot90()
+
+    @staticmethod
+    def anti_clock_wise_down(tiles):
+        save = tiles[Face.F][-1, :].clone()
+        tiles[Face.F][-1, :] = tiles[Face.R][-1, :]
+        tiles[Face.R][-1, :] = tiles[Face.B][-1, :]
+        tiles[Face.B][-1, :] = tiles[Face.L][-1, :]
+        tiles[Face.L][-1, :] = save
+        tiles[Face.D] = tiles[Face.D].rot90(-1)
+
+    @staticmethod
+    def clock_wise_up(tiles):
+        save = tiles[Face.F][0, :].clone()
+        tiles[Face.F][0, :] = tiles[Face.R][0, :]
+        tiles[Face.R][0, :] = tiles[Face.B][0, :]
+        tiles[Face.B][0, :] = tiles[Face.L][0, :]
+        tiles[Face.L][0, :] = save
+        tiles[Face.U] = tiles[Face.U].rot90()
+
+    @staticmethod
+    def anti_clock_wise_up(tiles):
+        save = tiles[Face.F][0, :].clone()
+        tiles[Face.F][0, :] = tiles[Face.L][0, :]
+        tiles[Face.L][0, :] = tiles[Face.B][0, :]
+        tiles[Face.B][0, :] = tiles[Face.R][0, :]
+        tiles[Face.R][0, :] = save
+        tiles[Face.U] = tiles[Face.U].rot90(-1)
 
     move_functions = dict()
     move_functions[Face.F] = {True: clock_wise_front.__get__(object),
@@ -316,6 +374,23 @@ class RubiksCube(Puzzle):
                               False: anti_clock_wise_left.__get__(object)}
     move_functions[Face.B] = {True: clock_wise_back.__get__(object),
                               False: anti_clock_wise_back.__get__(object)}
+    move_functions[Face.D] = {True: clock_wise_down.__get__(object),
+                              False: anti_clock_wise_down.__get__(object)}
+    move_functions[Face.U] = {True: clock_wise_up.__get__(object),
+                              False: anti_clock_wise_up.__get__(object)}
+
+    def to_kociemba(self):
+        assert self.n == 3, 'Kociemba only works for 3*3*3 Rubik\'s'
+        faces_order = [Face.U,
+                       Face.R,
+                       Face.F,
+                       Face.D,
+                       Face.L,
+                       Face.B]
+        tiles = ''
+        for face in faces_order:
+            tiles += ''.join([rubiks_int_to_face_map[int(tile)].name for tile in self.tiles[face].flatten()])
+        return tiles
 
     def apply(self, move: CubeMove):
         puzzle = self.clone()
@@ -325,8 +400,13 @@ class RubiksCube(Puzzle):
     def possible_moves(self):
         return rubiks_all_moves
 
+    @staticmethod
+    def __random_move__():
+        return CubeMove(face=rubiks_int_to_face_map[randint(1, 7)],
+                        clock_wise=randint(0, 2) == 1)
+
     def random_move(self):
-        return
+        return self.__random_move__()
 
     def from_tensor(self):
         raise NotImplementedError('Please implement this ... need to de-one_hot then call init')
@@ -335,7 +415,7 @@ class RubiksCube(Puzzle):
         raise NotImplementedError('Please implement this ... RubiksCube.to_tensor')
 
     def perfect_shuffle(self):
-        return
+        raise NotImplementedError('Need to implement perfect shuffle for Rubik\'s. Not exactly trivial.')
 
     @staticmethod
     def opposite(moves):

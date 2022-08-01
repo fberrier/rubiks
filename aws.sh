@@ -26,3 +26,5 @@ conda install -c conda-forge matplotlib -y
 conda install -c conda-forge/label/gcc7 sortedcontainers -y
 
 
+pip install kociemba
+

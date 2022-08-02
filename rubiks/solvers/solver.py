@@ -12,7 +12,7 @@ from numpy import isnan, isinf, median
 from pandas import concat, DataFrame, Series, read_pickle
 from time import time as snap
 ########################################################################################################################
-from rubiks.thridparties.brokenaxes import brokenaxes
+from rubiks.thirdparties.brokenaxes import brokenaxes
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.core.factory import Factory

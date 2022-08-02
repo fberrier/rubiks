@@ -24,7 +24,7 @@ conda install coloredlogs tabulate pandas numpy -y
 conda install -c pytorch pytorch -y
 conda install -c conda-forge matplotlib -y
 conda install -c conda-forge/label/gcc7 sortedcontainers -y
-
+conda install -c anaconda tk
 
 pip install kociemba
 

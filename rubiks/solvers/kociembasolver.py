@@ -5,6 +5,10 @@ try:
     from kociemba import solve as kociemba_solve
 except ModuleNotFoundError:
     pass
+try:
+    from rubiks.thirdparties.hkociemba.solver import solve as hkociemba_solve
+except ModuleNotFoundError:
+    pass
 ########################################################################################################################
 from rubiks.puzzle.rubikscube import RubiksCube, Face, rubiks_int_to_face_map, CubeMove
 from rubiks.solvers.solver import Solver, Solution
@@ -48,14 +52,14 @@ class KociembaSolver(Solver):
         return False
 
     def solve_impl(self, puzzle, **kw_args) -> Solution:
-        assert isinstance(puzzle, RubiksCube) and puzzle.dimension() == (3, 3, 3)
+        assert isinstance(puzzle, RubiksCube) and puzzle.dimension() in {(3, 3, 3), (2, 2, 2)}
         cube_string = self.to_kociemba(puzzle)
         try:
             if puzzle.is_goal():
                 solution_string = ''
                 moves = list()
             else:
-                solution_string = kociemba_solve(cube_string)
+                solution_string = kociemba_solve(cube_string) if puzzle.dimension()[0] == 3 else hkociemba_solve(cube_string)
                 moves = self.from_kociemba(solution_string)
             solution = Solution(cost=len(moves),
                                 path=moves,

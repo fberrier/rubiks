@@ -39,9 +39,9 @@ if '__main__' == __name__:
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 3600
-    nb_cpus = 1
-    cpu_multiplier = 1
-    max_puzzles = nb_cpus * cpu_multiplier * 1
+    nb_cpus = 12
+    cpu_multiplier = 100
+    max_puzzles = nb_cpus * cpu_multiplier * 100
     regular_save = nb_cpus * cpu_multiplier * 1
     save_timed_out_max_puzzles = 100000
     after_round_save = True
@@ -55,7 +55,7 @@ if '__main__' == __name__:
                                    PerfectLearner.permutation_puzzle_generation,
                                    PerfectLearner.random_from_goal_puzzle_generation,
                                    } """
-    puzzle_generation = PerfectLearner.permutation_puzzle_generation
+    puzzle_generation = PerfectLearner.perfect_random_puzzle_generation
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL learner config is here ... """

@@ -155,12 +155,20 @@ def pformat(what):
         what = format_string('%d', what, grouping=True)
     elif isinstance(what, DataFrame):
         what = what.to_dict(orient='list')
+        what = {k: [v] if not isinstance(v, (list, np.ndarray)) \
+                else v for k, v in what.items()}
+        return '\n' + tabulate(DataFrame(what),
+                               headers='keys',
+                               tablefmt='psql',
+                               showindex=False)
     elif isinstance(what, Series):
         what = what.to_dict()
     if isinstance(what, dict):
         what = {k: [v] if not isinstance(v, (list, np.ndarray)) \
                 else v for k, v in what.items()}
-        return '\n' + tabulate(what, headers='keys', tablefmt='psql')
+        return '\n' + tabulate(DataFrame(what).transpose(),
+                               showindex=True,
+                               tablefmt='psql')
     return what
 
 ########################################################################################################################

@@ -181,7 +181,7 @@ class Puzzle(Factory, metaclass=ABCMeta):
         """ return the set of possible moves from this configuration """
         return
 
-    very_large_nb_shuffle = 10000
+    very_large_nb_shuffle = 1000
 
     def perfect_shuffle(self):
         """ We apply a large number of shuffles, but this can be over-ridden in derived classes

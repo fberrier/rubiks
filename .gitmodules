@@ -1,0 +1,3 @@
+[submodule "rubiks/thirdparties/hkociemba"]
+	path = rubiks/thirdparties/hkociemba
+	url = https://github.com/fberrier/Rubiks2x2x2-OptimalSolver

@@ -401,8 +401,9 @@ class RubiksCube(Puzzle):
     def to_tensor(self, one_hot_encoding=False):
         raise NotImplementedError('Please implement this ... RubiksCube.to_tensor')
 
-    def perfect_shuffle(self):
-        raise NotImplementedError('Need to implement perfect shuffle for Rubik\'s. Not exactly trivial.')
+    # For now we go with the base class one which shuffles a v large number of times
+    #def perfect_shuffle(self):
+    #    raise NotImplementedError('Need to implement perfect shuffle for Rubik\'s. Not exactly trivial.')
 
     @staticmethod
     def opposite(moves):

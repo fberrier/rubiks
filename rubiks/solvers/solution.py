@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from math import inf, isinf
-from pandas import Series
+from pandas import Series, DataFrame
 ########################################################################################################################
 from rubiks.utils.utils import pformat, number_format
 ########################################################################################################################
@@ -69,16 +69,17 @@ class Solution:
         for move in self.path:
             puzzle = puzzle.apply(move)
             puzzles.append(str(puzzle))
-        path_string = '\n' + pformat(Series(index=range(len(puzzles)),
-                                            data=puzzles,
-                                            dtype=str))
         string = {cls.puzzle: self.puzzle,
                   cls.cost: self.cost,
                   cls.expanded_nodes: number_format(self.expanded_nodes),
-                  cls.path: path_string,
                   cls.success: 'Y' if self.success else 'N',
                   **{'%s' % k: '%s' % v for k, v in self.additional_info.items()},
                   }
+        for step, puzzle in enumerate(puzzles):
+            #puzzle_string = '\n' + pformat(Series(index=range(len(puzzles)),
+            #                                    data=puzzles,
+            #                                    dtype=str))
+            string['%s_%d' % (cls.path, step)] = puzzle
         string_fields = list(string.keys())
         for field in string_fields:
             if fields is not None and field not in fields:

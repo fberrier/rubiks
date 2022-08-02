@@ -240,7 +240,7 @@ class RubiksCube(Puzzle):
         return hash(values)
 
     def dimension(self):
-        return self.n
+        return (self.n,)*3
 
     def clone(self):
         return RubiksCube(tiles={face: self.tiles[face].detach().clone() for face in Face})
@@ -264,7 +264,7 @@ class RubiksCube(Puzzle):
         tiles[Face.L][:, -1] = tiles[Face.D][0, :]
         tiles[Face.D][0, :] = tiles[Face.R][:, 0].flip(0)
         tiles[Face.R][:, 0] = save
-        tiles[Face.F] = tiles[Face.F].rot90()
+        tiles[Face.F] = tiles[Face.F].rot90(-1)
 
     @staticmethod
     def anti_clock_wise_front(tiles):
@@ -273,7 +273,7 @@ class RubiksCube(Puzzle):
         tiles[Face.R][:, 0] = tiles[Face.D][0, :].flip(0)
         tiles[Face.D][0, :] = tiles[Face.L][:, -1]
         tiles[Face.L][:, -1] = save
-        tiles[Face.F] = tiles[Face.F].rot90(-1)
+        tiles[Face.F] = tiles[Face.F].rot90()
 
     @staticmethod
     def clock_wise_right(tiles):
@@ -282,7 +282,7 @@ class RubiksCube(Puzzle):
         tiles[Face.D][:, -1] = tiles[Face.B][:, 0].flip(0)
         tiles[Face.B][:, 0] = tiles[Face.U][:, -1].flip(0)
         tiles[Face.U][:, -1] = save
-        tiles[Face.R] = tiles[Face.R].rot90()
+        tiles[Face.R] = tiles[Face.R].rot90(-1)
 
     @staticmethod
     def anti_clock_wise_right(tiles):
@@ -291,7 +291,7 @@ class RubiksCube(Puzzle):
         tiles[Face.U][:, -1] = tiles[Face.B][:, 0].flip(0)
         tiles[Face.B][:, 0] = tiles[Face.D][:, -1].flip(0)
         tiles[Face.D][:, -1] = save
-        tiles[Face.R] = tiles[Face.R].rot90(-1)
+        tiles[Face.R] = tiles[Face.R].rot90()
 
     @staticmethod
     def clock_wise_left(tiles):
@@ -300,7 +300,7 @@ class RubiksCube(Puzzle):
         tiles[Face.U][:, 0] = tiles[Face.B][:, -1].flip(0)
         tiles[Face.B][:, -1] = tiles[Face.D][:, 0].flip(0)
         tiles[Face.D][:, 0] = save
-        tiles[Face.L] = tiles[Face.L].rot90()
+        tiles[Face.L] = tiles[Face.L].rot90(-1)
 
     @staticmethod
     def anti_clock_wise_left(tiles):
@@ -309,7 +309,7 @@ class RubiksCube(Puzzle):
         tiles[Face.D][:, 0] = tiles[Face.B][:, -1].flip(0)
         tiles[Face.B][:, -1] = tiles[Face.U][:, 0].flip(0)
         tiles[Face.U][:, 0] = save
-        tiles[Face.L] = tiles[Face.L].rot90(-1)
+        tiles[Face.L] = tiles[Face.L].rot90()
 
     @staticmethod
     def clock_wise_back(tiles):
@@ -318,7 +318,7 @@ class RubiksCube(Puzzle):
         tiles[Face.R][:, -1] = tiles[Face.D][-1, :].flip(0)
         tiles[Face.D][-1, :] = tiles[Face.L][:, 0]
         tiles[Face.L][:, 0] = save
-        tiles[Face.B] = tiles[Face.B].rot90()
+        tiles[Face.B] = tiles[Face.B].rot90(-1)
 
     @staticmethod
     def anti_clock_wise_back(tiles):
@@ -327,7 +327,7 @@ class RubiksCube(Puzzle):
         tiles[Face.L][:, 0] = tiles[Face.D][-1, :]
         tiles[Face.D][-1, :] = tiles[Face.R][:, -1].flip(0)
         tiles[Face.R][:, -1] = save
-        tiles[Face.B] = tiles[Face.B].rot90(-1)
+        tiles[Face.B] = tiles[Face.B].rot90()
 
     @staticmethod
     def clock_wise_down(tiles):
@@ -336,7 +336,7 @@ class RubiksCube(Puzzle):
         tiles[Face.L][-1, :] = tiles[Face.B][-1, :]
         tiles[Face.B][-1, :] = tiles[Face.R][-1, :]
         tiles[Face.R][-1, :] = save
-        tiles[Face.D] = tiles[Face.D].rot90()
+        tiles[Face.D] = tiles[Face.D].rot90(-1)
 
     @staticmethod
     def anti_clock_wise_down(tiles):
@@ -345,7 +345,7 @@ class RubiksCube(Puzzle):
         tiles[Face.R][-1, :] = tiles[Face.B][-1, :]
         tiles[Face.B][-1, :] = tiles[Face.L][-1, :]
         tiles[Face.L][-1, :] = save
-        tiles[Face.D] = tiles[Face.D].rot90(-1)
+        tiles[Face.D] = tiles[Face.D].rot90()
 
     @staticmethod
     def clock_wise_up(tiles):
@@ -354,7 +354,7 @@ class RubiksCube(Puzzle):
         tiles[Face.R][0, :] = tiles[Face.B][0, :]
         tiles[Face.B][0, :] = tiles[Face.L][0, :]
         tiles[Face.L][0, :] = save
-        tiles[Face.U] = tiles[Face.U].rot90()
+        tiles[Face.U] = tiles[Face.U].rot90(-1)
 
     @staticmethod
     def anti_clock_wise_up(tiles):
@@ -363,7 +363,7 @@ class RubiksCube(Puzzle):
         tiles[Face.L][0, :] = tiles[Face.B][0, :]
         tiles[Face.B][0, :] = tiles[Face.R][0, :]
         tiles[Face.R][0, :] = save
-        tiles[Face.U] = tiles[Face.U].rot90(-1)
+        tiles[Face.U] = tiles[Face.U].rot90()
 
     move_functions = dict()
     move_functions[Face.F] = {True: clock_wise_front.__get__(object),
@@ -378,19 +378,6 @@ class RubiksCube(Puzzle):
                               False: anti_clock_wise_down.__get__(object)}
     move_functions[Face.U] = {True: clock_wise_up.__get__(object),
                               False: anti_clock_wise_up.__get__(object)}
-
-    def to_kociemba(self):
-        assert self.n == 3, 'Kociemba only works for 3*3*3 Rubik\'s'
-        faces_order = [Face.U,
-                       Face.R,
-                       Face.F,
-                       Face.D,
-                       Face.L,
-                       Face.B]
-        tiles = ''
-        for face in faces_order:
-            tiles += ''.join([rubiks_int_to_face_map[int(tile)].name for tile in self.tiles[face].flatten()])
-        return tiles
 
     def apply(self, move: CubeMove):
         puzzle = self.clone()

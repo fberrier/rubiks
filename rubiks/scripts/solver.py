@@ -23,30 +23,30 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_plot
+    action_type = Solver.do_performance_test
     """ What puzzle """
-    puzzle_type = Puzzle.sliding_puzzle
-    n = 2
-    m = 5
+    puzzle_type = Puzzle.rubiks_cube
+    n = 3
+    m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 250
+    nb_samples = 500
     min_nb_shuffles = 0
-    max_nb_shuffles = 60
+    max_nb_shuffles = 100
     step_nb_shuffles = 5
-    add_perfect_shuffle = True
-    nb_cpus = 16
+    add_perfect_shuffle = False
+    nb_cpus = 4
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
     verbose = False
     """ For plot """
-    performance_metrics = [#Solver.pct_solved,
+    performance_metrics = [Solver.pct_solved,
                            #Solver.pct_optimal,
-                           #Solver.median_cost,
-                           #Solver.max_cost,
+                           Solver.median_cost,
+                           Solver.max_cost,
                            #Solver.optimality_score,
                            Solver.median_run_time,
                            Solver.median_expanded_nodes,
@@ -57,7 +57,7 @@ if '__main__' == __name__:
                            Solver.astar,
                            Solver.naive,
                            } """
-    solver_type = Solver.astar
+    solver_type = Solver.kociemba
     limit = 12
     time_out = 7200
     log_solution = False

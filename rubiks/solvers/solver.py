@@ -35,6 +35,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     dfs = SearchStrategy.dfs
     astar = SearchStrategy.astar
     naive = 'naive'
+    kociemba = 'kociemba'
     known_solver_types = [bfs, dfs, astar]
     time_out = 'time_out'
     max_consecutive_timeout = 'max_consecutive_timeout'
@@ -59,10 +60,12 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         from rubiks.solvers.dfssolver import DFSSolver
         from rubiks.solvers.astarsolver import AStarSolver
         from rubiks.solvers.naiveslidingsolver import NaiveSlidingSolver
+        from rubiks.solvers.kociembasolver import KociembaSolver
         return {cls.bfs: BFSSolver,
                 cls.dfs: DFSSolver,
                 cls.astar: AStarSolver,
-                cls.naive: NaiveSlidingSolver}
+                cls.naive: NaiveSlidingSolver,
+                cls.kociemba: KociembaSolver}
 
     @classmethod
     def additional_dependencies(cls):
@@ -479,7 +482,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     continue
                 optimality_score[0] += opt_c
                 optimality_score[1] += c
-            res[cls.optimality_score] = int(100 * optimality_score[0] / optimality_score[1])
+            res[cls.optimality_score] = int(100 * optimality_score[0] / optimality_score[1]) if optimality_score[1] != 0 else float('nan')
             performance = concat([performance,
                                   Series(res).to_frame().transpose()],
                                  ignore_index=True)

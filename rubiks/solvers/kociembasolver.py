@@ -21,7 +21,7 @@ class KociembaSolver(Solver):
 
     @staticmethod
     def to_kociemba(puzzle):
-        assert puzzle.n == 3, 'Kociemba only works for 3*3*3 Rubik\'s'
+        assert puzzle.n in {2, 3}, 'Kociemba only works for 3*3*3 & 2*2*2 Rubik\'s'
         faces_order = [Face.U,
                        Face.R,
                        Face.F,
@@ -38,8 +38,13 @@ class KociembaSolver(Solver):
         solution = solution.split(' ')
         moves = list()
         for move in solution:
+            if move.strip() == '':
+                continue
             double = move.find('2') >= 0
+            triple = move.find('3') >= 0
             anti = move.find('\'') >= 0
+            if triple and not anti:
+                anti = True
             face = Face[move[0].upper()]
             move = CubeMove(face=face, clock_wise=not anti)
             moves.append(move)

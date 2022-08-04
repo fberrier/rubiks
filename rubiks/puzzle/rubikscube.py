@@ -2,10 +2,13 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from enum import Enum
-from numpy.random import randint
+from math import factorial
+from numpy.random import randint, permutation
 from pandas import DataFrame
+from random import choice
 from tabulate import tabulate
-from torch import ones, zeros, equal
+from torch import ones, zeros, equal, concat
+from torch.nn.functional import one_hot
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Move, Puzzle
 ########################################################################################################################
@@ -56,19 +59,19 @@ for _ in Color:
 ########################################################################################################################
 
 
-rubiks_int_map = {Color.r: 1,
-                  Color.w: 2,
-                  Color.g: 3,
-                  Color.b: 4,
-                  Color.o: 5,
-                  Color.y: 6,
-                  Face.F: 1,
-                  Face.U: 2,
-                  Face.L: 3,
-                  Face.R: 4,
-                  Face.B: 5,
-                  Face.D: 6,
-                  }
+rubiks_to_int_map = {Color.r: 1,
+                     Color.w: 2,
+                     Color.g: 3,
+                     Color.b: 4,
+                     Color.o: 5,
+                     Color.y: 6,
+                     Face.F: 1,
+                     Face.U: 2,
+                     Face.L: 3,
+                     Face.R: 4,
+                     Face.B: 5,
+                     Face.D: 6,
+                     }
 
 ########################################################################################################################
 
@@ -109,7 +112,7 @@ rubiks_color_to_print_color_map = {Color.r: '\033[91m',
 def rubiks_to_int(what):
     if isinstance(what, (int, float)):
         return int(what)
-    return rubiks_int_map[what]
+    return rubiks_to_int_map[what]
 
 ########################################################################################################################
 
@@ -146,9 +149,23 @@ for _ in Face:
 class RubiksCube(Puzzle):
     """ Game of the sliding Puzzle, e.g. the 8-puzzle, 15-puzzle, etc """
 
+    def number_of_tiles(self):
+        return 6 * (self.n ** 2)
+
+    def number_of_values(self):
+        return 6
+
     all_faces = {Face.D, Face.L, Face.B, Face.F, Face.R, Face.U}
 
     tiles = 'tiles'
+    init_from_random_goal = 'init_from_random_goal'
+
+    @classmethod
+    def populate_parser_impl(cls, parser):
+        cls.add_argument(parser,
+                         field=cls.init_from_random_goal,
+                         default=False,
+                         action=cls.store_true)
 
     def is_solvable(self) -> bool:
         """ TBD """
@@ -163,6 +180,8 @@ class RubiksCube(Puzzle):
     goals_map = dict()
     goals_hashes = set()
 
+    corners_map = dict()
+
     @classmethod
     def __populate_goals__(cls, n):
         if n in cls.goals_map:
@@ -170,16 +189,25 @@ class RubiksCube(Puzzle):
         # there are 6 possible colors for Face.F
         # and then 4 for Face.U, which fixes the rest
         cls.goals_map[n] = list()
+        cls.corners_map[n] = list()
         for color in Color:
             tiles = dict()
-            tiles[Face.F] = rubiks_to_int(color) * ones((n, n))
+            tiles[Face.F] = rubiks_to_int(color) * ones(n, n, dtype=int)
             for f, c in zip([Face.U, Face.R, Face.D, Face.L],
                             rubiks_adjacent_colors_clock_wise[color]):
-                tiles[f] = rubiks_to_int(c) * ones((n, n))
-            tiles[Face.B] = rubiks_to_int(rubiks_opposite_color[color]) * ones((n, n))
+                tiles[f] = rubiks_to_int(c) * ones(n, n, dtype=int)
+            tiles[Face.B] = rubiks_to_int(rubiks_opposite_color[color]) * ones(n, n, dtype=int)
             goal = RubiksCube(tiles=tiles)
             cls.goals_map[n].append(goal)
             cls.goals_hashes.add(hash(goal))
+        for face in [Face.F, Face.B]:
+            color = rubiks_int_to_color_map[rubiks_to_int_map[face]]
+            adjacent = [rubiks_to_int_map[c] for c in rubiks_adjacent_colors_clock_wise[color]]
+            color = rubiks_to_int_map[color]
+            cls.corners_map[n].append((color, adjacent[0], adjacent[1]))
+            cls.corners_map[n].append((color, adjacent[1], adjacent[2]))
+            cls.corners_map[n].append((color, adjacent[2], adjacent[3]))
+            cls.corners_map[n].append((color, adjacent[3], adjacent[-1]))
 
     def __init__(self, **kw_args):
         from_tiles = self.tiles in kw_args
@@ -191,11 +219,15 @@ class RubiksCube(Puzzle):
         else:
             n = kw_args[self.n]
             self.__populate_goals__(n)
-            goal = self.goals_map[n][0]
+            init_from_random_goal = kw_args.get(self.__class__.init_from_random_goal, False)
+            if not init_from_random_goal:
+                goal = self.goals_map[n][0]
+            else:
+                goal = choice(self.goals_map[n])
             self.__init__(tiles={face: tiles.detach().clone() for face, tiles in goal.tiles.items()})
 
     def __repr__(self):
-        tiles = zeros((self.n * 3, self.n * 4))
+        tiles = zeros(self.n * 3, self.n * 4, dtype=int)
         tiles[0:self.n, self.n:2 * self.n] = self.tiles[Face.U]
         tiles[self.n:2 * self.n, 0: self.n] = self.tiles[Face.L]
         tiles[self.n:2 * self.n, self.n:2 * self.n] = self.tiles[Face.F]
@@ -211,7 +243,7 @@ class RubiksCube(Puzzle):
         tiles[tiles == 0] = ''
         tiles = tiles.unstack()
         for color in Color:
-            col_int = rubiks_int_map[color]
+            col_int = rubiks_to_int_map[color]
             #if color is Color.w:
             #    fill = ''
             #else:
@@ -235,7 +267,7 @@ class RubiksCube(Puzzle):
         return True
 
     def __hash__(self):
-        values = tuple((rubiks_int_map[face],
+        values = tuple((rubiks_to_int_map[face],
                         hash(tuple(self.tiles[face].flatten().numpy()))) for face in Face)
         return hash(values)
 
@@ -397,16 +429,61 @@ class RubiksCube(Puzzle):
 
     def from_tensor(self):
         raise NotImplementedError('Please implement this ... need to de-one_hot then call init')
-    
-    def to_tensor(self, one_hot_encoding=False):
-        raise NotImplementedError('Please implement this ... RubiksCube.to_tensor')
 
-    # For now we go with the base class one which shuffles a v large number of times
-    #def perfect_shuffle(self):
-    #    raise NotImplementedError('Need to implement perfect shuffle for Rubik\'s. Not exactly trivial.')
+    __faces_order__ = [Face.U,
+                       Face.R,
+                       Face.F,
+                       Face.D,
+                       Face.L,
+                       Face.B]
+
+    def to_tensor(self, one_hot_encoding=False, flatten=True):
+        tiles = concat(tuple(self.tiles[f] for f in self.__faces_order__)).to(int) - 1
+        if one_hot_encoding:
+            tiles = one_hot(tiles, num_classes=6)
+        if flatten:
+            tiles = tiles.flatten(1)
+        return tiles
 
     @staticmethod
     def opposite(moves):
         return [move.opposite() for move in reversed(moves)]
+
+    def possible_puzzles_nb(self):
+        if self.n == 2:
+            """ Notice for my purpose each orientation in space is different """
+            return factorial(8) * 3**7
+
+    def perfect_shuffle(self):
+        if self.n == 2:
+            return self.random_2()
+        elif self.n == 3:
+            return
+        else:
+            assert False, 'Need to think about that'
+
+    def random_2(self):
+        """"""
+        assert 2 == self.n
+        corners = self.corners_map[self.n]
+        targets = [((Face.F, 0, 0), (Face.U, 1, 0), (Face.L, 0, 1)),
+                   ((Face.F, 0, 1), (Face.U, 1, 1), (Face.R, 0, 0)),
+                   ((Face.F, 1, 0), (Face.D, 0, 0), (Face.L, 1, 1)),
+                   ((Face.F, 1, 1), (Face.D, 0, 1), (Face.R, 1, 0)),
+                   ((Face.B, 0, 0), (Face.R, 0, 1), (Face.U, 0, 1)),
+                   ((Face.B, 0, 1), (Face.L, 0, 0), (Face.U, 0, 0)),
+                   ((Face.B, 1, 0), (Face.R, 1, 1), (Face.D, 1, 1)),
+                   ((Face.B, 1, 1), (Face.L, 1, 0), (Face.D, 1, 0)),
+                   ]
+        tiles = dict()
+        for target, corner in zip(targets, permutation(corners)):
+            for ((face, pos_x, pos_y), color) in zip(target, permutation(corner)):
+                if face not in tiles:
+                    tiles[face] = zeros(2, 2)
+                t = tiles[face]
+                t[pos_x, pos_y] = color
+        return RubiksCube(tiles=tiles)
+
     
 ########################################################################################################################
+

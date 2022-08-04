@@ -159,6 +159,7 @@ def pformat(what):
                 else v for k, v in what.items()}
         return '\n' + tabulate(DataFrame(what),
                                headers='keys',
+                               floatfmt='.2g',
                                tablefmt='psql',
                                showindex=False)
     elif isinstance(what, Series):
@@ -168,6 +169,7 @@ def pformat(what):
                 else v for k, v in what.items()}
         return '\n' + tabulate(DataFrame(what).transpose(),
                                showindex=True,
+                               floatfmt='.2g',
                                tablefmt='psql')
     return what
 

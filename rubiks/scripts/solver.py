@@ -23,21 +23,21 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_plot
+    action_type = Solver.do_performance_test
     """ What puzzle """
     puzzle_type = Puzzle.rubiks_cube
-    n = 3
+    n = 2
     m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 500
+    nb_samples = 100
     min_nb_shuffles = 0
-    max_nb_shuffles = 0
+    max_nb_shuffles = 10
     step_nb_shuffles = 5
     add_perfect_shuffle = True
-    nb_cpus = 4
+    nb_cpus = 2
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
@@ -49,7 +49,7 @@ if '__main__' == __name__:
                            Solver.max_cost,
                            #Solver.optimality_score,
                            Solver.median_run_time,
-                           Solver.median_expanded_nodes,
+                           #Solver.median_expanded_nodes,
                            ]
     fig_size = [20, 12]
     """ Which solver type {Solver.dfs,
@@ -57,9 +57,9 @@ if '__main__' == __name__:
                            Solver.astar,
                            Solver.naive,
                            } """
-    solver_type = Solver.kociemba
+    solver_type = Solver.astar
     limit = 12
-    time_out = 7200
+    time_out = 3600
     log_solution = False
     check_optimal = False
     max_consecutive_timeout = 25
@@ -67,7 +67,7 @@ if '__main__' == __name__:
                          Heuristic.perfect,
                          Heuristic.deep_learning,
                          } """
-    heuristic_type = Heuristic.manhattan
+    heuristic_type = Heuristic.deep_learning
     """ If manhattan """
     plus = True
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
@@ -75,9 +75,9 @@ if '__main__' == __name__:
     learner_type = Learner.deep_reinforcement_learner
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
-    nb_epochs = 100000
+    nb_epochs = 10000
     nb_sequences = 100
-    nb_shuffles = 160
+    nb_shuffles = 25
     nb_shuffles_min = 40
     nb_shuffles_max = 60
     learning_rate = 1e-3

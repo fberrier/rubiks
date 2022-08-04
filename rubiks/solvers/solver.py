@@ -641,7 +641,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if what in [cls.pct_solved] and not labels_shown:
                 """ Ideally we can show the labels on one of these so we don't have to
                 display at top where it might overlap with the title. """
-                bax.legend(loc='center')
+                bax.legend(loc='best')
                 labels_shown = True
         if not labels_shown:
             fig.legend(handles, labels, loc='upper center')

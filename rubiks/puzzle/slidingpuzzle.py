@@ -38,6 +38,12 @@ class Slide(Move):
 class SlidingPuzzle(Puzzle):
     """ Game of the sliding Puzzle, e.g. the 8-puzzle, 15-puzzle, etc """
 
+    def number_of_values(self):
+        return self.n * self.m
+
+    def number_of_tiles(self):
+        return self.n * self.m
+
     m = 'm'
     tiles = 'tiles'
     empty = 'empty'

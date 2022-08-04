@@ -23,6 +23,12 @@ class Puzzled(Parsable):
         self.__goal__ = Puzzle.factory(**kw_args)
         self.pp_nb = self.__goal__.possible_puzzles_nb()
 
+    def number_of_tiles(self):
+        return self.__goal__.number_of_tiles()
+
+    def number_of_values(self):
+        return self.__goal__.number_of_values()
+
     def get_puzzle_type(self):
         return self.puzzle_type
 

@@ -109,6 +109,16 @@ class Puzzle(Factory, metaclass=ABCMeta):
                 training_data.append(puzzles)
         return training_data
 
+    @abstractmethod
+    def number_of_tiles(self):
+        """ How many diff tiles there are in this puzzle """
+        return
+
+    @abstractmethod
+    def number_of_values(self):
+        """ How many diff possible values there are for the tiles """
+        return
+
     @classmethod
     def widget_types(cls):
         from rubiks.puzzle.slidingpuzzle import SlidingPuzzle

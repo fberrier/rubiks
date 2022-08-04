@@ -1,3 +1,4 @@
+
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
@@ -24,22 +25,24 @@ if '__main__' == __name__:
                             } """
     action_type = Learner.do_learn
     """ What puzzle """
-    puzzle_type = Puzzle.sliding_puzzle
+    puzzle_type = Puzzle.rubiks_cube
     n = 2
     m = 5
+    """ more init for specific puzzles """
+    init_from_random_goal = True
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.perfect_learner
+    learner_type = Learner.deep_reinforcement_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 3600
-    nb_cpus = 12
+    nb_cpus = 2
     cpu_multiplier = 100
     max_puzzles = nb_cpus * cpu_multiplier * 100
     regular_save = nb_cpus * cpu_multiplier * 1
@@ -55,18 +58,18 @@ if '__main__' == __name__:
                                    PerfectLearner.permutation_puzzle_generation,
                                    PerfectLearner.random_from_goal_puzzle_generation,
                                    } """
-    puzzle_generation = PerfectLearner.perfect_random_puzzle_generation
+    puzzle_generation = PerfectLearner.permutation_puzzle_generation
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL learner config is here ... """
-    nb_epochs = 100000
-    nb_sequences = 50
-    nb_shuffles = 400
+    nb_epochs = 10000
+    nb_sequences = 100
+    nb_shuffles = 25
     training_data_every_epoch = False
     cap_target_at_network_count = True
     update_target_network_frequency = 500
     update_target_network_threshold = 1e-3
-    max_nb_target_network_update = 300
+    max_nb_target_network_update = 25
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
     learning_rate = 1e-3

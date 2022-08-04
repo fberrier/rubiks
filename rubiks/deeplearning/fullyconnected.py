@@ -44,9 +44,9 @@ class FullyConnected(DeepLearning):
 
     def __init__(self, **kw_args):
         DeepLearning.__init__(self, **kw_args)
-        in_channels = prod(self.get_puzzle_dimension())
+        in_channels = self.number_of_tiles()
         if self.one_hot_encoding:
-            in_channels *= in_channels
+            in_channels *= self.number_of_values()
         layers = tuple(layer for layer in self.layers_description)
         if layers[-1] != 1:
             layers = (*tuple(layers), 1)

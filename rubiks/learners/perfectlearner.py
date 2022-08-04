@@ -228,7 +228,7 @@ class PerfectLearner(Learner):
     def learn(self):
         cls = self.__class__
         solver = Solver.factory(**self.get_config())
-        assert solver.know_to_be_optimal(), \
+        assert solver.known_to_be_optimal(), \
             'This cannot be a PerfectLearner if the solver is not optimal!'\
             ' Did you mean to use \'%s\' as heuristic_type?' % self.heuristic_type
         pool = Pool(self.nb_cpus)

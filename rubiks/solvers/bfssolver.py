@@ -8,7 +8,7 @@ from rubiks.solvers.solver import Solver, Solution
 
 class BFSSolver(Solver):
 
-    def know_to_be_optimal(self):
+    def known_to_be_optimal(self):
         """ if it does not time out, it is definitely optimal """
         return True
 

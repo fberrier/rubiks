@@ -23,7 +23,7 @@ class DFSSolver(Solver):
                         puzzle_type=puzzle_type,
                         **kw_args)
 
-    def know_to_be_optimal(self):
+    def known_to_be_optimal(self):
         """ unless extremely lucky this is not going to return optimal solutions """
         return False
 

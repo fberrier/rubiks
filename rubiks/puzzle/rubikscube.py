@@ -179,8 +179,13 @@ class RubiksCube(Puzzle):
 
     goals_map = dict()
     goals_hashes = set()
-
     corners_map = dict()
+
+
+    @classmethod
+    def __add_corner_to_map__(cls, corner, n):
+        corner = tuple(rubiks_to_int(color) for color in corner)
+        cls.corners_map[n].append(corner)
 
     @classmethod
     def __populate_goals__(cls, n):
@@ -200,14 +205,18 @@ class RubiksCube(Puzzle):
             goal = RubiksCube(tiles=tiles)
             cls.goals_map[n].append(goal)
             cls.goals_hashes.add(hash(goal))
-        for face in [Face.F, Face.B]:
-            color = rubiks_int_to_color_map[rubiks_to_int_map[face]]
-            adjacent = [rubiks_to_int_map[c] for c in rubiks_adjacent_colors_clock_wise[color]]
-            color = rubiks_to_int_map[color]
-            cls.corners_map[n].append((color, adjacent[0], adjacent[1]))
-            cls.corners_map[n].append((color, adjacent[1], adjacent[2]))
-            cls.corners_map[n].append((color, adjacent[2], adjacent[3]))
-            cls.corners_map[n].append((color, adjacent[3], adjacent[-1]))
+        cls.__add_corner_to_map__((Color.r, Color.w, Color.g), n)
+        cls.__add_corner_to_map__((Color.r, Color.b, Color.w), n)
+        cls.__add_corner_to_map__((Color.r, Color.g, Color.y), n)
+        cls.__add_corner_to_map__((Color.r, Color.y, Color.b), n)
+        cls.__add_corner_to_map__((Color.o, Color.y, Color.g), n)
+        cls.__add_corner_to_map__((Color.o, Color.b, Color.y), n)
+        cls.__add_corner_to_map__((Color.o, Color.w, Color.b), n)
+        cls.__add_corner_to_map__((Color.o, Color.g, Color.w), n)
+
+        
+
+        
 
     def __init__(self, **kw_args):
         from_tiles = self.tiles in kw_args
@@ -225,6 +234,12 @@ class RubiksCube(Puzzle):
             else:
                 goal = choice(self.goals_map[n])
             self.__init__(tiles={face: tiles.detach().clone() for face, tiles in goal.tiles.items()})
+        #self.check_consistency()
+
+    def check_consistency(self):
+        tiles = self.to_tensor()
+        for c in range(1, 7):
+            assert sum(sum(tiles == c - 1)).item() == 4, 'badly formed puzzle \n%s' % self
 
     def __repr__(self):
         tiles = zeros(self.n * 3, self.n * 4, dtype=int)
@@ -467,17 +482,34 @@ class RubiksCube(Puzzle):
         assert 2 == self.n
         corners = self.corners_map[self.n]
         targets = [((Face.F, 0, 0), (Face.U, 1, 0), (Face.L, 0, 1)),
-                   ((Face.F, 0, 1), (Face.U, 1, 1), (Face.R, 0, 0)),
-                   ((Face.F, 1, 0), (Face.D, 0, 0), (Face.L, 1, 1)),
+                   ((Face.F, 0, 1), (Face.R, 0, 0), (Face.U, 1, 1)),
+                   ((Face.F, 1, 0), (Face.L, 1, 1), (Face.D, 0, 0)),
                    ((Face.F, 1, 1), (Face.D, 0, 1), (Face.R, 1, 0)),
-                   ((Face.B, 0, 0), (Face.R, 0, 1), (Face.U, 0, 1)),
-                   ((Face.B, 0, 1), (Face.L, 0, 0), (Face.U, 0, 0)),
+                   ((Face.B, 1, 1), (Face.D, 1, 0), (Face.L, 1, 0)),
                    ((Face.B, 1, 0), (Face.R, 1, 1), (Face.D, 1, 1)),
-                   ((Face.B, 1, 1), (Face.L, 1, 0), (Face.D, 1, 0)),
+                   ((Face.B, 0, 0), (Face.U, 0, 1), (Face.R, 0, 1)),
+                   ((Face.B, 0, 1), (Face.L, 0, 0), (Face.U, 0, 0)),
                    ]
         tiles = dict()
-        for target, corner in zip(targets, permutation(corners)):
-            for ((face, pos_x, pos_y), color) in zip(target, permutation(corner)):
+        p_corners = permutation(corners)
+        def permutate(nb, corner):
+            corner = list(corner)
+            corner.extend(corner[:2])
+            r = randint(0, 3)
+            corner = corner[r: r+3]
+            return corner, r
+
+        total_r = 0
+        for nb, (target, corner) in enumerate(zip(targets, p_corners)):
+            corner, r = permutate(nb, corner)
+            total_r += r
+            total_r %= 3
+            if nb == 7:
+                while total_r != 0:
+                    corner, r = permutate(nb, corner)
+                    total_r += r
+                    total_r %= 3
+            for ((face, pos_x, pos_y), color) in zip(target, corner):
                 if face not in tiles:
                     tiles[face] = zeros(2, 2)
                 t = tiles[face]

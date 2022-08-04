@@ -72,7 +72,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         return Heuristic.get_widgets() + [Heuristic]
 
     @abstractmethod
-    def know_to_be_optimal(self):
+    def known_to_be_optimal(self):
         """ Return True only if this is demonstrably returning optimal solutions """
         return False
 
@@ -94,7 +94,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         if self.log_solution:
             self.log_info(solution)
         if self.check_optimal:
-            if self.know_to_be_optimal() and not solution.failed():
+            if self.known_to_be_optimal() and not solution.failed():
                 self.log_info('Solution is optimal')
             else:
                 assert self.get_puzzle_type() == Puzzle.sliding_puzzle, \
@@ -394,6 +394,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             expanded_nodes_list = list()
             run_time_list = list()
             for solution in results:
+                if self.log_solution:
+                    self.log_info(solution)
                 cost = solution.cost
                 path = solution.path
                 expanded_nodes = solution.expanded_nodes
@@ -409,7 +411,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     consecutive_timeout += 1
                     nb_timeout += 1
                 else:
-                    if self.know_to_be_optimal():
+                    if self.known_to_be_optimal():
                         if self.shuffles_data:
                             stored_cost = self.shuffles_data[nb_shuffles][index][1]
                             assert isinf(stored_cost) or stored_cost == cost, \

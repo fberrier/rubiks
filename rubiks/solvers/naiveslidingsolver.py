@@ -12,7 +12,7 @@ class NaiveSlidingSolver(Solver):
      """
 
     @classmethod
-    def know_to_be_optimal(cls):
+    def known_to_be_optimal(cls):
         return False
 
     def solve_impl(self, puzzle, **kw_args) -> Solution:

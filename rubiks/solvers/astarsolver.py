@@ -16,7 +16,7 @@ class AStarSolver(Solver):
     # @todo Francois make sure we can construct the heuristic at init and keep it there rather than
     # reconstructing in solve_impl ... this is idiotic
 
-    def know_to_be_optimal(self):
+    def known_to_be_optimal(self):
         """ unless extremely lucky this is not going to return optimal solutions """
         heuristic = Heuristic.factory(**self.get_config())
         return heuristic.known_to_be_admissible()

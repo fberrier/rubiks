@@ -52,9 +52,8 @@ class KociembaSolver(Solver):
                 moves.append(move)
         return moves
 
-    @classmethod
-    def know_to_be_optimal(cls):
-        return False
+    def known_to_be_optimal(self):
+        return self.get_puzzle_dimension()[0] == 2
 
     def solve_impl(self, puzzle, **kw_args) -> Solution:
         assert isinstance(puzzle, RubiksCube) and puzzle.dimension() in {(3, 3, 3), (2, 2, 2)}

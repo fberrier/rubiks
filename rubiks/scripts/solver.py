@@ -32,12 +32,12 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 100
+    nb_samples = 500
     min_nb_shuffles = 0
-    max_nb_shuffles = 10
-    step_nb_shuffles = 5
+    max_nb_shuffles = 15
+    step_nb_shuffles = 1
     add_perfect_shuffle = True
-    nb_cpus = 2
+    nb_cpus = 4
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
@@ -57,9 +57,9 @@ if '__main__' == __name__:
                            Solver.astar,
                            Solver.naive,
                            } """
-    solver_type = Solver.astar
+    solver_type = Solver.kociemba
     limit = 12
-    time_out = 3600
+    time_out = 10
     log_solution = False
     check_optimal = False
     max_consecutive_timeout = 25

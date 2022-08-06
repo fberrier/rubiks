@@ -130,11 +130,13 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                         self.get_name() in self.shuffles_data[nb_shuffles][index][2] and \
                         not self.shuffles_data[nb_shuffles][index][2][self.get_name()].failed():
                     if self.verbose:
-                        print('Already solved this one ', puzzle, ' with ', self.get_name())
+                        print('Already solved ', puzzle, ' # ', index, ' with ', self.get_name())
                     return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
+            if self.verbose:
+                print('Starting solving ', puzzle, ' # ', index, ' ... ')
             solution = self.solve_impl(puzzle, **self.get_config())
             run_time = snap() - start
             solution.set_run_time(run_time)
@@ -144,9 +146,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             assert isnan(solution.expanded_nodes) or isinstance(solution.expanded_nodes, int)
             if self.verbose:
                 if solution.failed():
-                    print('failed to solve ', puzzle, ' # ', index)
+                    print(' ... failed to solve ', puzzle, ' # ', index)
                 else:
-                    print('solved ',
+                    print(' ... solved ',
                           puzzle,
                           ' # ',
                           index,
@@ -206,6 +208,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                    pct_solved]
     verbose = 'verbose'
     fig_size = 'fig_size'
+    loc = 'loc'
 
     @classmethod
     def populate_parser(cls, parser):
@@ -288,6 +291,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          cls.verbose,
                          default=False,
                          action=cls.store_true)
+        cls.add_argument(parser,
+                         cls.loc,
+                         type=str,
+                         default='best')
     
     def performance_test(self):
         """
@@ -643,7 +650,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if what in [cls.pct_solved] and not labels_shown:
                 """ Ideally we can show the labels on one of these so we don't have to
                 display at top where it might overlap with the title. """
-                bax.legend(loc='best')
+                bax.legend(loc=self.loc)
                 labels_shown = True
         if not labels_shown:
             fig.legend(handles, labels, loc='upper center')

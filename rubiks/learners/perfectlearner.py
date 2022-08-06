@@ -12,7 +12,7 @@ from time import time as snap
 from rubiks.learners.learner import Learner
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.solvers.solver import Solver, Solution
-from rubiks.utils.utils import is_inf, to_pickle, number_format, hms_format, pformat
+from rubiks.utils.utils import is_inf, to_pickle, number_format, hms_format, pformat, s_format
 from rubiks.puzzle.puzzle import Puzzle
 ########################################################################################################################
 
@@ -191,10 +191,28 @@ class PerfectLearner(Learner):
             self.add_puzzle_to_data_base(solution.puzzle, solution.cost)
 
     def __job__(self, solver, config, puzzle):
+        start = snap()
         try:
-            return solver.solve(puzzle, **config)
+            (puzzle, index) = puzzle
+            if self.verbose:
+                print('Starting solving ', puzzle, ' # ', index, ' ... ')
+            solution = solver.solve(puzzle, **config)
+            run_time = snap() - start
+            if self.verbose:
+                print(' ... solved ',
+                      puzzle,
+                      ' # ',
+                      index,
+                      ' with cost ',
+                      solution.cost,
+                      ' in ',
+                      s_format(run_time))
+            return solution
         except (TimeoutError, KeyboardInterrupt):
-            return Solution(inf, [], inf, puzzle)
+            if self.verbose:
+                if solution.failed():
+                    print(' ... failed to solve ', puzzle, ' # ', index)
+            return Solution(inf, list(), inf, puzzle)
 
     def generate_puzzles(self):
         self.log_info('Puzzles generation process:', self.puzzle_generation)
@@ -232,7 +250,7 @@ class PerfectLearner(Learner):
             'This cannot be a PerfectLearner if the solver is not optimal!'\
             ' Did you mean to use \'%s\' as heuristic_type?' % self.heuristic_type
         pool = Pool(self.nb_cpus)
-        puzzles = []
+        puzzles = list()
         self.puzzle_count = 1
         config = self.get_config()
         self.snap = snap()
@@ -249,12 +267,15 @@ class PerfectLearner(Learner):
                 if len(puzzles) < self.cpu_multiplier * self.nb_cpus:
                     puzzles.append(puzzle)
                 else:
+                    n_format = number_format(len(puzzles))
+                    indices = ['%s / %s' % (number_format(p + 1), n_format) for p in range(len(puzzles))]
+                    puzzles = [(p, i) for p, i in zip(puzzles, indices)]
                     solutions = pool.map(partial(self.__class__.__job__,
                                                  self,
                                                  solver,
                                                  config),
                                          puzzles)
-                    puzzles = [puzzle]
+                    puzzles = [puzzle] # <- leave for next batch
                     for solution in solutions:
                         self.add_solution_to_data_base(solution)
                     if self.after_round_save:
@@ -265,6 +286,10 @@ class PerfectLearner(Learner):
                     break
             if puzzles and len(self.data_base[cls.data]) < self.possible_puzzles_nb() and \
                     self.consecutive_time_outs <= self.abort_after_that_many_consecutive_timed_out:
+                n_format = number_format(len(puzzles))
+                indices = ['%d / %d' % (number_format(p + 1),
+                                        n_format) for p in range(len(puzzles))]
+                puzzles = [(p, i) for p, i in zip(puzzles, indices)]
                 solutions = pool.map(partial(self.__class__.__job__,
                                              self,
                                              solver,

@@ -136,8 +136,10 @@ class SlidingPuzzle(Puzzle):
         return tuple(argwhere(value == self.tiles).squeeze().tolist())
 
     def __repr__(self):
-        tiles = array(self.tiles.numpy(), dtype=str)
-        tiles = where(tiles == '0', '', tiles)
+        tiles = DataFrame(self.tiles) #array(self.tiles.numpy(), dtype=str)
+        tiles = tiles.stack()
+        tiles[tiles == 0] = '\033[38;2;255;165;0m\u2588\u2588\033[0m'
+        tiles = tiles.unstack()
         tiles = '\n'.join(tabulate(DataFrame(tiles),
                                    headers='keys',
                                    tablefmt='grid',

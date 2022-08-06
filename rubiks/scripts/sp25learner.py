@@ -25,7 +25,7 @@ if '__main__' == __name__:
                             } """
     action_type = Learner.do_learn
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
+    puzzle_type = Puzzle.sliding_puzzle
     n = 2
     m = 5
     """ more init for specific puzzles """
@@ -35,15 +35,15 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.perfect_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 900
-    nb_cpus = 1
-    cpu_multiplier = 100
+    nb_cpus = 15
+    cpu_multiplier = 200
     max_puzzles = nb_cpus * cpu_multiplier * 100
     regular_save = nb_cpus * cpu_multiplier * 1
     save_timed_out_max_puzzles = 10000
@@ -58,9 +58,10 @@ if '__main__' == __name__:
                                    PerfectLearner.permutation_puzzle_generation,
                                    PerfectLearner.random_from_goal_puzzle_generation,
                                    } """
-    puzzle_generation = PerfectLearner.permutation_puzzle_generation
+    puzzle_generation = PerfectLearner.perfect_random_puzzle_generation
     heuristic_type = Heuristic.manhattan
     plus = True
+    verbose = True
     """ If it's a DRL learner config is here ... """
     nb_epochs = 25000
     nb_sequences = 10

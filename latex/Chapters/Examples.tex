@@ -8,14 +8,75 @@
 In this chapter, I will go through some examples, illustrating how to use the code base to learn and solve various puzzles. For each section, simple examples of code will be indicated in \afblue \textbf{python code} \black paragraphs, and can easily be run from command line or copied into a script and run from your favourite IDE.
 
 
+
+
+
+
 %-----------------------------------
 %	SECTION 1
+%-----------------------------------
+\section{Puzzles}
+Let me start by showing how to construct puzzles, using the Puzzle factory. Notice that in order to run a learner or solver of any kind (assuming of course that they are meant to work on the puzzle type in question), we can just use the exact same code, but just specify \textit{puzzle\_type}  and the expected parameters to construct a puzzle.
+\\
+\\
+For instance, let us create a (n=5, m=6) SP, shuffle it a number of times, and print it:
+\afblue
+\paragraph{}{\textbf{python code -- sliding puzzle construction}}
+\begin{python}
+####################################################################
+from rubiks.puzzle.puzzle import Puzzle
+####################################################################
+puzzle_type=Puzzle.sliding_puzzle
+n=5
+m=6
+nb_moves=1000
+print(Puzzle.factory(**globals()).apply_random_moves(nb_moves))
+####################################################################
+\end{python}
+\black
+The output from the above code snippet will look like (subject to randomness):
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.8]{./Figures/examplespconstruction}
+%\decoRule
+\caption[Examples]{sliding puzzle construction example}
+\label{fig:examplespconstruction}
+\end{figure}
+.. similarly to construct a (n=2) RC and shuffle it perfectly:
+\afblue
+\paragraph{}{\textbf{python code -- rubiks cube construction}}
+\begin{python}
+####################################################################
+from math import inf
+from rubiks.puzzle.puzzle import Puzzle
+####################################################################
+puzzle_type=Puzzle.rubiks_cube
+n=2
+""" Here we use perfect shuffle by spcifying infinite number of shuffles """
+nb_moves=inf
+print(Puzzle.factory(**globals()).apply_random_moves(nb_moves))
+####################################################################
+\end{python}
+\black
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.8]{./Figures/examplercconstruction}
+%\decoRule
+\caption[Examples]{rubiks cube construction example}
+\label{fig:examplercconstruction}
+\end{figure}
+
+
+%-----------------------------------
+%	SECTION 2
 %-----------------------------------
 \section{Learners}
 
 
 %-----------------------------------
-%	SUBSECTION 1.1
+%	SUBSECTION 2.1
 %-----------------------------------
 \subsection{Perfect Learner}
 \label{PLSS}
@@ -53,7 +114,7 @@ if __name__ == '__main__':
 ####################################################################
 \end{python}
 \black
-The above snipet of code will solve the 2 by 3 SP and then display the results, showing the distribution of optimal costs, as well as the most difficult puzzle.
+The above snippet of code will solve the 2 by 3 SP and then display the results, showing the distribution of optimal costs, as well as the most difficult puzzle.
 
 \begin{figure}[H]
 \centering
@@ -65,7 +126,7 @@ The above snipet of code will solve the 2 by 3 SP and then display the results, 
 
 
 %-----------------------------------
-%	SUBSECTION 1.2
+%	SUBSECTION 2.2
 %-----------------------------------
 \subsection{Deep Learner}
 \label{DLSS}
@@ -126,7 +187,7 @@ if '__main__' == __name__:
 \end{python}
 \black
 
-As can be seen in the code snipet, this example will generate 100 perfectly shuffled (n=5, m=2) SPs and solve them. Once done, a summary of the training data is printed, indicating, for each optimal cost, how many sequences have been generated.
+As can be seen in the code snippet, this example will generate 100 perfectly shuffled (n=5, m=2) SPs and solve them. Once done, a summary of the training data is printed, indicating, for each optimal cost, how many sequences have been generated.
 
 \begin{figure}[H]
 \centering
@@ -158,12 +219,12 @@ Then the Deep Learner will get trained on this data for 999 epochs. In the above
 
 
 %-----------------------------------
-%	SUBSECTION 1.3
+%	SUBSECTION 2.3
 %-----------------------------------
 \subsection{Deep Reinforcement Learner}
 \label{DRLSS}
 
-Unlike the Deep Learner, the Deep Reinforcement Learner learns unsupervised (in the sense that there is no need to pre-solve puzzles to tell if what the actual (target) costs are), since it generates its own target using a combination of a target network and the simple min rule described in \ref{sec:codelearners}. Let us see here how to run it on the (n=4, m=2) SP for instance. The following code snipet will run a Deep Reinforcement Learner for a maximum of 25,000 epochs, generating randomly 10 sequences of puzzles shuffled 50 times from goal state every time it updates the target network. That update will happen either after 500 epochs or when the (MSE) loss on the value function gets under one thousands of the max target value. The learner will stop if it reaches 25,000 epochs or if the target network updates 40 times. The network trained is a fully connected network with 3 hidden layers and the puzzles are one-hot encoded. We use the same optimiser and scheduler as in the previous subsection.
+Unlike the Deep Learner, the Deep Reinforcement Learner learns unsupervised (in the sense that there is no need to pre-solve puzzles to tell if what the actual (target) costs are), since it generates its own target using a combination of a target network and the simple min rule described in \ref{sec:codelearners}. Let us see here how to run it on the (n=4, m=2) SP for instance. The following code snippet will run a Deep Reinforcement Learner for a maximum of 25,000 epochs, generating randomly 10 sequences of puzzles shuffled 50 times from goal state every time it updates the target network. That update will happen either after 500 epochs or when the (MSE) loss on the value function gets under one thousands of the max target value. The learner will stop if it reaches 25,000 epochs or if the target network updates 40 times. The network trained is a fully connected network with 3 hidden layers and the puzzles are one-hot encoded. We use the same optimiser and scheduler as in the previous subsection.
 
 \afblue
 \paragraph{}{\textbf{python code -- deep reinforcement learner}}
@@ -211,7 +272,7 @@ if '__main__' == __name__:
 ####################################################################
 \end{python}
 \black
-As can be seen on the next page, which I obtained from running the above code snipet (keep in mind that every run is going to be slightly different due to the random puzzles being generated), the training stopped after about 17,100 epochs as the 40 target network updates had been reached. By that point, the DRL learner had seen 40\% of the possible puzzles, and the very last MSE loss (after update, so out-of-sample) was around 0.4, corresponding to 2\% of the max target cost. It is interesting to notice that since I have shuffled the sequences only 50 times, and since the (n=4, m=2) SP is quite constrained in terms of possible moves, the max target ever produced by the network was only around 25, whereas we know the God number for this dimension is 36 (see later section \ref{sec:SPLowDimension}). It is therefore likely that the resulting network would not produce very optimal solutions for puzzles whose cost is in the region [25, 36]. 
+As can be seen on the next page, which I obtained from running the above code snippet (keep in mind that every run is going to be slightly different due to the random puzzles being generated), the training stopped after about 17,100 epochs as the 40 target network updates had been reached. By that point, the DRL learner had seen 40\% of the possible puzzles, and the very last MSE loss (after update, so out-of-sample) was around 0.4, corresponding to 2\% of the max target cost. It is interesting to notice that since I have shuffled the sequences only 50 times, and since the (n=4, m=2) SP is quite constrained in terms of possible moves, the max target ever produced by the network was only around 25, whereas we know the God number for this dimension is 36 (see later section \ref{sec:SPLowDimension}). It is therefore likely that the resulting network would not produce very optimal solutions for puzzles whose cost is in the region [25, 36]. 
 
 
 \newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
@@ -233,18 +294,18 @@ As can be seen on the next page, which I obtained from running the above code sn
 
 
 %-----------------------------------
-%	SECTION 2
+%	SECTION 3
 %-----------------------------------
 
 \section{Solvers}
 
 %-----------------------------------
-%	SUBSECTION 2.1
+%	SUBSECTION 3.1
 %-----------------------------------
 \subsection{Blind search}
 First let me start with some of the blind search algorithms, which I only have been able to use on small dimension SP. They quickly become too memory hungry to be practical on anything but the smallest puzzles.
 %-----------------------------------
-%	SUBSECTION 2.1.1
+%	SUBSECTION 3.1.1
 %-----------------------------------
 \subsubsection{BFS}
 \label{BFSSS}
@@ -270,7 +331,7 @@ if '__main__' == __name__:
 \end{python}
 \black
 
-As expected (since BFS is optimal), the solution found, printed by the snipet of code above, is optimal. The check\_optimal flag in the code snipet indicates that the solver should let us know if solution is optimal. Since BFS advertises itself (via the Solver base class API)  as an optimal solver, the solution is deemed optimal.
+As expected (since BFS is optimal), the solution found, printed by the snippet of code above, is optimal. The check\_optimal flag in the code snippet indicates that the solver should let us know if solution is optimal. Since BFS advertises itself (via the Solver base class API)  as an optimal solver, the solution is deemed optimal.
 
 
 \begin{figure}[H]
@@ -282,7 +343,7 @@ As expected (since BFS is optimal), the solution found, printed by the snipet of
 \end{figure}
 
 %-----------------------------------
-%	SUBSECTION 2.1.2
+%	SUBSECTION 3.1.2
 %-----------------------------------
 \subsubsection{DFS}
 \label{DFSSS}
@@ -324,7 +385,7 @@ Here we can see, in contrast with the previous example, that the solution obtain
 
 
 %-----------------------------------
-%	SUBSECTION 2.2
+%	SUBSECTION 3.2
 %-----------------------------------
 \subsection{Naive Sliding Puzzle Solver}
 As a comparison point for otherSP solvers, I have implemented a naive sliding puzzle solver, which does what most beginner players would intuitively do when solving the sliding puzzle by hand: solve the top row, then the left column, and keep iterating until done. Notice that once either the top row or left column is solved, there is no longer any need to modify it, we have simply reduced the problem to a sub-problem of reduced dimension. For the interested reader, the details of the algorithm are as follows:
@@ -447,7 +508,7 @@ and we are left with solving the bottom sub-puzzle (n=4,m=5):
 which the naive solver can keep solving iteratively by taking care of the left-most column, etc...
 \\
 \\
-Below is a simple code snipet to run the naive solver on a randomly generated (n=2, m=2) SP:
+Below is a simple code snippet to run the naive solver on a randomly generated (n=2, m=2) SP:
 \afblue
 \paragraph{}{\textbf{python code -- naive solver}}
 \begin{python}
@@ -478,14 +539,14 @@ print(Solver.factory(**globals()).action())
 
 
 %-----------------------------------
-%	SUBSECTION 2.3
+%	SUBSECTION 3.3
 %-----------------------------------
 \subsection{Kociemba}
 TBI \& TBD
 
 
 %-----------------------------------
-%	SUBSECTION 2.4
+%	SUBSECTION 3.4
 %-----------------------------------
 \subsection{A*}
 \label{ASSS}
@@ -560,7 +621,7 @@ if '__main__' == __name__:
 ####################################################################
 \end{python}
 \black
-Running this code snipet will output something like (the shuffle is random obviously):
+Running this code snippet will output something like (the shuffle is random obviously):
 
 
 \begin{figure}[H]

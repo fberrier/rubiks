@@ -164,6 +164,7 @@ def pformat(what):
                                showindex=False)
     elif isinstance(what, Series):
         what = what.to_dict()
+        what = {k: ('%.2g' % v) if isinstance(v, float) else v for k, v in what.items()}
     if isinstance(what, dict):
         what = {k: [v] if not isinstance(v, (list, np.ndarray)) \
                 else v for k, v in what.items()}

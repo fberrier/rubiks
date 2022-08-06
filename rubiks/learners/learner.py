@@ -32,6 +32,7 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
     do_cleanup_learning_file = 'do_cleanup_learning_file'
     known_action_type = [do_learn, do_plot, do_cleanup_learning_file]
     learning_file_name = 'learning_file_name'
+    verbose = 'verbose'
 
     @classmethod
     def additional_dependencies(cls):
@@ -52,6 +53,10 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
                          type=str,
                          default=False,
                          choices=cls.known_action_type)
+        cls.add_argument(parser,
+                         field=cls.verbose,
+                         default=False,
+                         action=cls.store_true)
 
     def action(self):
         if self.do_plot == self.action_type:

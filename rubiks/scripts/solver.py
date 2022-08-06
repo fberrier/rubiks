@@ -33,23 +33,24 @@ if '__main__' == __name__:
     nb_shuffles = 0
     """ For performance test """
     nb_samples = 500
-    min_nb_shuffles = 0
-    max_nb_shuffles = 15
+    min_nb_shuffles = 11
+    max_nb_shuffles = 12
     step_nb_shuffles = 1
-    add_perfect_shuffle = True
+    add_perfect_shuffle = False
     nb_cpus = 4
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
-    verbose = False
+    verbose = True
     """ For plot """
+    loc = 'center'
     performance_metrics = [Solver.pct_solved,
                            #Solver.pct_optimal,
                            Solver.median_cost,
                            Solver.max_cost,
-                           #Solver.optimality_score,
+                           Solver.optimality_score,
                            Solver.median_run_time,
-                           #Solver.median_expanded_nodes,
+                           Solver.median_expanded_nodes,
                            ]
     fig_size = [20, 12]
     """ Which solver type {Solver.dfs,
@@ -57,9 +58,9 @@ if '__main__' == __name__:
                            Solver.astar,
                            Solver.naive,
                            } """
-    solver_type = Solver.kociemba
+    solver_type = Solver.astar
     limit = 12
-    time_out = 10
+    time_out = 600
     log_solution = False
     check_optimal = False
     max_consecutive_timeout = 25

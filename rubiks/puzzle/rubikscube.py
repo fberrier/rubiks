@@ -259,9 +259,6 @@ class RubiksCube(Puzzle):
         tiles = tiles.unstack()
         for color in Color:
             col_int = rubiks_to_int_map[color]
-            #if color is Color.w:
-            #    fill = ''
-            #else:
             fill = '%s%s%s%s' % (rubiks_color_to_print_color_map[color],
                                  '\u2588',
                                  '\u2588',

@@ -67,7 +67,6 @@ class DeepReinforcementLearner(Learner):
     default_learning_rate = 1e-6
     nb_cpus = 'nb_cpus'
     default_nb_cpus = 1
-    verbose = 'verbose'
     plot_metrics = 'plot_metrics'
     default_plot_metrics = [learning_rate,
                             target_network_count,
@@ -119,10 +118,6 @@ class DeepReinforcementLearner(Learner):
                          default=cls.default_learning_rate)
         cls.add_argument(parser,
                          field=cls.use_cuda,
-                         default=False,
-                         action=cls.store_true)
-        cls.add_argument(parser,
-                         field=cls.verbose,
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,

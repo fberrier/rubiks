@@ -32,16 +32,17 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 500
-    min_nb_shuffles = 11
-    max_nb_shuffles = 12
+    nb_samples = 25
+    min_nb_shuffles = 0
+    max_nb_shuffles = 0
     step_nb_shuffles = 1
-    add_perfect_shuffle = False
+    add_perfect_shuffle = True
     nb_cpus = 4
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
     verbose = True
+    do_not_reattempt_failed = False
     """ For plot """
     loc = 'center'
     performance_metrics = [Solver.pct_solved,

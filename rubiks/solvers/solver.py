@@ -42,6 +42,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     default_max_consecutive_timeout = 0
     log_solution = 'log_solution'
     check_optimal = 'check_optimal'
+    do_not_reattempt_failed = 'do_not_reattempt_failed'
 
     def __init__(self, **kw_args):
         Factory.__init__(self, **kw_args)
@@ -127,11 +128,12 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if self.shuffles_data and index >= 0:
                 puzzle = self.shuffles_data[nb_shuffles][index][0]
                 if 3 <= len(self.shuffles_data[nb_shuffles][index]) and \
-                        self.get_name() in self.shuffles_data[nb_shuffles][index][2] and \
-                        not self.shuffles_data[nb_shuffles][index][2][self.get_name()].failed():
-                    if self.verbose:
-                        print('Already solved ', puzzle, ' # ', index, ' with ', self.get_name())
-                    return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
+                        self.get_name() in self.shuffles_data[nb_shuffles][index][2]:
+                    if self.do_not_reattempt_failed or \
+                            not self.shuffles_data[nb_shuffles][index][2][self.get_name()].failed():
+                        if self.verbose:
+                            print('Already solved ', puzzle, ' # ', index, ' with ', self.get_name())
+                        return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
@@ -295,6 +297,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          cls.loc,
                          type=str,
                          default='best')
+        cls.add_argument(parser,
+                         cls.do_not_reattempt_failed,
+                         default=False,
+                         action=cls.store_true)
     
     def performance_test(self):
         """
@@ -437,12 +443,12 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                        optimal_cost)
                     if self.shuffles_data:
                         optimal_cost = self.shuffles_data[nb_shuffles][index][1]
-                    self.shuffles_data[nb_shuffles][index][2][self.get_name()] = solution
                     if cost > optimal_cost:
                         nb_not_optimal += 1
                         self.log_debug('not optimal (cost=', cost, ' vs optimal=', optimal_cost, ')')
                     else:
                         self.log_debug('optimal')
+                self.shuffles_data[nb_shuffles][index][2][self.get_name()] = solution
                 sample += 1
                 if not isinf(cost) and not isnan(cost):
                     total_cost += cost

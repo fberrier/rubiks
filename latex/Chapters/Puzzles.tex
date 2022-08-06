@@ -88,10 +88,13 @@ Since it is possible to reach an odd parity configuration, we conclude by invoki
 %-----------------------------------
 \subsection{Search Space \& Solvability}
 
-In this thesis, as well as in the code base (\cite{FB}) I have written to do this project, we will consider the general case of a board with n columns and m rows, where $(n, m) \in {\mathbb{N}^{+}}^{2}$, forming $n * m$ compartments. $n * m - 1$ tiles, numbered 1 to $n * m - 1$ are placed in all the compartments but one (which is left empty), and we can slide a tile directly adjascent to the empty compartment into it. Notice from a programming and mathematical analysis perspective, it is often easier to equivalently think of the empty compartment being moved into (or swapped with) an adjacent tile. Starting from a given shuffling of the tiles on the board, our goal will be to execute moves until the tiles in ascending order: left to right, top to bottom (in the usual western reading order), the empty tile being at the very bottom right.
+In this thesis, as well as in the code base (\cite{FB}) I have written to do this project, we will consider the general case of a board with n columns and m rows, where $(n, m) \in {\mathbb{N}^{+}}^{2}$, forming $n * m$ compartments. $n * m - 1$ tiles, numbered 1 to $n * m - 1$ are placed in all the compartments but one (which is left empty), and we can slide a tile directly adjascent to the empty compartment into it. Notice from a programming and mathematical analysis perspective, it is often easier to equivalently think of the empty compartment being moved into (or swapped with) an adjacent tile. Starting from a given shuffling of the tiles on the board, our goal will be to execute moves until the are tiles in ascending order: left to right, top to bottom (in the usual western reading order), the empty tile being at the very bottom right.
 \\
 \\
 Note that the case where either n or m is 1 is uninteresting since we can only solve the puzzle if the tiles are in order to start with. For instance, in the (n, 1) case, we can only solve n of the $\frac{n!}{2}$ possible configurations. We will therefore only consider the case where both n and m are strictly greater than 1.
+\\
+\\
+As hinted in the previous section when discussing the coiled 15-puzzle, we can note that the parity argument used there implies that in general, out of the $(n * m)!$ possible permutations of all tiles, only half are attainable and solvable. This gives us a neat way to generate \textit{perfectly shuffled} puzzles, and we make use of this in the code. When comparing various algorithms in later sections, I will compare them on a same set of shuffled puzzles, where the shuffling is either done via a fixed number of random moves from goal position, or via what I call \textit{perfect shuffle}, which means I give equal probability to each attainable configuration of the tiles. A simple way to achieve this is therefore to start with one randomly selected among the $(n * m)!$ permutations, and then to verify that the parity of that permutation is the same as that of the goal (for the given choice of n and m), and simply swap the first two (non-empty) tiles if it is not.
 
 
 
@@ -116,10 +119,23 @@ A very poor lower bound can be always obtained by the following reasoning: each 
 \section{Rubiks' Cube}
 
 
+
 \subsection{History}
+The second puzzle I will focus on is the well known Rubiks' Cube (\textbf{RC}), invented in 1974 by Erno Rubik, originally known under the name of \textit{Magic Cube} (see \cite{RubiksWiki}). Since it was commericalised in 1980, it has kown a worldwide success: countless people are playing with the famous original 3x3x3 cube, as well as with countless variations, more or less difficult of it. Competitions nowadays bring together \textit{speedcubers} who have trained for years and memorized various algorithms to solve the Rubiks in astonishly effective and fast times (literally in seconds for the best ones). Interestingly, some of the principles used by speedcubers generalise to different dimensions. As an example, it is quite impressive to watch \textit{Cubastic} solve a 15x15x15 RC in two and a half hours (\cite{151515Rubiks}).
 
 \subsection{Search Space \& Solvability}
+In my code as well as in this write-up, as is very customary in the RC literature, I will refer to the faces as F (front), B (back), U (up), D (down), L (left) and R (right). The RC's tiles are of 6 different colors, and without loss of generality, we can consider that these colors are also called F, B, U, D, L and R, and consider the goal state as one where, up to rotations of the whole cube, the color's name match the faces (color F on face F, etc). The RC has, as one would expect, an extremely large state space. If we ignore redundant cubes via rotations, there are 24 goal states, since any of the colors can be placed on the F face, and then any of the 4 adjacent colors can be placed on the U face (say). Once these 2 are chosen, the remaining faces are determined. This is not immediately obvious, but not difficult to convince oneself that this is the case with the following two observations about the structure of corner \textit{cubies}: first observation is that they have 3 determined colors, which are fixed once and for all. In particular, the fact that there is no corner with colors F and B, means that once the RC is in solved state, we have to have colors F and B on opposite faces, and similarly for colors U and D as well as colors L and R. Hence, having fixed the color on face F, the color on face B is fixed too. The second observation is that when facing a corner cubie, the order of its three colors, enumerated clock-wise) is invariant. For instance, consider the corner cubie with colors (F, R, U). There is no scrambling of the cube that will produce clock-wise order of e.g. (F, U, R). This is obvious once you consider that there is no move of the Rubik's cube you could not perform while holding a given corner fixed in space (e.g. by pinching that corner cubie with your fingers and never letting go of it).
+\\
+Finally a further word of notation. It is common in RC jargon to refer to moves  by the name of the face that is rotated clock-wise (when facing it), and by adding a prime \textit{'} for counter-clock-wise rotations. Sometimes people use a number after the face to indicate repeated similar moves, though I will count in my code that as 2 moves, since obviously e.g. U2 = U U = U' U'. As another example: F B' F2 means rotating the front face clock-wise, the back face counter-clock-wise, followed by the front face twice.
 
+\subsubsection{2 x 2 x 2}
+
+Up to rotations of the full RC, there are $\frac{8! * 3^{7}}{24}$ = 3,674,160 possible combinations. Indeed, there are 8 possible ways of choosing the position of the eight corner cubies (since there are known algorithms, such as R’ U R’ D2 R U’ R’ D2 R2, to swap exactly two and only two adjacent corners). Now each of the corner cubies can be oriented in 3 different ways (not 6, since as discussed earlier, the clock-wise order of a given corner cubie cannot be changed), so that gives us $3^8$ permutations of the corners orientation. However, the \textit{corner orientation parity} (\textbf{COP}) (see \cite{Schoenert} for details) must be equal to 0 modulo 3, and hence why only one third of all these $3^8$ permutations are attainable. Finally, the denominator of 24 is due to the equivalence by whole cube rotation as also discussed in the previous section.
+\\
+The insight and knowledge of this section will be useful for me to implement \textit{perfect scrambling} for the 2x2x2 RC. Indeed, the way I generate perfectly shuffled RCs is by randomly placing the 8 corners, then randomly choose the orientation of each of the first 7 corners, and finally fixing the $8^{th}$ corner's orientation so that the COP be equal to 0 \% 3.
+
+
+\subsubsection{3 x 3 x 3}
 
 \subsection{Optimal Cost \& God's Number}
 
@@ -129,6 +145,6 @@ A very poor lower bound can be always obtained by the following reasoning: each 
 \\
 \cite{RubiksRadu}
 \\
-\cite{Schoenert}
+
 
 

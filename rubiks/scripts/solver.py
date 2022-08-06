@@ -32,11 +32,11 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 25
+    nb_samples = 500
     min_nb_shuffles = 0
-    max_nb_shuffles = 0
+    max_nb_shuffles = 12
     step_nb_shuffles = 1
-    add_perfect_shuffle = True
+    add_perfect_shuffle = False
     nb_cpus = 4
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
@@ -77,15 +77,15 @@ if '__main__' == __name__:
     learner_type = Learner.deep_reinforcement_learner
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
-    nb_epochs = 10000
-    nb_sequences = 100
-    nb_shuffles = 25
+    nb_epochs = 25000
+    nb_sequences = 10
+    nb_shuffles = 50
     nb_shuffles_min = 40
     nb_shuffles_max = 60
     learning_rate = 1e-3
     scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
-    training_data_every_epoch = False
+    training_data_every_epoch = True
     cap_target_at_network_count = True
     one_hot_encoding = True
     drop_out = 0.

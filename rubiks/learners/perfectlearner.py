@@ -287,7 +287,7 @@ class PerfectLearner(Learner):
             if puzzles and len(self.data_base[cls.data]) < self.possible_puzzles_nb() and \
                     self.consecutive_time_outs <= self.abort_after_that_many_consecutive_timed_out:
                 n_format = number_format(len(puzzles))
-                indices = ['%d / %d' % (number_format(p + 1),
+                indices = ['%s / %s' % (number_format(p + 1),
                                         n_format) for p in range(len(puzzles))]
                 puzzles = [(p, i) for p, i in zip(puzzles, indices)]
                 solutions = pool.map(partial(self.__class__.__job__,

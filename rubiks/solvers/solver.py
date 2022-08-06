@@ -129,11 +129,17 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 puzzle = self.shuffles_data[nb_shuffles][index][0]
                 if 3 <= len(self.shuffles_data[nb_shuffles][index]) and \
                         self.get_name() in self.shuffles_data[nb_shuffles][index][2]:
-                    if self.do_not_reattempt_failed or \
-                            not self.shuffles_data[nb_shuffles][index][2][self.get_name()].failed():
+                    failed = self.shuffles_data[nb_shuffles][index][2][self.get_name()].failed()
+                    if self.do_not_reattempt_failed or not failed:
                         if self.verbose:
-                            print('Already solved ', puzzle, ' # ', index, ' with ', self.get_name())
+                            print('Already ',
+                                  (' failed ' if failed else 'solved '),
+                                  puzzle, ' # ', index, ' with ', self.get_name())
                         return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
+                    if failed:
+                        if self.verbose:
+                            print('Will reattempt failed ',
+                                  puzzle, ' # ', index, ' with ', self.get_name())
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)

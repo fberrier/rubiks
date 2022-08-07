@@ -62,12 +62,12 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL learner config is here ... """
-    nb_epochs = 25000
+    nb_epochs = 15000
     nb_sequences = 10
     nb_shuffles = 50
     training_data_every_epoch = True
     cap_target_at_network_count = True
-    update_target_network_frequency = 1000
+    update_target_network_frequency = 500
     update_target_network_threshold = 1e-2
     max_nb_target_network_update = 25
     max_target_not_increasing_epochs_pct = 0.5

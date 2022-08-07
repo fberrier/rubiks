@@ -104,4 +104,7 @@ class Solution:
             puzzles.append(puzzle)
         return puzzles
 
+    def __len__(self):
+        return self.cost
+
 ########################################################################################################################

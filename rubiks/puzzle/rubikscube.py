@@ -4,13 +4,15 @@
 from enum import Enum
 from math import factorial
 from numpy.random import randint, permutation
-from pandas import DataFrame
+from pandas import DataFrame, read_pickle
 from random import choice
 from tabulate import tabulate
-from torch import ones, zeros, equal, concat
+from torch import ones, zeros, concat
 from torch.nn.functional import one_hot
 ########################################################################################################################
+from rubiks.core.loggable import Loggable
 from rubiks.puzzle.puzzle import Move, Puzzle
+from rubiks.utils.utils import get_file_name, PossibleFileNames, to_pickle
 ########################################################################################################################
 
 
@@ -138,6 +140,18 @@ class CubeMove(Move):
     def opposite(self):
         return CubeMove(self.face, False if self.clock_wise else True)
 
+    @classmethod
+    def cleanup_path(cls, path):
+        cleanup = True
+        while cleanup and len(path) >= 2:
+            cleanup = False
+            for e, (move_1, move_2) in enumerate(zip(path[:-1], path[1:])):
+                if move_1 == move_2.opposite():
+                    cleanup = True
+                    path = path[:e] + path[e + 2:]
+                    break
+        return path
+
 rubiks_all_moves = list()
 for _ in Face:
     rubiks_all_moves.append(CubeMove(_, True))
@@ -147,7 +161,7 @@ for _ in Face:
 
     
 class RubiksCube(Puzzle):
-    """ Game of the sliding Puzzle, e.g. the 8-puzzle, 15-puzzle, etc """
+    """ Rubik's Cube """
 
     def number_of_tiles(self):
         return 6 * (self.n ** 2)
@@ -178,9 +192,43 @@ class RubiksCube(Puzzle):
     move_type = CubeMove
 
     goals_map = dict()
-    goals_hashes = set()
+    goals_hashes = dict()
     corners_map = dict()
+    edges_map = dict()
+    edges_oriented_distances_to_home = dict()
 
+    def whole_cube_up_rotation(self):
+        cube = self.clone()
+        cube.tiles[Face.U] = cube.tiles[Face.U].rot90(-1)
+        cube.tiles[Face.D] = cube.tiles[Face.D].rot90()
+        save = cube.tiles[Face.L].clone()
+        cube.tiles[Face.L] = cube.tiles[Face.F]
+        cube.tiles[Face.F] = cube.tiles[Face.R]
+        cube.tiles[Face.R] = cube.tiles[Face.B]
+        cube.tiles[Face.B] = save
+        return cube
+
+    def whole_cube_right_rotation(self):
+        cube = self.clone()
+        cube.tiles[Face.R] = cube.tiles[Face.R].rot90(-1)
+        cube.tiles[Face.L] = cube.tiles[Face.L].rot90()
+        save = cube.tiles[Face.U].clone().rot90(2)
+        cube.tiles[Face.U] = cube.tiles[Face.F]
+        cube.tiles[Face.F] = cube.tiles[Face.D]
+        cube.tiles[Face.D] = cube.tiles[Face.B].rot90(2)
+        cube.tiles[Face.B] = save
+        return cube
+
+    def whole_cube_front_rotation(self):
+        cube = self.clone()
+        cube.tiles[Face.F] = cube.tiles[Face.F].rot90(-1)
+        cube.tiles[Face.B] = cube.tiles[Face.B].rot90()
+        save = cube.tiles[Face.U].clone().rot90(-1)
+        cube.tiles[Face.U] = cube.tiles[Face.L].rot90(-1)
+        cube.tiles[Face.L] = cube.tiles[Face.D].rot90(-1)
+        cube.tiles[Face.D] = cube.tiles[Face.R].rot90(-1)
+        cube.tiles[Face.R] = save
+        return cube
 
     @classmethod
     def __add_corner_to_map__(cls, corner, n):
@@ -188,23 +236,58 @@ class RubiksCube(Puzzle):
         cls.corners_map[n].append(corner)
 
     @classmethod
+    def __swap__(cls, what):
+        assert isinstance(what, tuple), 'RubiksCube.__swap__ expects tuple, got %s instead' % type(what)
+        if 2 == len(what):
+            return what[1], what[0]
+        elif 6 == len(what):
+            return tuple(what[p] for p in [3, 4, 5, 0, 1, 2])
+        else:
+            assert False
+
+    @classmethod
+    def __add_edge_to_map__(cls, edge, position, n):
+        cls.edges_map[n][edge] = position
+        cls.edges_map[n][cls.__swap__(edge)] = cls.__swap__(position)
+
+    def get_equivalent(self):
+        """ generate and return all cubes which are visually indistinguishable from self """
+        equivalent = list()
+        clone = self.clone()
+        for r1 in range(4):
+            for r2 in range(4):
+                equivalent.append(clone)
+                clone = clone.whole_cube_front_rotation()
+            clone = clone.whole_cube_up_rotation()
+        clone = clone.whole_cube_right_rotation()
+        for r2 in range(4):
+            equivalent.append(clone)
+            clone = clone.whole_cube_front_rotation()
+        clone = clone.whole_cube_right_rotation()
+        clone = clone.whole_cube_right_rotation()
+        for r2 in range(4):
+            equivalent.append(clone)
+            clone = clone.whole_cube_front_rotation()
+        return equivalent
+
+    @classmethod
     def __populate_goals__(cls, n):
         if n in cls.goals_map:
             return
         # there are 6 possible colors for Face.F
         # and then 4 for Face.U, which fixes the rest
-        cls.goals_map[n] = list()
+        #cls.goals_map[n] = list()
+        #cls.goals_hashes[n] = set()
         cls.corners_map[n] = list()
-        for color in Color:
-            tiles = dict()
-            tiles[Face.F] = rubiks_to_int(color) * ones(n, n, dtype=int)
-            for f, c in zip([Face.U, Face.R, Face.D, Face.L],
-                            rubiks_adjacent_colors_clock_wise[color]):
-                tiles[f] = rubiks_to_int(c) * ones(n, n, dtype=int)
-            tiles[Face.B] = rubiks_to_int(rubiks_opposite_color[color]) * ones(n, n, dtype=int)
-            goal = RubiksCube(tiles=tiles)
-            cls.goals_map[n].append(goal)
-            cls.goals_hashes.add(hash(goal))
+        cls.edges_map[n] = dict()
+        cls.edges_oriented_distances_to_home[n] = dict()
+        goal = dict()
+        for face in cls.all_faces:
+            goal[face] = rubiks_to_int(face) * ones(n, n, dtype=int)
+        goal = RubiksCube(tiles=goal)
+        cls.goals_map[n] = goal.get_equivalent()
+        cls.goals_hashes[n] = {hash(g) for g in cls.goals_map[n]}
+        """ corners """
         cls.__add_corner_to_map__((Color.r, Color.w, Color.g), n)
         cls.__add_corner_to_map__((Color.r, Color.b, Color.w), n)
         cls.__add_corner_to_map__((Color.r, Color.g, Color.y), n)
@@ -213,10 +296,54 @@ class RubiksCube(Puzzle):
         cls.__add_corner_to_map__((Color.o, Color.b, Color.y), n)
         cls.__add_corner_to_map__((Color.o, Color.w, Color.b), n)
         cls.__add_corner_to_map__((Color.o, Color.g, Color.w), n)
-
-        
-
-        
+        if n == 3:
+            """ edges """
+            cls.__add_edge_to_map__((Color.r, Color.w), (Face.F, 0, 1, Face.U, 2, 1), n)
+            cls.__add_edge_to_map__((Color.r, Color.b), (Face.F, 1, 2, Face.R, 1, 0), n)
+            cls.__add_edge_to_map__((Color.r, Color.y), (Face.F, 2, 1, Face.D, 0, 1), n)
+            cls.__add_edge_to_map__((Color.r, Color.g), (Face.F, 1, 0, Face.L, 1, 2), n)
+            cls.__add_edge_to_map__((Color.w, Color.g), (Face.U, 1, 0, Face.L, 0, 1), n)
+            cls.__add_edge_to_map__((Color.w, Color.b), (Face.U, 1, 2, Face.R, 0, 1), n)
+            cls.__add_edge_to_map__((Color.y, Color.g), (Face.D, 1, 0, Face.L, 2, 1), n)
+            cls.__add_edge_to_map__((Color.y, Color.b), (Face.D, 1, 2, Face.R, 2, 1), n)
+            cls.__add_edge_to_map__((Color.o, Color.w), (Face.B, 0, 1, Face.U, 0, 1), n)
+            cls.__add_edge_to_map__((Color.o, Color.b), (Face.B, 1, 0, Face.R, 1, 2), n)
+            cls.__add_edge_to_map__((Color.o, Color.y), (Face.B, 2, 1, Face.D, 2, 1), n)
+            cls.__add_edge_to_map__((Color.o, Color.g), (Face.B, 1, 2, Face.L, 1, 0), n)
+            """ compute all possible distances from one oriented edge to home
+                each edge can be at one of 12 places, in 2 possible orientation
+                so we need to compute for 12 * 24 distances.
+                Let's get going """
+            edges = set()
+            positions = set()
+            for edge, position in cls.edges_map[n].items():
+                if edge not in edges and cls.__swap__(edge) not in edges:
+                    edges.add(edge)
+                positions.add(position)
+            assert len(edges) == 12 and len(positions) == 24
+            data_base = get_file_name(Puzzle.rubiks_cube,
+                                      dimension=(n, n, n),
+                                      file_type=PossibleFileNames.utils,
+                                      name='edges_oriented_distances_to_home')
+            load_ok = False
+            log_info = Loggable(name='edges_oriented_distances_to_home').log_info
+            try:
+                cls.edges_oriented_distances_to_home[n] = read_pickle(data_base)
+                log_info('Loaded ', data_base)
+                load_ok = True
+            except FileNotFoundError:
+                pass
+            if load_ok:
+                return
+            for edge in edges:
+                cls.edges_oriented_distances_to_home[n][edge] = dict()
+                for position in positions:
+                    cls.edges_oriented_distances_to_home[n][edge][position] = \
+                        cls.compute_edge_orientated_distance_to_home(edge, position, n)
+            to_pickle(cls.edges_oriented_distances_to_home[n], data_base)
+            message = 'Saved %d data points to %s' % (len(cls.edges_oriented_distances_to_home[n]),
+                                                      data_base)
+            log_info(message)
 
     def __init__(self, **kw_args):
         from_tiles = self.tiles in kw_args
@@ -234,12 +361,12 @@ class RubiksCube(Puzzle):
             else:
                 goal = choice(self.goals_map[n])
             self.__init__(tiles={face: tiles.detach().clone() for face, tiles in goal.tiles.items()})
-        #self.check_consistency()
+        self.check_consistency()
 
     def check_consistency(self):
         tiles = self.to_tensor()
         for c in range(1, 7):
-            assert sum(sum(tiles == c - 1)).item() == 4, 'badly formed puzzle \n%s' % self
+            assert sum(sum(tiles == c - 1)).item() == self.n ** 2, 'badly formed puzzle \n%s' % self
 
     def __repr__(self):
         tiles = zeros(self.n * 3, self.n * 4, dtype=int)
@@ -273,10 +400,7 @@ class RubiksCube(Puzzle):
         return '\n' + tiles
 
     def __eq__(self, other):
-        for face in Face:
-            if not equal(self.tiles[face], other.tiles[face]):
-                return False
-        return True
+        return hash(other) in {hash(eq) for eq in self.get_equivalent()}
 
     def __hash__(self):
         values = tuple((rubiks_to_int_map[face],
@@ -287,11 +411,11 @@ class RubiksCube(Puzzle):
         return (self.n,)*3
 
     def clone(self):
-        return RubiksCube(tiles={face: self.tiles[face].detach().clone() for face in Face})
+        return self.__class__(tiles={face: self.tiles[face].detach().clone() for face in Face})
 
     def is_goal(self):
         goals = self.goals()
-        return hash(self) in self.goals_hashes
+        return hash(self) in self.goals_hashes[self.n]
 
     @classmethod
     def construct_puzzle(cls, n, **kw_args):
@@ -512,6 +636,55 @@ class RubiksCube(Puzzle):
                 t = tiles[face]
                 t[pos_x, pos_y] = color
         return RubiksCube(tiles=tiles)
+
+    def edges_orientated_parity(self):
+        assert self.n == 3
+        positions_checked = set()
+        total_parity = 0
+        for edge_position in self.edges_map[self.n].values():
+            if edge_position in positions_checked:
+                continue
+            positions_checked.add(edge_position)
+            positions_checked.add(self.__swap__(edge_position))
+            edge = (self.tiles[edge_position[0]][edge_position[1]][edge_position[2]],
+                    self.tiles[edge_position[3]][edge_position[4]][edge_position[5]])
+            edge = tuple(rubiks_int_to_color_map[value.item()] for value in edge)
+            if edge not in self.edges_oriented_distances_to_home[self.n]:
+                edge = self.__swap__(edge)
+                total_parity += 1
+                assert edge in self.edges_oriented_distances_to_home[self.n], 'WTF?'
+            home_position = self.edges_map[self.n][edge]
+            total_parity += self.edges_oriented_distances_to_home[self.n][edge][home_position]
+        return total_parity % 2
+
+    @classmethod
+    def compute_edge_orientated_distance_to_home(cls, edge, position, n):
+        from rubiks.solvers.bfssolver import BFSSolver
+        target = cls.edges_map[n][edge]
+        """ make up a Cube which has say 0 everywhere but the edge we need to solve for """
+        cube = RubiksCube(n=n)
+        target_cube = RubiksCube(n=n)
+        for face in cube.tiles.keys():
+            cube.tiles[face] = zeros(n, n)
+            target_cube.tiles[face] = zeros(n, n)
+        cube.tiles[position[0]][position[1]][position[2]] = rubiks_to_int(edge[0])
+        cube.tiles[position[3]][position[4]][position[5]] = rubiks_to_int(edge[1])
+        target_cube.tiles[target[0]][target[1]][target[2]] = rubiks_to_int(edge[0])
+        target_cube.tiles[target[3]][target[4]][target[5]] = rubiks_to_int(edge[1])
+        """ make up goal to be that the edge is in the right position """
+        cube = RubiksCube.custom_goal(target_cube)(tiles=cube.tiles)
+        """ Finally we run a BFS, which we know at most is 4 so that's manageable """
+        solver = BFSSolver(puzzle_type=Puzzle.rubiks_cube, n=n, time_out=60)
+        solution = solver.solve(cube)
+        assert solution.success and 0 <= solution.cost <= 4,\
+            'edge = %s, position = %s, target = %s, solution = %s' % (edge, position, target_cube, solution)
+        Loggable(name='compute_edge_orientated_distance_to_home').log_info(edge, position, target, ' -> ', solution.cost)
+        return solution.cost
+
+    def swap_edge(self, edge):
+        save = self.tiles[edge[0]][edge[1]][edge[2]].item()
+        self.tiles[edge[0]][edge[1]][edge[2]] = self.tiles[edge[3]][edge[4]][edge[5]]
+        self.tiles[edge[3]][edge[4]][edge[5]] = save
 
     
 ########################################################################################################################

@@ -23,7 +23,7 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.rubiks_cube
     n = 2
@@ -32,11 +32,11 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 500
-    min_nb_shuffles = 0
-    max_nb_shuffles = 12
+    nb_samples = 150
+    min_nb_shuffles = 13
+    max_nb_shuffles = 13
     step_nb_shuffles = 1
-    add_perfect_shuffle = False
+    add_perfect_shuffle = True
     nb_cpus = 4
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)

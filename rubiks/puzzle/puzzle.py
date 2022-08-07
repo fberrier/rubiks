@@ -5,6 +5,7 @@ from abc import ABCMeta, abstractmethod
 from math import inf
 from numpy.random import permutation
 from torch import Size, Tensor
+from types import MethodType
 ########################################################################################################################
 from rubiks.core.factory import Factory
 from rubiks.puzzle.move import Move
@@ -123,7 +124,8 @@ class Puzzle(Factory, metaclass=ABCMeta):
     def widget_types(cls):
         from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
         from rubiks.puzzle.rubikscube import RubiksCube
-        return [SlidingPuzzle, RubiksCube]
+        from rubiks.puzzle.watkinscube import WatkinsCube
+        return [SlidingPuzzle, RubiksCube, WatkinsCube]
 
     @classmethod
     @abstractmethod
@@ -223,6 +225,20 @@ class Puzzle(Factory, metaclass=ABCMeta):
     @classmethod
     def optimal_solver_config(cls) -> dict:
         return dict()
+
+    @classmethod
+    def custom_goal(cls, goal):
+        """ If that one ain't shenanigans :) """
+        assert isinstance(goal, cls)
+
+        def is_custom_goal(puzzle):
+            return hash(puzzle) in {hash(eq) for eq in goal.get_equivalent()}
+
+        class mod_cls(cls):
+            pass
+
+        mod_cls.is_goal = is_custom_goal
+        return mod_cls
 
 ########################################################################################################################
 

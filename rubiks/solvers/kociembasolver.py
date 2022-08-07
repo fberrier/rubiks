@@ -11,13 +11,13 @@ except ModuleNotFoundError:
     pass
 ########################################################################################################################
 from rubiks.puzzle.rubikscube import RubiksCube, Face, rubiks_int_to_face_map, CubeMove
+from rubiks.puzzle.watkinscube import WatkinsCube
 from rubiks.solvers.solver import Solver, Solution
 ########################################################################################################################
 
 
 class KociembaSolver(Solver):
     """ Rubik's solver from Kociemba """
-
 
     @staticmethod
     def to_kociemba(puzzle):
@@ -55,7 +55,7 @@ class KociembaSolver(Solver):
     def known_to_be_optimal(self):
         return self.get_puzzle_dimension()[0] == 2
 
-    def solve_impl(self, puzzle, **kw_args) -> Solution:
+    def solve_impl_rubiks(self, puzzle, **kw_args) -> Solution:
         assert isinstance(puzzle, RubiksCube) and puzzle.dimension() in {(3, 3, 3), (2, 2, 2)}
         cube_string = self.to_kociemba(puzzle)
         try:
@@ -63,7 +63,8 @@ class KociembaSolver(Solver):
                 solution_string = ''
                 moves = list()
             else:
-                solution_string = kociemba_solve(cube_string) if puzzle.dimension()[0] == 3 else hkociemba_solve(cube_string)
+                solution_string = kociemba_solve(cube_string) if puzzle.dimension()[0] == 3 else hkociemba_solve(
+                    cube_string)
                 moves = self.from_kociemba(solution_string)
             solution = Solution(cost=len(moves),
                                 path=moves,
@@ -77,5 +78,29 @@ class KociembaSolver(Solver):
             self.log_error(error)
             raise RuntimeError('%s[%s]' % (error, cube_string))
         return solution
+
+    def solve_impl_watkins_rubiks(self, puzzle, **kw_args) -> Solution:
+        assert isinstance(puzzle, WatkinsCube) and puzzle.dimension() in {(3, 3, 3), (2, 2, 2)}
+
+    def solve_impl(self, puzzle, **kw_args) -> Solution:
+        if isinstance(puzzle, RubiksCube):
+            return self.solve_impl_rubiks(puzzle, **kw_args)
+        elif isinstance(puzzle, WatkinsCube):
+            from_start = self.solve_impl_rubiks(puzzle.tiles_start, **kw_args)
+            from_goal = self.solve_impl_rubiks(puzzle.tiles_goal, **kw_args)
+            path = CubeMove.cleanup_path(from_start.path + list(reversed(from_goal.path)))
+            solution = Solution(cost=len(path),
+                                path=path,
+                                expanded_nodes=float('nan'),
+                                puzzle=puzzle,
+                                solver_name=self.get_name(),
+                                cube_string=[from_start['cube_string'],
+                                             from_goal['cube_string']],
+                                solution_string=[from_start['solution_string'],
+                                                 ''.join(reversed(from_goal['solution_string']))],
+                                )
+            return solution
+        else:
+            raise NotImplementedError('Kociemba solver does not support %s' % type(puzzle))
 
 ########################################################################################################################

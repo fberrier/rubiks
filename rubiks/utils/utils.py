@@ -67,11 +67,13 @@ class PossibleFileNames:
     shuffles = 'shuffles'
     training = 'training'
     manhattan = 'manhattan'
+    utils = 'utils'
     all = [models,
            perf,
            shuffles,
            training,
            manhattan,
+           utils,
            ]
 
 ########################################################################################################################

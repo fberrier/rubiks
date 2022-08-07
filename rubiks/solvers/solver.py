@@ -21,7 +21,8 @@ from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
-from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, pformat, ms_format, get_model_file_name
+from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, \
+    pformat, ms_format, get_model_file_name, number_format
 ########################################################################################################################
 
 
@@ -134,17 +135,17 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                         if self.verbose:
                             print('Already ',
                                   (' failed ' if failed else 'solved '),
-                                  puzzle, ' # ', index, ' with ', self.get_name())
+                                  puzzle, ' # ', index + 1, ' with ', self.get_name())
                         return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
                     if failed:
                         if self.verbose:
                             print('Will reattempt failed ',
-                                  puzzle, ' # ', index, ' with ', self.get_name())
+                                  puzzle, ' # ', index + 1, ' with ', self.get_name())
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
             if self.verbose:
-                print('Starting solving ', puzzle, ' # ', index, ' ... ')
+                print('Starting solving ', puzzle, ' # ', index + 1, ' ... ')
             solution = self.solve_impl(puzzle, **self.get_config())
             run_time = snap() - start
             solution.set_run_time(run_time)
@@ -154,12 +155,12 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             assert isnan(solution.expanded_nodes) or isinstance(solution.expanded_nodes, int)
             if self.verbose:
                 if solution.failed():
-                    print(' ... failed to solve ', puzzle, ' # ', index)
+                    print(' ... failed to solve ', puzzle, ' # ', index + 1)
                 else:
                     print(' ... solved ',
                           puzzle,
                           ' # ',
-                          index,
+                          index + 1,
                           ' with cost ',
                           solution.cost,
                           ' in ',
@@ -403,8 +404,13 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 pool.join()
                 pool = Pool(new_pool_size)
                 pool_size = new_pool_size
+            if self.verbose:
+                self.log_info('About to send %s jobs to thread pool of size %s ...' % (number_format(sample_size),
+                                                                                       number_format(pool_size)))
             results = pool.map(partial(cls.__job__, self, nb_shuffles),
                                range(sample_size))
+            if self.verbose:
+                self.log_info('... received all jobs from thread pool')
             consecutive_timeout = 0
             sample = 0
             nb_not_optimal = 0
@@ -509,8 +515,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                  ignore_index=True)
             self.log_info(performance)
         if self.shuffles_file_name:
+            self.log_info('About to save shuffles data ...')
             to_pickle(self.all_shuffles_data, self.shuffles_file_name)
-            self.log_info('Saved all shuffles data to \'%s\'' % self.shuffles_file_name)
+            self.log_info('... done saving all shuffles data to \'%s\'' % self.shuffles_file_name)
         pool.close()
         pool.join()
         self.log_info(performance)

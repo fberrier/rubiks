@@ -67,6 +67,7 @@ class TestSolver(TestCase):
         puzzle_type = Puzzle.sliding_puzzle
         solver = Solver.factory(solver_type=Solver.astar,
                                 heuristic_type=Heuristic.manhattan,
+                                plus=True,
                                 puzzle_type=puzzle_type,
                                 n=dimension[0],
                                 m=dimension[1],
@@ -79,10 +80,11 @@ class TestSolver(TestCase):
         self.assertEqual(dimension, puzzle.dimension())
         logger.log_info(puzzle)
         solution = solver.solve(puzzle=puzzle)
-        self.assertTrue(solution.failed())
-        self.assertTrue(str(solution).find('Exceeded timeout') >= 0)
         logger.log_info(solution)
+        self.assertTrue(solution.failed())
+        self.assertTrue(str(solution).find('time out') >= 0)
         solution = solver.solve(puzzle=puzzle, time_out=300)
+        logger.log_info(solution)
         self.assertFalse(solution.failed())
         logger.log_info(solution)
 
@@ -209,5 +211,31 @@ class TestSolver(TestCase):
         self.assertTrue(solution.success)
         logger.log_info(solution)
         remove_file(model_file_name)
+
+    def test_kociemba_2(self):
+        logger = Loggable(name='test_kociemba_2')
+        for puzzle_type in [Puzzle.rubiks_cube,
+                            Puzzle.watkins_cube]:
+            cube = Puzzle.factory(n=2,
+                                  puzzle_type=puzzle_type).apply_random_moves(100)
+            solver = Solver.factory(solver_type=Solver.kociemba,
+                                    puzzle_type=puzzle_type,
+                                    n=cube.n)
+            solution = solver.solve(cube)
+            logger.log_info(solution)
+            self.assertTrue(solution.success)
+
+    def test_kociemba_3(self):
+        logger = Loggable(name='test_kociemba_3')
+        for puzzle_type in [Puzzle.rubiks_cube,
+                            Puzzle.watkins_cube]:
+            cube = Puzzle.factory(n=3,
+                                  puzzle_type=puzzle_type).apply_random_moves(100)
+            solver = Solver.factory(solver_type=Solver.kociemba,
+                                    puzzle_type=puzzle_type,
+                                    n=cube.n)
+            solution = solver.solve(cube)
+            logger.log_info(solution)
+            self.assertTrue(solution.success)
 
 ########################################################################################################################

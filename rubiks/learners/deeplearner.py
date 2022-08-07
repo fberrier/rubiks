@@ -185,12 +185,12 @@ class DeepLearner(Learner):
         cls = self.__class__
         if not self.min_no_loop:
             self.min_no_loop = self.nb_shuffles
+        if self.nb_shuffles_min is None or self.nb_shuffles_min < 0:
+            self.nb_shuffles_min = self.nb_shuffles
+        if self.nb_shuffles_max is None or self.nb_shuffles_max < 0:
+            self.nb_shuffles_max = self.nb_shuffles
         if self.nb_shuffles_min > self.nb_shuffles_max:
             self.nb_shuffles_max, self.nb_shuffles_min = self.nb_shuffles_min, self.nb_shuffles_max
-        if self.nb_shuffles_min < 0:
-            self.nb_shuffles_min = self.nb_shuffles
-        if self.nb_shuffles_max < 0:
-            self.nb_shuffles_max = self.nb_shuffles
         self.pool_size = self.nb_cpus
         self.attempt_recovery = self.learning_file_name is not None and isfile(self.learning_file_name)
         if self.attempt_recovery:

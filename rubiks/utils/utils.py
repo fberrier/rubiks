@@ -168,8 +168,14 @@ def pformat(what):
         what = what.to_dict()
         what = {k: ('%.2g' % v) if isinstance(v, float) else v for k, v in what.items()}
     if isinstance(what, dict):
-        what = {k: [v] if not isinstance(v, (list, np.ndarray)) \
-                else v for k, v in what.items()}
+
+        def massage(i):
+            if not isinstance(i, (list, np.ndarray)):
+                return [i]
+            if isinstance(i, (list, np.ndarray)):
+                return str(i)
+            return i
+        what = {k: massage(v) for k, v in what.items()}
         return '\n' + tabulate(DataFrame(what).transpose(),
                                showindex=True,
                                floatfmt='.2g',

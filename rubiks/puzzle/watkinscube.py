@@ -44,7 +44,7 @@ class WatkinsCube(Puzzle):
             assert sum(sum(tiles == c - 1)).item() == 2 * (self.n ** 2), 'badly formed puzzle \n%s' % self
 
     def __repr__(self):
-        return pformat({'start': str(self.tiles_start),
+        return pformat({'puzzle': str(self.tiles_start),
                         'goal': str(self.tiles_goal),
                         })
 

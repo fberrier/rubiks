@@ -1,15 +1,6 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-try:
-    from kociemba import solve as kociemba_solve
-except ModuleNotFoundError:
-    pass
-try:
-    from rubiks.thirdparties.hkociemba.solver import solve as hkociemba_solve
-except ModuleNotFoundError:
-    pass
-########################################################################################################################
 from rubiks.puzzle.rubikscube import RubiksCube, Face, rubiks_int_to_face_map, CubeMove
 from rubiks.puzzle.watkinscube import WatkinsCube
 from rubiks.solvers.solver import Solver, Solution
@@ -18,6 +9,10 @@ from rubiks.solvers.solver import Solver, Solution
 
 class KociembaSolver(Solver):
     """ Rubik's solver from Kociemba """
+
+    __import_done__ = False
+    __kociemba_solve__ = None
+    __hkociemba_solve__ = None
 
     @staticmethod
     def to_kociemba(puzzle):
@@ -56,6 +51,29 @@ class KociembaSolver(Solver):
     def known_to_be_optimal(self):
         return self.get_puzzle_dimension()[0] == 2
 
+    def __do_import__(self):
+        if self.__class__.__import_done__:
+            return
+        try:
+            from kociemba import solve as kociemba_solve
+            self.__class__.__kociemba_solve__ = kociemba_solve
+        except ModuleNotFoundError:
+            pass
+        try:
+            from rubiks.thirdparties.hkociemba.solver import solve as hkociemba_solve
+            self.__class__.__hkociemba_solve__ = hkociemba_solve
+        except ModuleNotFoundError:
+            pass
+        self.__class__.__import_done__ = True
+
+    def kociemba_solve(self, cube_string):
+        self.__do_import__()
+        return self.__class__.__kociemba_solve__(cube_string)
+
+    def hkociemba_solve(self, cube_string):
+        self.__do_import__()
+        return self.__class__.__hkociemba_solve__(cube_string)
+
     def solve_impl_rubiks(self, puzzle, **kw_args) -> Solution:
         assert isinstance(puzzle, RubiksCube) and puzzle.dimension() in {(3, 3, 3), (2, 2, 2)}
         cube_string = self.to_kociemba(puzzle)
@@ -64,8 +82,8 @@ class KociembaSolver(Solver):
                 solution_string = ''
                 moves = list()
             else:
-                solution_string = kociemba_solve(cube_string) if puzzle.dimension()[0] == 3 else hkociemba_solve(
-                    cube_string)
+                solution_string = self.kociemba_solve(cube_string) if puzzle.dimension()[0] == 3 else \
+                    self.hkociemba_solve(cube_string)
                 moves = self.from_kociemba(solution_string)
             solution = Solution(cost=len(moves),
                                 path=moves,
@@ -95,7 +113,7 @@ class KociembaSolver(Solver):
                 rotation_moves = RubiksCube.whole_cube_moves_finder(intermediary_1, intermediary_2)
             path = from_start.path + rotation_moves + list(move.opposite() for move in reversed(from_goal.path))
             path = CubeMove.cleanup_path(path)
-            cost = sum(move.cost() for move in path) # notice that the full rotaton I count as 0
+            cost = sum(move.cost() for move in path) # notice that the full rotation I count as 0
             solution = Solution(cost=cost,
                                 path=path,
                                 expanded_nodes=float('nan'),

@@ -198,4 +198,14 @@ class TestRubiksCube(TestCase):
             moves = RubiksCube.whole_cube_moves_finder(cube_1, cube_2)
             logger.log_info(cube_1, cube_2, moves)
 
+    def test_edge_permutations_parity(self):
+        logger = Loggable(name='test_edge_permutations_parity')
+        for _ in range(100):
+            cube = RubiksCube(n=3).apply_random_moves(10)
+            parity = cube.edge_permutations_parity()
+            logger.log_info(parity)
+
+
+
+
 ########################################################################################################################

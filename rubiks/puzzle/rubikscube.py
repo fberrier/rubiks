@@ -13,7 +13,7 @@ from torch.nn.functional import one_hot
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.puzzle.puzzle import Move, Puzzle
-from rubiks.utils.utils import get_file_name, PossibleFileNames, to_pickle
+from rubiks.utils.utils import get_file_name, PossibleFileNames, to_pickle, out_of_order
 ########################################################################################################################
 
 
@@ -617,6 +617,8 @@ class RubiksCube(Puzzle):
         if self.n == 2:
             """ Notice for my purpose each orientation in space is different """
             return factorial(8) * 3**7
+        elif self.n == 3:
+            return factorial(8) * 3**7 * factorial(12) / 2 * 2 ** 11
 
     def perfect_shuffle(self):
         if self.n == 2:
@@ -684,6 +686,18 @@ class RubiksCube(Puzzle):
             home_position = self.edges_map[self.n][edge]
             total_parity += self.edges_oriented_distances_to_home[self.n][edge][home_position]
         return total_parity % 2
+
+    def edge_permutations_parity(self):
+        home_edges = self.edges_map[self.n]
+        normal_order = list(home_edges.keys())[::2]
+        normal_order = {edge: pos + 1 for edge, pos in zip(normal_order, range(len(normal_order)))}
+        permut = list()
+        for normal_position in list(home_edges.values())[::2]:
+            edge = (self.tiles[normal_position[0]][normal_position[1]][normal_position[2]].item(),
+                    self.tiles[normal_position[3]][normal_position[4]][normal_position[5]].item())
+            edge = tuple(rubiks_int_to_color_map[c] for c in edge)
+            permut.append(normal_order[edge] if edge in normal_order else normal_order[self.__swap__(edge)])
+        return out_of_order(permut) % 2
 
     @classmethod
     def compute_edge_orientated_distance_to_home(cls, edge, position, n):

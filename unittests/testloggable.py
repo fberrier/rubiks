@@ -36,5 +36,16 @@ class TestLoggable(TestCase):
                          derived_loggable.name)
         derived_loggable.log_info('how about now?')
 
+    def test_log_dict(self):
+        logger = Loggable(name='test_log_dict')
+        what = {'a': 'toto', 'b': 'titi'}
+        logger.log_info(what)
+        what = {'a': 2, 'b': 'titi'}
+        logger.log_info(what)
+        what = {'a': 2, 'b': [4]}
+        logger.log_info(what)
+        what = {'a': 2, 'b': [4, 5, 6]}
+        logger.log_info(what)
+
 ########################################################################################################################
 

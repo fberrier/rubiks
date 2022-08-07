@@ -33,11 +33,11 @@ if '__main__' == __name__:
     nb_shuffles = 0
     """ For performance test """
     nb_samples = 100
-    min_nb_shuffles = 21
-    max_nb_shuffles = 40
+    min_nb_shuffles = 0
+    max_nb_shuffles = 50
     step_nb_shuffles = 1
     add_perfect_shuffle = True
-    nb_cpus = 4
+    nb_cpus = 14
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True

@@ -23,18 +23,18 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_plot
+    action_type = Solver.do_performance_test
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
+    puzzle_type = Puzzle.watkins_cube
     n = 2
     m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 150
-    min_nb_shuffles = 13
-    max_nb_shuffles = 13
+    nb_samples = 100
+    min_nb_shuffles = 21
+    max_nb_shuffles = 40
     step_nb_shuffles = 1
     add_perfect_shuffle = True
     nb_cpus = 4
@@ -59,7 +59,7 @@ if '__main__' == __name__:
                            Solver.astar,
                            Solver.naive,
                            } """
-    solver_type = Solver.astar
+    solver_type = Solver.kociemba
     limit = 12
     time_out = 600
     log_solution = False

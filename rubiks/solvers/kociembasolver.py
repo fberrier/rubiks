@@ -86,22 +86,16 @@ class KociembaSolver(Solver):
             return self.solve_impl_rubiks(puzzle, **kw_args)
         elif isinstance(puzzle, WatkinsCube):
             from_start = self.solve_impl_rubiks(puzzle.tiles_start, **kw_args)
-            print('DEBUG FB from_start = ', from_start)
             from_goal = self.solve_impl_rubiks(puzzle.tiles_goal, **kw_args)
-            print('DEBUG FB from_goal = ', from_goal)
             intermediary_1 = from_start.apply(puzzle.tiles_start)
             intermediary_2 = from_goal.apply(puzzle.tiles_goal)
             rotation_moves = list()
             if hash(intermediary_1) != hash(intermediary_2):
                 """ Most likely case, well 23/24 ... we need to rotate cube """
                 rotation_moves = RubiksCube.whole_cube_moves_finder(intermediary_1, intermediary_2)
-            print('rotation_moves: ', rotation_moves)
             path = from_start.path + rotation_moves + list(move.opposite() for move in reversed(from_goal.path))
-            print('full path: ', path)
             path = CubeMove.cleanup_path(path)
-            print('full path after cleanup: ', path)
             cost = sum(move.cost() for move in path) # notice that the full rotaton I count as 0
-            print('cost=', cost)
             solution = Solution(cost=cost,
                                 path=path,
                                 expanded_nodes=float('nan'),

@@ -76,7 +76,7 @@ class Solution:
                   **{'%s' % k: '%s' % v for k, v in self.additional_info.items()},
                   }
         for m_nb, (move, puzzle) in enumerate(zip(['Start'] + self.path, puzzles)):
-            string['%s%s' % ('' if m_nb == 0 else 'Move %d -- ' % (m_nb + 1), move)] = puzzle
+            string['%s%s' % ('' if m_nb == 0 else 'Move %d -- ' % m_nb, move)] = puzzle
         string_fields = list(string.keys())
         for field in string_fields:
             if fields is not None and field not in fields:

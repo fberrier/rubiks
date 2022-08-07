@@ -143,9 +143,7 @@ class CubeMove(Move):
             return 'C%s%s' % (self.face.name, '' if self.clock_wise else '\'')
 
     def opposite(self):
-        if self.whole_cube:
-            raise NotImplementedError
-        return CubeMove(self.face, False if self.clock_wise else True)
+        return CubeMove(self.face, not self.clock_wise, self.whole_cube)
 
     @classmethod
     def cleanup_path(cls, path):

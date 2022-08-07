@@ -427,7 +427,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 run_time = solution.run_time
                 timed_out = solution.time_out
                 index = solution.additional_info.get('index')
-                assert cost < 0 or isinf(cost) or cost == len(path), 'WTF?'
+                assert cost < 0 or isinf(cost) or cost <= len(path), 'WTF?'
                 if len(self.shuffles_data[nb_shuffles][index]) < 3:
                     self.shuffles_data[nb_shuffles][index] = (self.shuffles_data[nb_shuffles][index][0],
                                                               self.shuffles_data[nb_shuffles][index][1],

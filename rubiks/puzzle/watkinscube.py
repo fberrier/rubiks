@@ -1,12 +1,13 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
+from math import ceil, inf
 from torch import concat
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.rubikscube import RubiksCube, CubeMove, Color, Face
-from rubiks.utils.utils import pformat
+from rubiks.utils.utils import pformat, is_inf
 ########################################################################################################################
 
 class WatkinsCube(Puzzle):
@@ -99,6 +100,7 @@ class WatkinsCube(Puzzle):
     def perfect_shuffle(self):
         self.tiles_start = self.tiles_start.perfect_shuffle()
         self.tiles_goal = self.tiles_goal.perfect_shuffle()
+        return self.clone()
 
     def number_of_tiles(self):
         return self.tiles_start.number_of_tiles() + self.tiles_goal.number_of_tiles()
@@ -118,8 +120,10 @@ class WatkinsCube(Puzzle):
         """
         init = cls(**kw_args)
         training_data = list()
+        nb_start_shuffles = ceil(nb_shuffles / 2) if not is_inf(nb_shuffles) else inf
+        nb_goal_shuffles = (nb_shuffles - nb_start_shuffles) if  not is_inf(nb_shuffles) else inf
         for _ in range(nb_sequences):
-            pass
+            
             """ TBD """
         return training_data
 

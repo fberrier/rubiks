@@ -89,7 +89,13 @@ class KociembaSolver(Solver):
             print('DEBUG FB from_start = ', from_start)
             from_goal = self.solve_impl_rubiks(puzzle.tiles_goal, **kw_args)
             print('DEBUG FB from_goal = ', from_goal)
-            path = CubeMove.cleanup_path(from_start.path + list(reversed(from_goal.path)))
+            intermediary_1 = from_start.apply(puzzle.tiles_start)
+            intermediary_2 = from_goal.apply(puzzle.tiles_goal)
+            if hash(intermediary_1) == hash(intermediary_2):
+                path = CubeMove.cleanup_path(from_start.path + list(reversed(from_goal.path)))
+            else:
+                """ Most likely case, well 23/24 ... we need to rotate cube """
+                assert False, 'WTAF?'
             solution = Solution(cost=len(path),
                                 path=path,
                                 expanded_nodes=float('nan'),

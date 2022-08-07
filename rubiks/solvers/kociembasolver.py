@@ -50,6 +50,7 @@ class KociembaSolver(Solver):
             moves.append(move)
             if double:
                 moves.append(move)
+            moves = CubeMove.cleanup_path(moves)
         return moves
 
     def known_to_be_optimal(self):

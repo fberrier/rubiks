@@ -13,9 +13,22 @@ from rubiks.puzzle.rubikscube import RubiksCube, CubeMove, Face
 class TestRubiksCube(TestCase):
 
     def test_from_kociemba(self):
+        logger = Loggable(name='test_from_kociemba')
         solution_string = 'U1 F3 U3 R1 F3 R2 U2 R3 U1'
         solution = KociembaSolver.from_kociemba(solution_string)
-        
+        logger.log_info(solution)
+        self.assertEqual([CubeMove(Face.U),
+                          CubeMove(Face.F, False),
+                          CubeMove(Face.U, False),
+                          CubeMove(Face.R),
+                          CubeMove(Face.F, False),
+                          CubeMove(Face.R),
+                          CubeMove(Face.R),
+                          CubeMove(Face.U),
+                          CubeMove(Face.U),
+                          CubeMove(Face.R, False),
+                          CubeMove(Face.U)],
+                         solution)
 
     def test_construct(self):
         logger = Loggable(name='test_construct')

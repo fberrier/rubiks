@@ -12,6 +12,11 @@ from rubiks.puzzle.rubikscube import RubiksCube, CubeMove, Face
 
 class TestRubiksCube(TestCase):
 
+    def test_from_kociemba(self):
+        solution_string = 'U1 F3 U3 R1 F3 R2 U2 R3 U1'
+        solution = KociembaSolver.from_kociemba(solution_string)
+        
+
     def test_construct(self):
         logger = Loggable(name='test_construct')
         puzzle = RubiksCube(n=3)

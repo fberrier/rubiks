@@ -25,7 +25,7 @@ if '__main__' == __name__:
                             } """
     action_type = Learner.do_learn
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
+    puzzle_type = Puzzle.watkins_cube
     n = 2
     m = 5
     """ more init for specific puzzles """
@@ -63,13 +63,13 @@ if '__main__' == __name__:
     plus = True
     """ If it's a DRL learner config is here ... """
     nb_epochs = 15000
-    nb_sequences = 10
-    nb_shuffles = 50
+    nb_sequences = 5
+    nb_shuffles = 30
     training_data_every_epoch = True
     cap_target_at_network_count = True
     update_target_network_frequency = 500
     update_target_network_threshold = 1e-2
-    max_nb_target_network_update = 25
+    max_nb_target_network_update = 40
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
     learning_rate = 1e-3

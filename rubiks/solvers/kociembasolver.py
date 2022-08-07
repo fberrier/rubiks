@@ -80,25 +80,25 @@ class KociembaSolver(Solver):
             raise RuntimeError('%s[%s]' % (error, cube_string))
         return solution
 
-    def solve_impl_watkins_rubiks(self, puzzle, **kw_args) -> Solution:
-        assert isinstance(puzzle, WatkinsCube) and puzzle.dimension() in {(3, 3, 3), (2, 2, 2)}
-
     def solve_impl(self, puzzle, **kw_args) -> Solution:
+        assert isinstance(puzzle, (RubiksCube, WatkinsCube))
         if isinstance(puzzle, RubiksCube):
             return self.solve_impl_rubiks(puzzle, **kw_args)
         elif isinstance(puzzle, WatkinsCube):
             from_start = self.solve_impl_rubiks(puzzle.tiles_start, **kw_args)
+            print('DEBUG FB from_start = ', from_start)
             from_goal = self.solve_impl_rubiks(puzzle.tiles_goal, **kw_args)
+            print('DEBUG FB from_goal = ', from_goal)
             path = CubeMove.cleanup_path(from_start.path + list(reversed(from_goal.path)))
             solution = Solution(cost=len(path),
                                 path=path,
                                 expanded_nodes=float('nan'),
                                 puzzle=puzzle,
                                 solver_name=self.get_name(),
-                                cube_string=[from_start['cube_string'],
-                                             from_goal['cube_string']],
-                                solution_string=[from_start['solution_string'],
-                                                 ''.join(reversed(from_goal['solution_string']))],
+                                cube_string=[from_start.additional_info['cube_string'],
+                                             from_goal.additional_info['cube_string']],
+                                solution_string=[from_start.additional_info['solution_string'],
+                                                 ''.join(reversed(from_goal.additional_info['solution_string']))],
                                 )
             return solution
         else:

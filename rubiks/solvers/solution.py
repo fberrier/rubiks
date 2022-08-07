@@ -75,11 +75,8 @@ class Solution:
                   cls.success: 'Y' if self.success else 'N',
                   **{'%s' % k: '%s' % v for k, v in self.additional_info.items()},
                   }
-        for move, puzzle in zip([''] + self.path, puzzles):
-            #puzzle_string = '\n' + pformat(Series(index=range(len(puzzles)),
-            #                                    data=puzzles,
-            #                                    dtype=str))
-            string['%s' % move] = puzzle
+        for m_nb, (move, puzzle) in enumerate(zip(['Start'] + self.path, puzzles)):
+            string['%s%s' % ('' if m_nb == 0 else 'Move %d -- ' % (m_nb + 1), move)] = puzzle
         string_fields = list(string.keys())
         for field in string_fields:
             if fields is not None and field not in fields:

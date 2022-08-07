@@ -20,7 +20,8 @@ class Puzzle(Factory, metaclass=ABCMeta):
     puzzle_type = 'puzzle_type'
     sliding_puzzle = 'sliding_puzzle'
     rubiks_cube = 'rubiks_cube'
-    known_puzzle_types = [sliding_puzzle, rubiks_cube]
+    watkins_cube = 'watkins_cube'
+    known_puzzle_types = [sliding_puzzle, rubiks_cube, watkins_cube]
     n = 'n'
 
     @classmethod

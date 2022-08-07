@@ -25,15 +25,16 @@ class WatkinsCube(Puzzle):
         if from_tiles_goal and kw_args[self.tiles_goal] is not None:
             self.tiles_goal = RubiksCube(tiles=kw_args[self.tiles_goal])
             self.n = self.tiles_goal.n
+            kw_args[self.n] = self.n
         else:
             self.n = kw_args[self.n]
-            self.tiles_goal = RubiksCube(n=self.n)
+            self.tiles_goal = RubiksCube(**kw_args)
         from_tiles_start = self.tiles_start in kw_args
         if from_tiles_start and kw_args[self.tiles_start] is not None:
             self.tiles_start = RubiksCube(tiles=kw_args[self.tiles_start])
             assert self.tiles_start.n == self.tiles_goal.n
         else:
-            self.tiles_start = RubiksCube(n=self.n)
+            self.tiles_start = RubiksCube(**kw_args)
 
     def check_consistency(self):
         tiles = self.to_tensor()

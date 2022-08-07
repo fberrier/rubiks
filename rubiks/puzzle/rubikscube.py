@@ -2,6 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from enum import Enum
+from itertools import product
 from math import factorial
 from numpy.random import randint, permutation
 from pandas import DataFrame, read_pickle
@@ -121,23 +122,29 @@ def rubiks_to_int(what):
 
 class CubeMove(Move):
 
-    def __init__(self, face: Face, clock_wise: bool = True):
+    def __init__(self, face: Face, clock_wise: bool = True, whole_cube: bool = False):
         self.face = face
         self.clock_wise = clock_wise
+        self.whole_cube = whole_cube
 
     def __eq__(self, other):
-        return self.face == other.face and self.clock_wise == other.clock_wise
+        return self.face == other.face and self.clock_wise == other.clock_wise and self.whole_cube == other.whole_cube
 
     def __ne__(self, other):
-        return self.face != other.face or self.clock_wise != other.clock_wise
+        return self.face != other.face or self.clock_wise != other.clock_wise or self.whole_cube != other.whole_cube
 
     def cost(self):
-        return 1
+        return 1 if not self.whole_cube else 0
 
     def __repr__(self):
-        return '%s%s' % (self.face.name, '' if self.clock_wise else '\'')
+        if not self.whole_cube:
+            return '%s%s' % (self.face.name, '' if self.clock_wise else '\'')
+        else:
+            return 'C%s%s' % (self.face.name, '' if self.clock_wise else '\'')
 
     def opposite(self):
+        if self.whole_cube:
+            raise NotImplementedError
         return CubeMove(self.face, False if self.clock_wise else True)
 
     @classmethod
@@ -549,8 +556,31 @@ class RubiksCube(Puzzle):
 
     def apply(self, move: CubeMove):
         puzzle = self.clone()
-        self.move_functions[move.face][move.clock_wise](puzzle.tiles)
-        return puzzle
+        if not move.whole_cube:
+            self.move_functions[move.face][move.clock_wise](puzzle.tiles)
+            return puzzle
+        if move.face == Face.U:
+            if move.clock_wise:
+                return self.whole_cube_up_rotation()
+            else:
+                cube = self.whole_cube_up_rotation()
+                cube = cube.whole_cube_up_rotation()
+                return cube.whole_cube_up_rotation()
+        elif move.face == Face.R:
+            if move.clock_wise:
+                return self.whole_cube_right_rotation()
+            else:
+                cube = self.whole_cube_right_rotation()
+                cube = cube.whole_cube_right_rotation()
+                return cube.whole_cube_right_rotation()
+        if move.face == Face.F:
+            if move.clock_wise:
+                return self.whole_cube_front_rotation()
+            else:
+                cube = self.whole_cube_front_rotation()
+                cube = cube.whole_cube_front_rotation()
+                return cube.whole_cube_front_rotation()
+        raise NotImplementedError
 
     def possible_moves(self):
         return rubiks_all_moves
@@ -686,9 +716,31 @@ class RubiksCube(Puzzle):
         self.tiles[edge[0]][edge[1]][edge[2]] = self.tiles[edge[3]][edge[4]][edge[5]]
         self.tiles[edge[3]][edge[4]][edge[5]] = save
 
-    def whole_cube_moves_finder(self, cube_1, cube_2):
-        """ might actually not need that """
-        pass
+    @staticmethod
+    def whole_cube_moves_finder(cube_1, cube_2):
+        assert cube_1.n == cube_2.n
+        if not cube_1 == cube_2:
+            raise ValueError
+        if hash(cube_1) == hash(cube_2):
+            return list()
+        ok_moves = list()
+        for face in [Face.F, Face.R, Face.U]:
+            for clock_wise in [True, False]:
+                ok_moves.append(CubeMove(face=face, whole_cube=True, clock_wise=clock_wise))
+        """ Can only be 2 away """
+        for move_1 in ok_moves:
+            if hash(cube_1.apply(move_1)) == hash(cube_2):
+                return [move_1]
+        for move_1, move_2 in product(ok_moves, ok_moves):
+            if hash(cube_1.apply(move_1).apply(move_2)) == hash(cube_2):
+                return [move_1, move_2]
+        for move_1, move_2, move_3 in product(ok_moves, ok_moves, ok_moves):
+            if hash(cube_1.apply(move_1).apply(move_2).apply(move_3)) == hash(cube_2):
+                return [move_1, move_2, move_3]
+        for move_1, move_2, move_3, move_4 in product(ok_moves, ok_moves, ok_moves, ok_moves):
+            if hash(cube_1.apply(move_1).apply(move_2).apply(move_3).apply(move_4)) == hash(cube_2):
+                return [move_1, move_2, move_3, move_4]
+        raise RuntimeError
     
 ########################################################################################################################
 

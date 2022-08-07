@@ -1,13 +1,13 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
-from math import ceil, inf
+from itertools import product
+from math import ceil
 from torch import concat
 ########################################################################################################################
-from rubiks.core.loggable import Loggable
 from rubiks.puzzle.puzzle import Puzzle
-from rubiks.puzzle.rubikscube import RubiksCube, CubeMove, Color, Face
-from rubiks.utils.utils import pformat, is_inf
+from rubiks.puzzle.rubikscube import RubiksCube, CubeMove, Face
+from rubiks.utils.utils import pformat
 ########################################################################################################################
 
 class WatkinsCube(Puzzle):
@@ -112,19 +112,33 @@ class WatkinsCube(Puzzle):
     def get_training_data(cls,
                           nb_shuffles,
                           nb_sequences,
-                          min_no_loop=1,
+                          min_no_loop=None,
                           one_list=False,
                           **kw_args):
         """
         modify this so that the shuffles are applied to start and goal alternatively
         """
+        if min_no_loop is None or not min_no_loop:
+            min_no_loop = nb_shuffles
         init = cls(**kw_args)
         training_data = list()
-        nb_start_shuffles = ceil(nb_shuffles / 2) if not is_inf(nb_shuffles) else inf
-        nb_goal_shuffles = (nb_shuffles - nb_start_shuffles) if  not is_inf(nb_shuffles) else inf
+        nb_start_shuffles = ceil(nb_shuffles / 2)
+        nb_goal_shuffles = nb_shuffles - nb_start_shuffles
+        assert nb_start_shuffles
         for _ in range(nb_sequences):
-            
-            """ TBD """
+            start_moves = init.tiles_start.random_moves(nb_start_shuffles, min_no_loop=min_no_loop)
+            goal_moves = init.tiles_goal.random_moves(nb_goal_shuffles, min_no_loop=min_no_loop)
+            start_puzzles = init.tiles_start.get_puzzle_sequence(start_moves)
+            goal_puzzles = init.tiles_start.get_puzzle_sequence(goal_moves)
+            puzzles = list()
+            for start_puzzle, goal_puzzle in product(start_puzzles, goal_puzzles):
+                puzzle = WatkinsCube(tiles_start=start_puzzle.tiles,
+                                     tiles_goal=goal_puzzle.tiles)
+                puzzles.append(puzzle)
+            if one_list:
+                training_data += puzzles
+            else:
+                training_data.append(puzzles)
         return training_data
 
 ########################################################################################################################

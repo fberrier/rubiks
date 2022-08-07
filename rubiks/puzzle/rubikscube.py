@@ -686,6 +686,9 @@ class RubiksCube(Puzzle):
         self.tiles[edge[0]][edge[1]][edge[2]] = self.tiles[edge[3]][edge[4]][edge[5]]
         self.tiles[edge[3]][edge[4]][edge[5]] = save
 
+    def whole_cube_moves_finder(self, cube_1, cube_2):
+        """ might actually not need that """
+        pass
     
 ########################################################################################################################
 

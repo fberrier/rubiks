@@ -186,4 +186,15 @@ class TestRubiksCube(TestCase):
                  ]
         self.assertEqual(0, len(CubeMove.cleanup_path(moves)))
 
+    def test_whole_cube_move_finder(self):
+        cube_1 = RubiksCube(n=2, init_from_random_goal=True)
+        cube_2 = RubiksCube(n=2, init_from_random_goal=True)
+        while hash(cube_1) == hash(cube_2):
+            cube_2 = RubiksCube(n=2, init_from_random_goal=True)
+        self.assertEqual(cube_1, cube_2)
+        """ Now we have 2 equivalent cubes but not visually same """
+
+
+
+
 ########################################################################################################################

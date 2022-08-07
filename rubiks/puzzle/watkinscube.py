@@ -88,11 +88,13 @@ class WatkinsCube(Puzzle):
             min_no_loop = nb_moves
         if is_inf(nb_moves):
             return self.perfect_shuffle()
+        cube = self.clone()
+        if nb_moves <= 0:
+            return cube
         nb_moves = int(nb_moves)
         min_no_loop = int(min_no_loop)
         nb_moves_start = ceil(randint(0, nb_moves + 1))
         min_no_loop_start = ceil(min_no_loop * nb_moves_start / nb_moves)
-        cube = self.clone()
         cube.tiles_start = cube.tiles_start.apply_random_moves(nb_moves_start,
                                                                min_no_loop_start)
         cube.tiles_goal = cube.tiles_goal.apply_random_moves(nb_moves - nb_moves_start,

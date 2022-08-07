@@ -622,7 +622,7 @@ class RubiksCube(Puzzle):
         if self.n == 2:
             return self.random_2()
         elif self.n == 3:
-            return
+            raise NotImplementedError('perfect shuffle for Rubiks(3) TBI')
         else:
             assert False, 'Need to think about that'
 

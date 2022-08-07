@@ -3,11 +3,12 @@
 ########################################################################################################################
 from itertools import product
 from math import ceil
+from numpy.random import randint
 from torch import concat
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.rubikscube import RubiksCube, CubeMove, Face
-from rubiks.utils.utils import pformat
+from rubiks.utils.utils import pformat, is_inf
 ########################################################################################################################
 
 class WatkinsCube(Puzzle):
@@ -68,16 +69,41 @@ class WatkinsCube(Puzzle):
     def is_goal(self):
         return self.tiles_goal == self.tiles_start
 
-    def apply(self, move: CubeMove):
+    def apply(self, move: CubeMove, goal=False):
         puzzle = self.clone()
-        puzzle.tiles_start = puzzle.tiles_start.apply(move)
+        if goal:
+            puzzle.tiles_goal = puzzle.tiles_goal.apply(move)
+        else:
+            puzzle.tiles_start = puzzle.tiles_start.apply(move)
         return puzzle
+
+    def apply_random_move(self):
+        random_move = self.random_move()
+        if random_move is None:
+            return self.clone()
+        return self.apply(random_move, goal=randint(0, 2) == 0)
+
+    def apply_random_moves(self, nb_moves, min_no_loop=None):
+        if min_no_loop is None:
+            min_no_loop = nb_moves
+        if is_inf(nb_moves):
+            return self.perfect_shuffle()
+        nb_moves = int(nb_moves)
+        min_no_loop = int(min_no_loop)
+        nb_moves_start = ceil(randint(0, nb_moves + 1))
+        min_no_loop_start = ceil(min_no_loop * nb_moves_start / nb_moves)
+        cube = self.clone()
+        cube.tiles_start = cube.tiles_start.apply_random_moves(nb_moves_start,
+                                                               min_no_loop_start)
+        cube.tiles_goal = cube.tiles_goal.apply_random_moves(nb_moves - nb_moves_start,
+                                                             min_no_loop - min_no_loop_start)
+        return cube
 
     def possible_moves(self):
         return self.tiles_start.possible_moves()
 
     def random_move(self):
-        return RubiksCube.random_move()
+        return RubiksCube.__random_move__()
 
     def from_tensor(self):
         raise NotImplementedError('Please implement this ... need to de-one_hot then call init')
@@ -98,9 +124,10 @@ class WatkinsCube(Puzzle):
         return self.tiles_start.possible_puzzles_nb() ** 2
 
     def perfect_shuffle(self):
-        self.tiles_start = self.tiles_start.perfect_shuffle()
-        self.tiles_goal = self.tiles_goal.perfect_shuffle()
-        return self.clone()
+        cube = self.clone()
+        cube.tiles_start = cube.tiles_start.perfect_shuffle()
+        cube.tiles_goal = cube.tiles_goal.perfect_shuffle()
+        return cube
 
     def number_of_tiles(self):
         return self.tiles_start.number_of_tiles() + self.tiles_goal.number_of_tiles()

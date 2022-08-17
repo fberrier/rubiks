@@ -17,7 +17,8 @@ from torch.optim.lr_scheduler import ExponentialLR
 ########################################################################################################################
 from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.learners.learner import Learner
-from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, get_model_file_name, snake_case, billion, isinf
+from rubiks.utils.utils import ms_format, h_format, pformat, to_pickle, \
+    get_model_file_name, snake_case, billion, isinf, number_format
 ########################################################################################################################
 
 
@@ -203,6 +204,13 @@ class DeepReinforcementLearner(Learner):
         self.loss_latency = latency_data[cls.latency_loss_tag] if latency_data is not None else 0
         self.back_prop_latency = latency_data[cls.latency_back_prop_tag] if latency_data is not None else 0
 
+    def read_data_file(self):
+        data = read_pickle(self.learning_file_name)
+        if self.config_tag not in data.keys():
+            """ try copy """
+            data = read_pickle(self.learning_file_name + '.copy')
+        return data
+
     def __init__(self, **kw_args):
         Learner.__init__(self, **kw_args)
         self.epoch_latency = None
@@ -219,7 +227,7 @@ class DeepReinforcementLearner(Learner):
         self.attempt_recovery = self.learning_file_name is not None and isfile(self.learning_file_name)
         if self.attempt_recovery:
             try:
-                data = read_pickle(self.learning_file_name)
+                data = self.read_data_file()
                 config = data[self.config_tag]
                 Learner.__init__(self, **config)
                 self.convergence_data = data[self.convergence_data_tag]
@@ -236,7 +244,7 @@ class DeepReinforcementLearner(Learner):
                 self.target_network_count = 0
                 self.log_info('Recovering from convergence_data: ', self.convergence_data.iloc[-1])
             except Exception as error:
-                self.log_error('Could not recover from \'%d\': ' % self.learning_file_name,
+                self.log_error('Could not recover from \'%s\': ' % self.learning_file_name,
                                error)
                 self.attempt_recovery = False
         if not self.min_no_loop:
@@ -304,10 +312,10 @@ class DeepReinforcementLearner(Learner):
         total_run_time = self.epoch_latency / top[cls.epoch]
         total_run_time *= top[cls.nb_epochs] - top[cls.epoch]
         self.log_info('Estimated max run time left: ', h_format(total_run_time),
-                      '. Convergence update at loss <= %.4f' % (top[cls.max_max_target] *
+                      '. Convergence update at loss <= %.2g' % (top[cls.max_max_target] *
                                                                 self.update_target_network_threshold),
                       '. Regular update in ',
-                      self.last_network_update + self.update_target_network_frequency - n,
+                      number_format(self.last_network_update + self.update_target_network_frequency - n),
                       ' epochs')
         return decision
 
@@ -368,7 +376,9 @@ class DeepReinforcementLearner(Learner):
                                              self.attempt_recovery
                 self.attempt_recovery = False
                 if generate_new_training_data:
+                    self.log_info('Generate ... ')
                     puzzles = puzzle_class.get_training_data(one_list=True, **config)
+                    self.log_info(' ... ', len(puzzles), ' training puzzles')
                 self.training_data_latency += snap()
                 self.target_data_latency -= snap()
                 if generate_new_training_data:
@@ -504,7 +514,7 @@ class DeepReinforcementLearner(Learner):
 
     def plot_learning(self):
         cls = self.__class__
-        data = read_pickle(self.learning_file_name)
+        data = self.read_data_file()
         if isinstance(data[self.convergence_data_tag][cls.learning_rate].iloc[0], list):
             data[self.convergence_data_tag].loc[:, cls.learning_rate] = \
                 data[self.convergence_data_tag][cls.learning_rate].apply(lambda lr: lr[0])

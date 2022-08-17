@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from enum import Enum
-from itertools import product
+from itertools import product, permutations
 from math import factorial
 from numpy.random import randint, permutation
 from pandas import DataFrame, read_pickle
@@ -199,6 +199,7 @@ class RubiksCube(Puzzle):
     goals_map = dict()
     goals_hashes = dict()
     corners_map = dict()
+    corners_target_map = dict()
     edges_map = dict()
     edges_oriented_distances_to_home = dict()
 
@@ -284,6 +285,7 @@ class RubiksCube(Puzzle):
         #cls.goals_map[n] = list()
         #cls.goals_hashes[n] = set()
         cls.corners_map[n] = list()
+        cls.corners_target_map[n] = list()
         cls.edges_map[n] = dict()
         cls.edges_oriented_distances_to_home[n] = dict()
         goal = dict()
@@ -301,6 +303,15 @@ class RubiksCube(Puzzle):
         cls.__add_corner_to_map__((Color.o, Color.b, Color.y), n)
         cls.__add_corner_to_map__((Color.o, Color.w, Color.b), n)
         cls.__add_corner_to_map__((Color.o, Color.g, Color.w), n)
+        cls.corners_target_map[n] = [((Face.F, 0, 0), (Face.U, 1, 0), (Face.L, 0, 1)),
+                                     ((Face.F, 0, 1), (Face.R, 0, 0), (Face.U, 1, 1)),
+                                     ((Face.F, 1, 0), (Face.L, 1, 1), (Face.D, 0, 0)),
+                                     ((Face.F, 1, 1), (Face.D, 0, 1), (Face.R, 1, 0)),
+                                     ((Face.B, 1, 1), (Face.D, 1, 0), (Face.L, 1, 0)),
+                                     ((Face.B, 1, 0), (Face.R, 1, 1), (Face.D, 1, 1)),
+                                     ((Face.B, 0, 0), (Face.U, 0, 1), (Face.R, 0, 1)),
+                                     ((Face.B, 0, 1), (Face.L, 0, 0), (Face.U, 0, 0)),
+                                     ]
         if n == 3:
             """ edges """
             cls.__add_edge_to_map__((Color.r, Color.w), (Face.F, 0, 1, Face.U, 2, 1), n)
@@ -366,7 +377,7 @@ class RubiksCube(Puzzle):
             else:
                 goal = choice(self.goals_map[n])
             self.__init__(tiles={face: tiles.detach().clone() for face, tiles in goal.tiles.items()})
-        self.check_consistency()
+        #self.check_consistency()
 
     def check_consistency(self):
         tiles = self.to_tensor()
@@ -414,6 +425,9 @@ class RubiksCube(Puzzle):
 
     def dimension(self):
         return (self.n,)*3
+
+    def get_goal(self):
+        return RubiksCube(n=self.n, init_from_random_goal=True)
 
     def clone(self):
         return self.__class__(tiles={face: self.tiles[face].detach().clone() for face in Face})
@@ -621,10 +635,11 @@ class RubiksCube(Puzzle):
             return factorial(8) * 3**7 * factorial(12) / 2 * 2 ** 11
 
     def perfect_shuffle(self):
+        self.__populate_goals__(self.n)
         if self.n == 2:
             return self.random_2()
         elif self.n == 3:
-            raise NotImplementedError('perfect shuffle for Rubiks(3) TBI')
+            return Puzzle.perfect_shuffle(self)
         else:
             assert False, 'Need to think about that'
 
@@ -632,15 +647,7 @@ class RubiksCube(Puzzle):
         """"""
         assert 2 == self.n
         corners = self.corners_map[self.n]
-        targets = [((Face.F, 0, 0), (Face.U, 1, 0), (Face.L, 0, 1)),
-                   ((Face.F, 0, 1), (Face.R, 0, 0), (Face.U, 1, 1)),
-                   ((Face.F, 1, 0), (Face.L, 1, 1), (Face.D, 0, 0)),
-                   ((Face.F, 1, 1), (Face.D, 0, 1), (Face.R, 1, 0)),
-                   ((Face.B, 1, 1), (Face.D, 1, 0), (Face.L, 1, 0)),
-                   ((Face.B, 1, 0), (Face.R, 1, 1), (Face.D, 1, 1)),
-                   ((Face.B, 0, 0), (Face.U, 0, 1), (Face.R, 0, 1)),
-                   ((Face.B, 0, 1), (Face.L, 0, 0), (Face.U, 0, 0)),
-                   ]
+        targets = self.corners_target_map[self.n]
         tiles = dict()
         p_corners = permutation(corners)
         def permutate(nb, corner):
@@ -697,7 +704,32 @@ class RubiksCube(Puzzle):
                     self.tiles[normal_position[3]][normal_position[4]][normal_position[5]].item())
             edge = tuple(rubiks_int_to_color_map[c] for c in edge)
             permut.append(normal_order[edge] if edge in normal_order else normal_order[self.__swap__(edge)])
+        print(permut)
+        print(out_of_order(permut))
         return out_of_order(permut) % 2
+
+    def corner_permutations_parity(self):
+        home_corners = self.corners_map[self.n]
+        normal_order = {corner: pos + 1 for corner, pos in zip(home_corners, range(len(home_corners)))}
+        permut = list()
+        for normal_position in self.corners_target_map[self.n]:
+            corner = (self.tiles[normal_position[0][0]][normal_position[0][1]][normal_position[0][2]].item(),
+                      self.tiles[normal_position[1][0]][normal_position[1][1]][normal_position[1][2]].item(),
+                      self.tiles[normal_position[2][0]][normal_position[2][1]][normal_position[2][2]].item(),
+                      )
+            corner = tuple(rubiks_int_to_color_map[c] for c in corner)
+            for corner in permutations(corner):
+                corner = tuple(rubiks_to_int_map[c] for c in corner)
+                if corner in normal_order:
+                    permut.append(normal_order[corner])
+                    break
+        print(permut)
+        print(out_of_order(permut))
+        return out_of_order(permut) % 2
+
+    def total_permutations_parity(self):
+        tpp = self.edge_permutations_parity() + self.corner_permutations_parity()
+        return tpp % 2
 
     @classmethod
     def compute_edge_orientated_distance_to_home(cls, edge, position, n):

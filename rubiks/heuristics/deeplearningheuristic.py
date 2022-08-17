@@ -57,7 +57,7 @@ class DeepLearningHeuristic(Loggable, Heuristic):
             short_name = long_name
             for expected_name in expected_names:
                 if long_name.startswith(expected_name):
-                    short_name = expected_name
+                    short_name = ''.join([_[0] for _ in expected_name.split('_')])
                     break
             expected_names = [snake_case(FullyConnected.__name__),
                               snake_case(Convolutional.__name__)]
@@ -65,6 +65,7 @@ class DeepLearningHeuristic(Loggable, Heuristic):
                 if long_name.find(expected_name) >= 0:
                     short_name += '_' + long_name[long_name.find(expected_name):]
                     short_name = short_name[:short_name.find('.')]
+                    short_name = short_name.replace(expected_name, ''.join([_[0] for _ in expected_name.split('_')]))
                     break
             short_name += '[puzzles_seen=%.2g%%]' % data[DeepReinforcementLearner.puzzles_seen_pct].iloc[-1]
         except FileNotFoundError:

@@ -49,7 +49,7 @@ class KociembaSolver(Solver):
         return moves
 
     def known_to_be_optimal(self):
-        return self.get_puzzle_dimension()[0] == 2
+        return self.get_puzzle_dimension()[0] == 2# and self.get_puzzle_type() is RubiksCube
 
     def __do_import__(self):
         if self.__class__.__import_done__:

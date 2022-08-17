@@ -201,11 +201,16 @@ class TestRubiksCube(TestCase):
     def test_edge_permutations_parity(self):
         logger = Loggable(name='test_edge_permutations_parity')
         for _ in range(100):
-            cube = RubiksCube(n=3).apply_random_moves(10)
-            parity = cube.edge_permutations_parity()
-            logger.log_info(parity)
+            cube = RubiksCube(n=3, init_from_random_goal=True)
+            #e_parity = cube.edge_permutations_parity()
+            #logger.log_info(e_parity)
+            c_parity = cube.corner_permutations_parity()
+            logger.log_info('corner parity: ', c_parity)
+            #logger.log_info('total parity: ', cube.total_permutations_parity())
 
 
-
+            cube = RubiksCube(n=3, init_from_random_goal=True).apply_random_moves(1)
+            c_parity = cube.corner_permutations_parity()
+            logger.log_info('corner parity one move: ', c_parity)
 
 ########################################################################################################################

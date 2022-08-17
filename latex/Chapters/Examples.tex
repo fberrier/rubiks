@@ -68,6 +68,31 @@ print(Puzzle.factory(**globals()).apply_random_moves(nb_moves))
 \label{fig:examplercconstruction}
 \end{figure}
 
+.. finally let me construct a (n=3) RC with non-standard-goal:
+\afblue
+\paragraph{}{\textbf{python code -- non-standard-goal rubiks cube construction}}
+\begin{python}
+####################################################################
+from math import inf
+from rubiks.puzzle.puzzle import Puzzle
+####################################################################
+puzzle_type=Puzzle.watkins_cube
+n=2
+""" Here we use perfect shuffle by spcifying infinite number of shuffles """
+nb_moves=inf
+print(Puzzle.factory(**globals()).apply_random_moves(nb_moves))
+####################################################################
+\end{python}
+\black
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.8]{./Figures/examplewcconstruction}
+%\decoRule
+\caption[Examples]{non-standard-goal rubiks cube construction example}
+\label{fig:examplewcconstruction}
+\end{figure}
+
 
 %-----------------------------------
 %	SECTION 2
@@ -542,7 +567,34 @@ print(Solver.factory(**globals()).action())
 %	SUBSECTION 3.3
 %-----------------------------------
 \subsection{Kociemba}
-TBI \& TBD
+
+
+\afblue
+\paragraph{}{\textbf{python code -- Kociemba solver}}
+\begin{python}
+####################################################################
+from rubiks.puzzle.puzzle import Puzzle
+from rubiks.solvers.solver import Solver
+####################################################################
+puzzle_type=Puzzle.rubiks_cube
+n=2
+cube=Puzzle.factory(**globals()).apply_random_moves(2)
+solver_type=Solver.kociemba
+solver = Solver.factory(**globals())
+print(solver.solve(cube))
+####################################################################
+
+\end{python}
+\black
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.55]{./Figures/examplekociemba}
+%\decoRule
+\caption[Examples]{Kociemba solver example}
+\label{fig:examplekociemba}
+\end{figure}
+
 
 
 %-----------------------------------

@@ -39,6 +39,8 @@ class Puzzled(Parsable):
         return tuple(self.__goal__.dimension())
 
     def get_goal(self):
+        if hasattr(self.__goal__, 'get_goal'):
+            return self.__goal__.get_goal()
         return self.__goal__.clone()
 
     def puzzle_name(self):

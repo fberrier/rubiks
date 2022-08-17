@@ -25,26 +25,26 @@ if '__main__' == __name__:
                             } """
     action_type = Solver.do_performance_test
     """ What puzzle """
-    puzzle_type = Puzzle.watkins_cube
-    n = 2
-    m = 3
+    puzzle_type = Puzzle.sliding_puzzle
+    n = 5
+    m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 100
+    nb_samples = 1
     min_nb_shuffles = 0
-    max_nb_shuffles = 50
-    step_nb_shuffles = 1
+    max_nb_shuffles = 0
+    step_nb_shuffles = 5
     add_perfect_shuffle = True
-    nb_cpus = 14
+    nb_cpus = 1
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
     verbose = True
     do_not_reattempt_failed = False
     """ For plot """
-    loc = 'center'
+    loc = 'upper center'
     performance_metrics = [Solver.pct_solved,
                            #Solver.pct_optimal,
                            Solver.median_cost,
@@ -58,13 +58,14 @@ if '__main__' == __name__:
                            Solver.bfs,
                            Solver.astar,
                            Solver.naive,
+                           Solver.kociemba,
                            } """
-    solver_type = Solver.kociemba
+    solver_type = Solver.astar
     limit = 12
-    time_out = 600
+    time_out = 3600 + 1800
     log_solution = False
     check_optimal = False
-    max_consecutive_timeout = 25
+    max_consecutive_timeout = 100
     """ Heuristic if a* {Heuristic.manhattan,
                          Heuristic.perfect,
                          Heuristic.deep_learning,
@@ -77,15 +78,15 @@ if '__main__' == __name__:
     learner_type = Learner.deep_reinforcement_learner
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
-    nb_epochs = 25000
-    nb_sequences = 10
-    nb_shuffles = 50
+    nb_epochs = 100000
+    nb_sequences = 50
+    nb_shuffles = 400
     nb_shuffles_min = 40
     nb_shuffles_max = 60
     learning_rate = 1e-3
     scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
-    training_data_every_epoch = True
+    training_data_every_epoch = False
     cap_target_at_network_count = True
     one_hot_encoding = True
     drop_out = 0.

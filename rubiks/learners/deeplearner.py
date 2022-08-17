@@ -295,10 +295,9 @@ class DeepLearner(Learner):
                 targets.append(cost)
                 for move in solution.path:
                     puzzle = puzzle.apply(move)
-                    cost -= 1
+                    cost -= move.cost()
                     puzzles.append(puzzle)
                     targets.append(cost)
-                    assert cost >= 0, 'WTF?'
             self.training_data_latency += snap()
             self.target_data_latency += snap()
         else:

@@ -11,6 +11,7 @@ from rubiks.puzzle.rubikscube import RubiksCube, CubeMove, Face
 from rubiks.utils.utils import pformat, is_inf
 ########################################################################################################################
 
+
 class WatkinsCube(Puzzle):
     """ The aim of this puzzle is to go from a scrambled cube to a particular cube
     i.e. not necessarily the canonical goal """
@@ -101,6 +102,11 @@ class WatkinsCube(Puzzle):
                                                              min_no_loop - min_no_loop_start)
         return cube
 
+    def get_goal(self):
+        random_rubiks_goal = RubiksCube(n=self.n).get_goal()
+        return WatkinsCube(tiles_goal=random_rubiks_goal.tiles,
+                           tiles_start=random_rubiks_goal.tiles)
+
     def possible_moves(self):
         return self.tiles_start.possible_moves()
 
@@ -149,12 +155,12 @@ class WatkinsCube(Puzzle):
         """
         if min_no_loop is None or not min_no_loop:
             min_no_loop = nb_shuffles
-        init = cls(**kw_args)
         training_data = list()
         nb_start_shuffles = ceil(nb_shuffles / 2)
         nb_goal_shuffles = nb_shuffles - nb_start_shuffles
         assert nb_start_shuffles
         for _ in range(nb_sequences):
+            init = cls(**kw_args).perfect_shuffle()
             start_moves = init.tiles_start.random_moves(nb_start_shuffles, min_no_loop=min_no_loop)
             goal_moves = init.tiles_goal.random_moves(nb_goal_shuffles, min_no_loop=min_no_loop)
             start_puzzles = init.tiles_start.get_puzzle_sequence(start_moves)
@@ -169,6 +175,12 @@ class WatkinsCube(Puzzle):
             else:
                 training_data.append(puzzles)
         return training_data
+
+    @classmethod
+    def optimal_solver_config(cls) -> dict:
+        from rubiks.solvers.solver import Solver
+        return {Solver.solver_type: Solver.kociemba,
+                }
 
 ########################################################################################################################
 

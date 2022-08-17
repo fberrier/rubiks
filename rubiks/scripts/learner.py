@@ -35,7 +35,7 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.deep_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
@@ -62,14 +62,16 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL learner config is here ... """
-    nb_epochs = 15000
-    nb_sequences = 5
-    nb_shuffles = 30
-    training_data_every_epoch = True
+    nb_epochs = 25000
+    training_data_every_epoch = False
+    nb_sequences = 1
+    if not training_data_every_epoch:
+        nb_sequences *= 10
+    nb_shuffles = 50 # (30 if n == 2 else 70) if puzzle_type == Puzzle.watkins_cube else (20 if n == 2 else 35)
     cap_target_at_network_count = True
     update_target_network_frequency = 500
     update_target_network_threshold = 1e-2
-    max_nb_target_network_update = 40
+    max_nb_target_network_update = nb_shuffles + 10
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
     learning_rate = 1e-3
@@ -78,11 +80,11 @@ if '__main__' == __name__:
     """ DL learner """
     save_at_each_epoch = False
     threshold = 0.01
-    training_data_freq = 1000
+    training_data_freq = 500
     high_target = nb_shuffles + 1
     training_data_from_data_base = True
-    nb_shuffles_min = 40
-    nb_shuffles_max = 60
+    nb_shuffles_min = 0
+    nb_shuffles_max = 10
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)

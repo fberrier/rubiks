@@ -4,9 +4,9 @@
 from locale import format_string, LC_ALL, setlocale
 from math import isinf, isnan
 import numpy as np
-from os import makedirs, remove, getenv
-from os.path import exists, dirname
-from pandas import DataFrame, Series, to_pickle as pandas_to_pickle
+from os import makedirs, remove, getenv, listdir
+from os.path import exists, dirname, isfile, isdir, join
+from pandas import DataFrame, Series, to_pickle as pandas_to_pickle, read_pickle
 from pathlib import Path
 from re import sub
 from sys import platform
@@ -289,6 +289,41 @@ def bubble_sort_swaps_count(some_permutation):
                 left, right = some_permutation[index], some_permutation[index + 1]
                 some_permutation[index], some_permutation[index + 1] = right, left
     return total
+
+########################################################################################################################
+
+
+def lighten_deep_reinforcement_learning_file(learning_file_name):
+    from rubiks.core.loggable import Loggable
+    logger = Loggable(name='lighten_deep_reinforcement_learning_file')
+    if isdir(learning_file_name):
+        logger.log_info('This is a directory. Will call function on all pkl files in here:')
+        pkl_files = [pf for pf in listdir(learning_file_name) if
+                     isfile(join(learning_file_name, pf)) and pf.endswith('.pkl')]
+        for pkl_file in pkl_files:
+            logger.log_info('\t -> ', join(learning_file_name, pkl_file))
+            lighten_deep_reinforcement_learning_file(join(learning_file_name, pkl_file))
+        return
+    data = read_pickle(learning_file_name)
+    from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
+    safe = learning_file_name + '.copy'
+    if isfile(safe):
+        logger.log_info('Safety copy already exists, not over-writing as could lose data by doing so')
+        return
+    keys = [DeepReinforcementLearner.network_data_tag,
+            DeepReinforcementLearner.config_tag,
+            DeepReinforcementLearner.convergence_data_tag,
+            DeepReinforcementLearner.puzzles_seen_tag,
+            DeepReinforcementLearner.latency_tag]
+    assert all(key in data.keys() for key in keys)
+    to_pickle(data, safe)
+    logger.log_info('Made a safety copy of \'%s\' into \'%s\'' % (learning_file_name, safe))
+    keep = [DeepReinforcementLearner.network_data_tag,
+            DeepReinforcementLearner.convergence_data_tag]
+    data = {key: data[key] for key in keep}
+    data[DeepReinforcementLearner.convergence_data_tag] = data[DeepReinforcementLearner.convergence_data_tag][-1:]
+    to_pickle(data, learning_file_name)
+    logger.log_info('Saved trimmed data back into \'%s\'' % learning_file_name)
 
 ########################################################################################################################
 

@@ -364,15 +364,14 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if dimension not in self.shuffles_data:
                 self.shuffles_data[dimension] = dict()
             self.shuffles_data = self.shuffles_data[dimension]
-            goal = self.get_goal()
             for nb_shuffles in shuffles:
                 if nb_shuffles in self.shuffles_data:
                     required = max(0, self.nb_samples - len(self.shuffles_data[nb_shuffles]))
                 else:
                     required = self.nb_samples
                     self.shuffles_data[nb_shuffles] = list()
-                new_shuffles = [(goal.apply_random_moves(nb_moves=nb_shuffles,
-                                                         min_no_loop=nb_shuffles),
+                new_shuffles = [(self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
+                                                                    min_no_loop=nb_shuffles),
                                  inf,
                                  dict(),
                                  ) for _ in range(required)]
@@ -408,7 +407,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 self.log_info('About to send %s jobs to thread pool of size %s ...' % (number_format(sample_size),
                                                                                        number_format(pool_size)))
             results = pool.map(partial(cls.__job__, self, nb_shuffles),
-                               range(sample_size))
+                               range(sample_size),
+                               chunksize=ceil(sample_size/pool_size))
             if self.verbose:
                 self.log_info('... received all jobs from thread pool')
             consecutive_timeout = 0
@@ -631,7 +631,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
-        markers = cycle(['x', '|', '.', 'v', '+', '1', '$f$', '$a$', '$t$'])
+        markers = cycle(['x', '|', '.', '+', '1', 'v', '$f$', '$a$', '$t$'])
         markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
         labels_shown = False
         for r, c in product(range(n_rows), range(n_cols)):
@@ -654,7 +654,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                             data=grp,
                             label=sn,
                             marker=markers[sn],
-                            linewidths=5,
+                            linewidths=2,
                             s=50)
             (handles, labels) = bax.get_legend_handles_labels()[0]
             if what in [cls.avg_expanded_nodes,

@@ -97,7 +97,7 @@ class TrainingData(Loggable, Puzzled):
             self.data[self.puzzles_tag][hash(puzzle)] = (puzzle, optimal_cost)
             for move in solution.path:
                 puzzle = puzzle.apply(move)
-                optimal_cost -= 1
+                optimal_cost -= move.cost()
                 self.data[self.puzzles_tag][hash(puzzle)] = (puzzle, optimal_cost)
             assert optimal_cost == 0, 'WTF?'
             if solution.cost not in self.data[self.solutions_tag]:

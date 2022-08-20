@@ -6,10 +6,14 @@ from unittest import TestCase
 ########################################################################################################################
 from rubiks.heuristics.manhattan import Manhattan
 from rubiks.core.loggable import Loggable
+from rubiks.deeplearning.deeplearning import DeepLearning
 from rubiks.heuristics.heuristic import Heuristic
+from rubiks.heuristics.deepqlearningheuristic import DeepQLearningHeuristic
+from rubiks.learners.deepqlearner import DeepQLearner
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.slidingpuzzle import SlidingPuzzle
 from rubiks.solvers.solver import Solver
+from rubiks.utils.utils import get_model_file_name, remove_file
 ########################################################################################################################
 
 
@@ -135,5 +139,42 @@ class TestHeuristics(TestCase):
         actual = (4, 3, 2)
         self.assertEqual(4, Manhattan.penalty(expected=expected,
                                               actual=actual))
+
+    def test_deep_q_learning_heuristic(self):
+        logger = Loggable(name='test_deep_q_learning_heuristic')
+        puzzle_type = Puzzle.sliding_puzzle
+        dimension = (2, 2)
+        # we learn first
+        model_file_name = get_model_file_name(puzzle_type=puzzle_type,
+                                              dimension=dimension,
+                                              model_name='test_deep_q_learning_heuristic')
+        remove_file(model_file_name)
+        learner = DeepQLearner(puzzle_type=Puzzle.sliding_puzzle,
+                               learning_file_name=model_file_name,
+                               solver_type=Solver.astar,
+                               n=dimension[0],
+                               m=dimension[1],
+                               nb_cpus=1,
+                               network_type=DeepLearning.fully_connected_net,
+                               layers_description=(64, 32),
+                               nb_epochs=10000,
+                               one_hot_encoding=True,
+                               nb_shuffles=12,
+                               max_target_not_increasing_epochs_pct=0.5,
+                               max_target_uptick=0.01,
+                               max_nb_target_network_update=10,
+                               update_target_network_threshold=1e-5,
+                               learning_rate=1e-2,
+                               nb_sequences=1)
+        logger.log_info(learner.get_config())
+        learner.learn()
+        # Then we use this learning to solve
+        heuristic = DeepQLearningHeuristic(**learner.get_config(), model_file_name=model_file_name)
+        puzzle = Puzzle.factory(**learner.get_config()).apply_random_moves(inf)
+        logger.log_info(puzzle)
+        logger.log_info(heuristic.cost_to_go_from_puzzle_impl(puzzle))
+        logger.log_info(heuristic.optimal_actions(puzzle))
+        remove_file(model_file_name)
+
 
 ########################################################################################################################

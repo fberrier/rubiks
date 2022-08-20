@@ -288,9 +288,6 @@ class DeepReinforcementLearner(Learner):
         if n >= self.nb_epochs:
             self.log_info('Reached max epochs')
             stop = True
-        elif top[cls.target_network_count] >= self.max_nb_target_network_update:
-            self.log_info('Reached max number of target network updates')
-            stop = True
         if not stop:
             new_max = top[cls.max_max_target]
             old_epoch = n - int(self.max_target_not_increasing_epochs_pct * self.nb_epochs)
@@ -305,9 +302,15 @@ class DeepReinforcementLearner(Learner):
         elif n - self.last_network_update >= self.update_target_network_frequency:
             decision = self.Decision.TARGET_NET_REGULAR_UPDATE
             self.last_network_update = n
+            if top[cls.target_network_count] == self.max_nb_target_network_update - 1:
+                self.log_info('Reached max number of target network updates')
+                decision = self.Decision.STOP
         elif abs(top[cls.loss] / top[cls.max_max_target]) <= self.update_target_network_threshold:
             decision = self.Decision.TARGET_NET_CONVERGENCE_UPDATE
             self.last_network_update = n
+            if top[cls.target_network_count] == self.max_nb_target_network_update - 1:
+                self.log_info('Reached max number of target network updates')
+                decision = self.Decision.STOP
         else:
             decision = self.Decision.GRADIENT_DESCENT
         convergence_data.loc[n - 1, cls.decision] = decision

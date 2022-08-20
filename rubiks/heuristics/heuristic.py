@@ -19,8 +19,9 @@ class Heuristic(Factory, Puzzled, metaclass=ABCMeta):
     heuristic_type = 'heuristic_type'
     manhattan = 'manhattan'
     deep_learning = 'deep_learning'
+    deep_q_learning = 'deep_q_learning'
     perfect = 'perfect'
-    known_heuristic_types = [manhattan, deep_learning, perfect]
+    known_heuristic_types = [manhattan, deep_learning, deep_q_learning, perfect]
 
     def __init__(self, **kw_args):
         Factory.__init__(self, **kw_args)
@@ -34,9 +35,11 @@ class Heuristic(Factory, Puzzled, metaclass=ABCMeta):
     def widget_types(cls):
         from rubiks.heuristics.perfectheuristic import PerfectHeuristic
         from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
+        from rubiks.heuristics.deepqlearningheuristic import DeepQLearningHeuristic
         from rubiks.heuristics.manhattan import Manhattan
         return {cls.perfect: PerfectHeuristic,
                 cls.deep_learning: DeepLearningHeuristic,
+                cls.deep_q_learning: DeepQLearningHeuristic,
                 cls.manhattan: Manhattan}
 
     @classmethod

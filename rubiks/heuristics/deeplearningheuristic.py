@@ -8,6 +8,7 @@ from pandas import read_pickle
 from rubiks.core.loggable import Loggable
 from rubiks.heuristics.heuristic import Heuristic
 from rubiks.deeplearning.deeplearning import DeepLearning
+from rubiks.learners.deepqlearner import DeepQLearner
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 from rubiks.learners.deeplearner import DeepLearner
 from rubiks.deeplearning.fullyconnected import FullyConnected
@@ -52,7 +53,8 @@ class DeepLearningHeuristic(Loggable, Heuristic):
         try:
             long_name = split(model_file_name)[1]
             data = read_pickle(model_file_name)[DeepReinforcementLearner.convergence_data_tag]
-            expected_names = [snake_case(DeepReinforcementLearner.__name__),
+            expected_names = [snake_case(DeepQLearner.__name__),
+                              snake_case(DeepReinforcementLearner.__name__),
                               snake_case(DeepLearner.__name__)]
             short_name = long_name
             for expected_name in expected_names:
@@ -75,7 +77,7 @@ class DeepLearningHeuristic(Loggable, Heuristic):
     def get_name(self):
         return '%s[%s]' % (Heuristic.get_name(self), split(self.model_file_name)[1])
 
-    def cost_to_go_from_puzzle_impl(self, puzzle):
+    def check_puzzle(self, puzzle):
         assert isinstance(puzzle, self.get_puzzle_type_class()), \
             '%s knows cost for %s, not for %s' % (self.__class__.__name__,
                                                   self.puzzle_type,
@@ -88,6 +90,9 @@ class DeepLearningHeuristic(Loggable, Heuristic):
         if self.deep_learning is None:
             raise RuntimeError\
                 ('Was not able to restore DeepLearning model from \'%s\': ' % self.model_file_name)
-        return self.deep_learning.evaluate(puzzle)
+
+    def cost_to_go_from_puzzle_impl(self, puzzle):
+        self.check_puzzle(puzzle)
+        return self.deep_learning.evaluate(puzzle).item()
 
 ########################################################################################################################

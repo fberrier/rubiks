@@ -3,6 +3,7 @@
 ########################################################################################################################
 from unittest import TestCase
 from math import inf
+from os.path import isfile
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
 from rubiks.heuristics.heuristic import Heuristic
@@ -134,36 +135,40 @@ class TestSolver(TestCase):
     def test_deep_q_learning_solver(self):
         logger = Loggable(name='test_deep_q_learning_solver')
         puzzle_type = Puzzle.sliding_puzzle
-        dimension = (2, 2)
+        dimension = (3, 3)
         # we learn first
         model_file_name = get_model_file_name(puzzle_type=puzzle_type,
                                               dimension=dimension,
                                               model_name='test_deep_q_learning_solver')
-        remove_file(model_file_name)
-        learner = DeepQLearner(puzzle_type=Puzzle.sliding_puzzle,
-                               learning_file_name=model_file_name,
-                               solver_type=Solver.astar,
-                               n=dimension[0],
-                               m=dimension[1],
-                               nb_cpus=1,
-                               network_type=DeepLearning.fully_connected_net,
-                               layers_description=(64, 32),
-                               nb_epochs=10000,
-                               one_hot_encoding=True,
-                               nb_shuffles=12,
-                               max_target_not_increasing_epochs_pct=0.5,
-                               max_target_uptick=0.01,
-                               max_nb_target_network_update=1000,
-                               update_target_network_threshold=1e-5,
-                               learning_rate=1e-2,
-                               nb_sequences=1)
-        logger.log_info(learner.get_config())
-        learner.learn()
+        re_learn = True
+        if re_learn or not isfile(model_file_name):
+            remove_file(model_file_name)
+            learner = DeepQLearner(puzzle_type=Puzzle.sliding_puzzle,
+                                   learning_file_name=model_file_name,
+                                   solver_type=Solver.astar,
+                                   n=dimension[0],
+                                   m=dimension[1],
+                                   nb_cpus=1,
+                                   network_type=DeepLearning.fully_connected_net,
+                                   layers_description=(600, 300, 100),
+                                   nb_epochs=10000,
+                                   one_hot_encoding=True,
+                                   nb_shuffles=30,
+                                   max_target_not_increasing_epochs_pct=0.5,
+                                   max_target_uptick=0.01,
+                                   max_nb_target_network_update=35,
+                                   update_target_network_threshold=1e-2,
+                                   update_target_network_frequency=500,
+                                   learning_rate=1e-2,
+                                   nb_sequences=30)
+            logger.log_info(learner.get_config())
+            learner.learn()
         # Then we use this learning to solve
-        solver = Solver.factory(solver_type=Solver.astar,
-                                heuristic_type=Heuristic.deep_learning,
+        solver = Solver.factory(solver_type=Solver.mcts,
+                                heuristic_type=Heuristic.deep_q_learning,
                                 model_file_name=model_file_name,
                                 puzzle_type=puzzle_type,
+                                time_out=inf,
                                 n=dimension[0],
                                 m=dimension[1])
         puzzle = Puzzle.factory(**solver.get_config()).apply_random_moves(inf)
@@ -171,7 +176,8 @@ class TestSolver(TestCase):
         solution = solver.solve(puzzle=puzzle)
         logger.log_info(solution)
         self.assertTrue(solution.success)
-        remove_file(model_file_name)
+        if re_learn:
+            remove_file(model_file_name)
 
     def test_deep_reinforcement_learning_solver_with_scheduler(self):
         logger = Loggable(name='test_deep_reinforcement_learning_solver_with_scheduler')

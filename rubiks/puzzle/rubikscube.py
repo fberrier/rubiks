@@ -157,6 +157,9 @@ class CubeMove(Move):
                     break
         return path
 
+    def __hash__(self):
+        return hash((self.__class__.__name__, self.face, self.clock_wise, self.whole_cube))
+
 
 rubiks_all_moves = list()
 for _ in Face:

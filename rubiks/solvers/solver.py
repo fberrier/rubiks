@@ -35,6 +35,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     bfs = SearchStrategy.bfs
     dfs = SearchStrategy.dfs
     astar = SearchStrategy.astar
+    mcts = 'mcts'
     naive = 'naive'
     kociemba = 'kociemba'
     known_solver_types = [bfs, dfs, astar]
@@ -58,16 +59,18 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
 
     @classmethod
     def widget_types(cls):
+        from rubiks.solvers.astarsolver import AStarSolver
         from rubiks.solvers.bfssolver import BFSSolver
         from rubiks.solvers.dfssolver import DFSSolver
-        from rubiks.solvers.astarsolver import AStarSolver
-        from rubiks.solvers.naiveslidingsolver import NaiveSlidingSolver
         from rubiks.solvers.kociembasolver import KociembaSolver
-        return {cls.bfs: BFSSolver,
+        from rubiks.solvers.mctssolver import MonteCarloTreeSearchSolver
+        from rubiks.solvers.naiveslidingsolver import NaiveSlidingSolver
+        return {cls.astar: AStarSolver,
+                cls.bfs: BFSSolver,
                 cls.dfs: DFSSolver,
-                cls.astar: AStarSolver,
-                cls.naive: NaiveSlidingSolver,
-                cls.kociemba: KociembaSolver}
+                cls.kociemba: KociembaSolver,
+                cls.mcts: MonteCarloTreeSearchSolver,
+                cls.naive: NaiveSlidingSolver,}
 
     @classmethod
     def additional_dependencies(cls):

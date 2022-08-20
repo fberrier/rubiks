@@ -44,6 +44,11 @@ class SlidingPuzzle(Puzzle):
     def number_of_tiles(self):
         return self.n * self.m
 
+    @classmethod
+    def nb_moves(cls):
+        """ empty might go left, right, up or down """
+        return 4
+
     m = 'm'
     tiles = 'tiles'
     empty = 'empty'
@@ -220,6 +225,9 @@ class SlidingPuzzle(Puzzle):
     def possible_moves(self):
         self.populate_possible_moves(self.tiles.shape)
         return self.possible_moves_map[self.tiles.shape][self.empty]
+
+    def theoretical_moves(self):
+        return [self.empty_down(), self.empty_left(), self.empty_right(), self.empty_up()]
 
     def random_move(self):
         self.populate_possible_moves(self.tiles.shape)

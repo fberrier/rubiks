@@ -29,6 +29,7 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
     fully_connected_net = 'fully_connected_net'
     convolutional_net = 'convolutional_net'
     state_dict_tag = 'state_dict'
+    joint_policy = 'joint_policy'
 
     @abstractmethod
     def get_model_details(self):
@@ -50,6 +51,10 @@ class DeepLearning(Module, Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          field=cls.network_type,
                          choices=[cls.fully_connected_net,
                                   cls.convolutional_net])
+        cls.add_argument(parser,
+                         field=cls.joint_policy,
+                         default=False,
+                         action=cls.store_true)
 
     @classmethod
     def factory_key_name(cls):

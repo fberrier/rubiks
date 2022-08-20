@@ -176,7 +176,11 @@ def pformat(what):
                 return str(i)
             return i
         what = {k: massage(v) for k, v in what.items()}
-        return '\n' + tabulate(DataFrame(what).transpose(),
+        try:
+            what = DataFrame(what)
+        except ValueError:
+            what = DataFrame(what, index=[0])
+        return '\n' + tabulate(what.transpose(),
                                showindex=True,
                                floatfmt='.2g',
                                tablefmt='psql')

@@ -10,6 +10,9 @@ class Puzzled(Parsable):
 
     puzzle_type = Puzzle.puzzle_type
 
+    def nb_moves(self):
+        return self.__goal__.nb_moves()
+
     @classmethod
     def populate_parser_impl(cls, parser):
         Puzzle.populate_parser(parser)

@@ -70,7 +70,8 @@ class TrainingData(Loggable, Puzzled):
                  **kw_args):
         if nb_sequences <= 0:
             return
-        pool = Pool(min(self.nb_cpus, nb_sequences))
+        pool_size = min(self.nb_cpus, nb_sequences)
+        pool = Pool(pool_size)
         interrupted = False
         try:
             goal = self.get_goal()
@@ -82,7 +83,8 @@ class TrainingData(Loggable, Puzzled):
                                          optimal_solver,
                                          nb_shuffles,
                                          min_no_loop),
-                                 range(nb_sequences))
+                                 range(nb_sequences),
+                                 chunksize=int(nb_sequences/pool_size))
         except KeyboardInterrupt:
             self.log_warning('Interrupted')
             solutions = list()

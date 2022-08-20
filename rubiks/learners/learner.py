@@ -21,11 +21,13 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
     learner_type = 'learner_type'
     perfect_learner = 'perfect_learner'
     perfect = 'perfect'
+    deep_q_learner = 'deep_q_learner'
     deep_reinforcement_learner = 'deep_reinforcement_learner'
     deep_learner = 'deep_learner'
     dl = 'dl'
+    dql = 'dql'
     drl = 'drl'
-    known_learner_types = [perfect_learner, deep_reinforcement_learner, deep_learner]
+    known_learner_types = [perfect_learner, deep_q_learner, deep_reinforcement_learner, deep_learner]
     action_type = 'action_type'
     do_plot = 'do_plot'
     do_learn = 'do_learn'
@@ -82,9 +84,11 @@ class Learner(Puzzled, Factory, Loggable, metaclass=ABCMeta):
     @classmethod
     def widget_types(cls):
         from rubiks.learners.perfectlearner import PerfectLearner
+        from rubiks.learners.deepqlearner import DeepQLearner
         from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
         from rubiks.learners.deeplearner import DeepLearner
         return {cls.perfect: PerfectLearner,
+                cls.dql: DeepQLearner,
                 cls.drl: DeepReinforcementLearner,
                 cls.dl: DeepLearner,
                 }

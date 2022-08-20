@@ -41,16 +41,16 @@ if '__main__' == __name__:
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
-    time_out = 3600
-    nb_cpus = 4
-    cpu_multiplier = 250
+    time_out = 60
+    nb_cpus = 1
+    cpu_multiplier = 5
     max_puzzles = nb_cpus * cpu_multiplier * 10000
     regular_save = nb_cpus * cpu_multiplier * 1
     save_timed_out_max_puzzles = 10000
     after_round_save = True
     flush_timed_out_puzzles = False
     save_timed_out = True
-    rerun_timed_out = True
+    rerun_timed_out = False
     rerun_timed_out_only = False
     abort_after_that_many_consecutive_timed_out = 100
     nb_shuffles_from_goal = 10

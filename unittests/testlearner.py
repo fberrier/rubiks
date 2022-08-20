@@ -74,7 +74,8 @@ class TestLearner(TestCase):
                                   puzzle_type=Puzzle.sliding_puzzle,
                                   n=7,
                                   m=8,
-                                  network_type=DeepLearning.fully_connected_net)
+                                  network_type=DeepLearning.fully_connected_net,
+                                  nb_shuffles=10)
         self.assertEqual(learner.nb_cpus, DeepLearner.default_nb_cpus)
         self.assertEqual(learner.get_puzzle_dimension(), (7, 8))
 

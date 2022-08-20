@@ -186,6 +186,8 @@ class TestParsable(TestCase):
                                    SomeDerivedParsableFactory))
 
     def test_print_help_widget_1(self):
+        """ @todo: this doesnt seem to work all the time ...
+        maybe parser.add_argument not deterministic if call twice with diff values ?? """
         SomeDerivedParsableFactory.register_widget(Widget1)
         SomeDerivedParsableFactory.register_widget(Widget2)
         Widget1.print_help()

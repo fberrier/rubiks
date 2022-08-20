@@ -46,6 +46,8 @@ class TestLoggable(TestCase):
         logger.log_info(what)
         what = {'a': 2, 'b': [4, 5, 6]}
         logger.log_info(what)
+        logger.log_info({'expected_column': [1, 5, 9, 13],
+                         'actual_column': [1, 5, 9, 13]})
 
 ########################################################################################################################
 

@@ -25,19 +25,20 @@ if '__main__' == __name__:
                             } """
     action_type = Solver.do_performance_test
     """ What puzzle """
-    puzzle_type = Puzzle.sliding_puzzle
-    n = 5
+    puzzle_type = Puzzle.rubiks_cube
+    n = 3
     m = 5
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 1
-    min_nb_shuffles = 0
-    max_nb_shuffles = 0
-    step_nb_shuffles = 5
-    add_perfect_shuffle = True
+    nb_samples = 15
+    min_nb_shuffles = 8
+    max_nb_shuffles = 8
+    step_nb_shuffles = 2
+    add_perfect_shuffle = False
     nb_cpus = 1
+    chunk_size = int(nb_samples / nb_cpus / 2)
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
@@ -78,9 +79,9 @@ if '__main__' == __name__:
     learner_type = Learner.deep_reinforcement_learner
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)
-    nb_epochs = 100000
-    nb_sequences = 50
-    nb_shuffles = 400
+    nb_epochs = 25000
+    nb_sequences = 250
+    nb_shuffles = 35
     nb_shuffles_min = 40
     nb_shuffles_max = 60
     learning_rate = 1e-3

@@ -46,7 +46,7 @@ class TestPuzzled(TestCase):
             puzzled = Puzzled(puzzle_type=Puzzle.sliding_puzzle, n=10)
         latency = snap() - b4
         logger.log_info({'latency': ms_format(latency)})
-        self.assertGreater(8, latency)
+        self.assertGreater(10, latency)
         self.assertEqual(Puzzle.sliding_puzzle, puzzled.puzzle_type)
         self.assertEqual('SlidingPuzzle[(10, 10)]', puzzled.puzzle_name())
         self.assertEqual((10, 10), puzzled.get_puzzle_dimension())

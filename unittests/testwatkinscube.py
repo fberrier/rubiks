@@ -47,28 +47,28 @@ class TestWatkinsCube(TestCase):
                                                       nb_sequences=1,
                                                       min_no_loop=None,
                                                       one_list=True,
-                                                      n=1)
+                                                      n=2)
         logger.log_info(training_data)
         self.assertEqual(2, len(training_data))
         training_data = WatkinsCube.get_training_data(nb_shuffles=2,
                                                       nb_sequences=1,
                                                       min_no_loop=None,
                                                       one_list=True,
-                                                      n=1)
+                                                      n=2)
         logger.log_info(training_data)
         self.assertEqual(4, len(training_data))
         training_data = WatkinsCube.get_training_data(nb_shuffles=2,
                                                       nb_sequences=10,
                                                       min_no_loop=None,
                                                       one_list=True,
-                                                      n=1)
+                                                      n=2)
         logger.log_info(training_data)
         self.assertEqual(40, len(training_data))
         training_data = WatkinsCube.get_training_data(nb_shuffles=5,
                                                       nb_sequences=10,
                                                       min_no_loop=None,
                                                       one_list=True,
-                                                      n=1)
+                                                      n=2)
         logger.log_info(training_data)
         self.assertEqual(120, len(training_data))
 

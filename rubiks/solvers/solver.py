@@ -178,6 +178,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     step_nb_shuffles = 'step_nb_shuffles'
     add_perfect_shuffle = 'add_perfect_shuffle'
     nb_samples = 'nb_samples'
+    chunk_size = 'chunk_size'
     nb_cpus = 'nb_cpus'
     append = 'append'
     performance_file_name = 'performance_file_name'
@@ -262,6 +263,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          cls.nb_cpus,
                          type=int,
                          default=1)
+        cls.add_argument(parser,
+                         cls.chunk_size,
+                         type=int,
+                         default=0)
         cls.add_argument(parser,
                          cls.append,
                          default=False,
@@ -406,9 +411,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if self.verbose:
                 self.log_info('About to send %s jobs to thread pool of size %s ...' % (number_format(sample_size),
                                                                                        number_format(pool_size)))
+            chunk_size = ceil(sample_size / pool_size) if self.chunk_size <= 0 else self.chunk_size
             results = pool.map(partial(cls.__job__, self, nb_shuffles),
                                range(sample_size),
-                               chunksize=ceil(sample_size/pool_size))
+                               chunksize=chunk_size)
             if self.verbose:
                 self.log_info('... received all jobs from thread pool')
             consecutive_timeout = 0

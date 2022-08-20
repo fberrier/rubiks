@@ -211,6 +211,10 @@ class DeepReinforcementLearner(Learner):
             data = read_pickle(self.learning_file_name + '.copy')
         return data
 
+    @classmethod
+    def get_loss_function(cls):
+        return MSELoss()
+
     def __init__(self, **kw_args):
         Learner.__init__(self, **kw_args)
         self.epoch_latency = None
@@ -222,7 +226,7 @@ class DeepReinforcementLearner(Learner):
         # if the max value of target not increasing in that many epochs (as % of total epochs) by more than uptick
         # not much point going on
         self.use_cuda = self.use_cuda and cuda.is_available()
-        self.loss_function = MSELoss()
+        self.loss_function = self.get_loss_function()
         cls = self.__class__
         self.attempt_recovery = self.learning_file_name is not None and isfile(self.learning_file_name)
         if self.attempt_recovery:
@@ -325,15 +329,14 @@ class DeepReinforcementLearner(Learner):
                 target = 0
             else:
                 target = inf
-                one_away_puzzles = [puzzle.apply(move) for move in puzzle.possible_moves()]
-                for one_away_puzzle in one_away_puzzles:
+                for move in puzzle.possible_moves():
+                    one_away_puzzle = puzzle.apply(move)
                     candidate_target = self.target_network.evaluate(one_away_puzzle).item()
                     one_away_puzzle_hash = hash(one_away_puzzle)
                     if one_away_puzzle_hash in known_values:
                         candidate_target = min(candidate_target, known_values[one_away_puzzle_hash])
-                    candidate_target += 1
-                    target = min(target, candidate_target)
-                    target = max(0, target)
+                    candidate_target += move.cost()
+                    target = max(0, min(target, candidate_target))
         except KeyboardInterrupt:
             return None
         if self.cap_target_at_network_count:
@@ -350,6 +353,14 @@ class DeepReinforcementLearner(Learner):
         scheduler = None if self.scheduler == self.no_scheduler else \
             ExponentialLR(optimizer, gamma=float(self.gamma_scheduler))
         return optimizer, scheduler
+
+    @staticmethod
+    def get_min_target(targets):
+        return min(targets).item()
+
+    @staticmethod
+    def get_max_target(targets):
+        return max(targets).item()
 
     def learn(self):
         cls = self.__class__
@@ -424,8 +435,8 @@ class DeepReinforcementLearner(Learner):
                 loss = loss.item()
                 if loss < best_current[0]:
                     best_current = (loss, self.current_network.clone())
-                min_targets = min(targets).item()
-                max_targets = max(targets).item()
+                min_targets = self.get_min_target(targets)
+                max_targets = self.get_max_target(targets)
                 old_max_targets = 0 if self.convergence_data.empty else \
                     self.convergence_data[cls.max_max_target].iloc[-1]
                 max_max_targets = max(max_targets, old_max_targets)

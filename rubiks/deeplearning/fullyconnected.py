@@ -2,7 +2,7 @@
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
 from numpy import prod
-from torch import stack
+from torch import stack, cat
 from torch.nn import Sequential, ReLU, BatchNorm1d, Linear, Dropout
 ########################################################################################################################
 from rubiks.puzzle.puzzle import Puzzle
@@ -23,8 +23,8 @@ class FullyConnected(DeepLearning):
 
     one_hot_encoding = 'one_hot_encoding'
     layers_description = 'layers_description'
-    drop_out = 'drop_out'
     default_layers = (1000, 500, 100)
+    drop_out = 'drop_out'
 
     @classmethod
     def populate_parser_impl(cls, parser):
@@ -60,7 +60,15 @@ class FullyConnected(DeepLearning):
             if self.drop_out and 0 < self.drop_out < 1.0:
                 modules.append(Dropout(self.drop_out))
         modules = modules[:-2 if self.drop_out else -1]
-        self.layers = Sequential(*modules)
+        self.policy = None
+        self.value_function = None
+        if self.joint_policy:
+            cut = -3 if not self.drop_out else -4
+            self.layers = Sequential(*modules[:cut])
+            self.value_function = Sequential(*modules[cut:])
+            self.policy = Sequential(*modules[cut:-1], Linear(layers[-2], self.nb_moves()))
+        else:
+            self.layers = Sequential(*modules)
 
     def get_name(self):
         name = self.__class__.__name__
@@ -69,6 +77,8 @@ class FullyConnected(DeepLearning):
             name += '[one_hot_encoding]'
         if 0.0 < self.drop_out < 1.0:
             name += '[drop_out=%s]' % self.drop_out
+        if self.joint_policy:
+            name += '[jp&v]'
         return name
 
     def massage_puzzles(self, puzzles):
@@ -83,6 +93,11 @@ class FullyConnected(DeepLearning):
         return puzzles
 
     def forward(self, x):
-        return self.layers(x).squeeze()
+        y = self.layers(x)
+        if not self.joint_policy:
+            return y.squeeze()
+        policy = self.policy(y)
+        value = self.value_function(y)
+        return cat((value, policy), dim=1).squeeze()
     
 ########################################################################################################################

@@ -189,9 +189,18 @@ class Puzzle(Factory, metaclass=ABCMeta):
         """ If known, can overwrite """
         return inf
 
+    def theoretical_moves(self):
+        """ return moves in some natural order """
+        return
+
     @abstractmethod
     def possible_moves(self) -> list:
         """ return the set of possible moves from this configuration """
+        return
+
+    @classmethod
+    def nb_moves(cls):
+        """ number of possible moves for the puzzle ... this is not dependent on current game state """
         return
 
     very_large_nb_shuffle = 1000

@@ -157,6 +157,7 @@ class CubeMove(Move):
                     break
         return path
 
+
 rubiks_all_moves = list()
 for _ in Face:
     rubiks_all_moves.append(CubeMove(_, True))
@@ -167,6 +168,10 @@ for _ in Face:
     
 class RubiksCube(Puzzle):
     """ Rubik's Cube """
+
+    @classmethod
+    def nb_moves(cls):
+        return len(rubiks_all_moves)
 
     def number_of_tiles(self):
         return 6 * (self.n ** 2)
@@ -642,6 +647,9 @@ class RubiksCube(Puzzle):
             return Puzzle.perfect_shuffle(self)
         else:
             assert False, 'Need to think about that'
+
+    def theoretical_moves(self):
+        return rubiks_all_moves
 
     def random_2(self):
         """"""

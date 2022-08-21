@@ -14,19 +14,24 @@ from rubiks.solvers.solver import Solver, Solution
 
 class MCTSNode(Loggable):
 
-    def __init__(self, puzzle, parent, action, heuristic, c, nu, tree=None):
-        Loggable.__init__(self, name=str(puzzle))
+    def __init__(self, puzzle, parent, action, heuristic, value, c, back_leaf_value, tree=None):
+        Loggable.__init__(self, name=str(puzzle) + '%s' % hash(puzzle))
         self.puzzle = puzzle
         self.parent = parent
+        """ action from parent that lead to this node """
         self.action = action
+        """ action to best child """
         self.best_action = None
         self.heuristic = heuristic
+        self.value = value
         self.c = c
-        self.nu = nu
+        self.back_leaf_value = back_leaf_value
         self.children = dict()
+        """ # times action has been taken """
         self.n = dict()
+        """ # best value of taking this action """
         self.w = dict()
-        self.l = dict()
+        """ # proba of action per DQL heuristic """
         self.p = dict()
         self.expanded = False
         if tree is None:
@@ -52,11 +57,12 @@ class MCTSNode(Loggable):
             if move not in possible_moves:
                 continue
             child = self.puzzle.apply(move)
+            hash_child = hash(child)
+            if hash_child in self.tree:
+                continue
             self.n[move_nb] = 0
             self.w[move_nb] = self.heuristic.cost_to_go(puzzle=child)
-            self.l[move_nb] = 0
             self.p[move_nb] = optimal_actions[move]
-            hash_child = hash(child)
             if hash_child in self.tree:
                 self.children[move_nb] = self.tree[hash_child]
             else:
@@ -64,37 +70,40 @@ class MCTSNode(Loggable):
                                                   parent=self,
                                                   action=move_nb,
                                                   heuristic=self.heuristic,
+                                                  value=self.w[move_nb],
                                                   c=self.c,
-                                                  nu=self.nu,
+                                                  back_leaf_value=self.back_leaf_value,
                                                   tree=self.tree)
+        if not self.p:
+            return
         scaling = sum(self.p.values())
         self.p = {action: proba/scaling for action, proba in self.p.items()}
 
     def backward_prop(self, action=None, w=None):
-        if action is not None and w is not None:
-            if w < self.w[action]:
-                self.w[action] = w
-            #self.n[action] += 1
-            self.l[action] -= self.nu
+        if action is not None:
+            if w is not None:
+                w += 1
+                if w < self.w[action] or w == inf:
+                    self.w[action] = w
+                    self.value = min(self.value, min(self.w.values()))
         if self.parent is not None:
-            self.parent.backward_prop(self.action, min(self.w.values()))
+            w = inf if not self.w else self.value if self.back_leaf_value else (1 + min(self.w.values()))
+            self.parent.backward_prop(self.action, w)
 
-    def choose_next(self):
+    def choose_next(self, depth):
         best_value = -inf
         self.best_action = None
         num = sqrt(sum(self.n.values()))
-        #debug_actions = dict()
         for action in self.p.keys():
             u = self.c * self.p[action] * num / (1 + self.n[action])
-            q = self.w[action] + self.l[action]
+            q = self.w[action]
             value = u - q
             if value > best_value:
                 best_value = value
                 self.best_action = action
-            #debug_actions[action] = tuple('%.2g' % v for v in (u, -q, value))
-        #self.log_info('debug_actions: ', debug_actions, ' -> best_action=', self.best_action)
+        if self.best_action is None:
+            return
         self.n[self.best_action] += 1
-        self.l[self.best_action] += self.nu
         return self.children[self.best_action]
 
     def construct_solution(self) -> Solution:
@@ -158,8 +167,8 @@ class MonteCarloTreeSearchSolver(Solver):
      rubiks.papers.SolvingTheRubiksCubeWithoutHumanKnowledge.pdf """
 
     c = 'c'
-    nu = 'nu'
     trim_tree = 'trim_tree'
+    back_leaf_value = 'back_leaf_value'
 
     @classmethod
     def populate_parser(cls, parser):
@@ -168,11 +177,11 @@ class MonteCarloTreeSearchSolver(Solver):
                          type=float,
                          default=1.0)
         cls.add_argument(parser,
-                         field=cls.nu,
-                         type=float,
-                         default=1.0)
-        cls.add_argument(parser,
                          field=cls.trim_tree,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.back_leaf_value,
                          default=False,
                          action=cls.store_true)
 
@@ -183,27 +192,34 @@ class MonteCarloTreeSearchSolver(Solver):
         self.expanded_nodes = 0
         self.puzzle = None
         self.heuristic = Heuristic.factory(**self.get_config())
-        self.debug_expanded_nodes = set()
         assert self.heuristic.heuristic_type == Heuristic.deep_q_learning, \
             'MonteCarloTreeSearchSolver only works with %s heuristic' % Heuristic.deep_q_learning
+
+    def re_init(self):
+        self.tree = None
+        self.expanded_nodes = 0
+        self.puzzle = None
+        self.heuristic = Heuristic.factory(**self.get_config())
 
     def known_to_be_optimal(self):
         return False
 
     def solve_impl(self, puzzle, **kw_args):
         self.run_time = -snap()
+        self.re_init()
         self.puzzle = puzzle
         while True:
             try:
                 if self.run_time + snap() > self.time_out:
                     raise TimeoutError()
-                leaf = self.go_to_leaf()
+                leaf = self.construct_new_leaf()
                 if leaf.is_goal():
                     if not self.trim_tree:
                         solution = leaf.construct_solution()
                     else:
                         solution = self.tree.trim()
                     solution.expanded_nodes += self.expanded_nodes
+                    solution.set_run_time(self.run_time + snap())
                     solution.set_additional_info(solver_name=self.get_name())
                     return solution
             except TimeoutError:
@@ -213,34 +229,32 @@ class MonteCarloTreeSearchSolver(Solver):
                 solution.expanded_nodes = self.expanded_nodes
                 return solution
 
-    def go_to_leaf(self) -> MCTSNode:
-        #self.log_info('go_to_leaf')
+    def construct_new_leaf(self) -> MCTSNode:
         if self.tree is None:
             self.tree = MCTSNode(puzzle=self.puzzle,
                                  parent=None,
                                  action=None,
                                  heuristic=self.heuristic,
+                                 value=self.heuristic.cost_to_go(puzzle=self.puzzle),
                                  c=self.c,
-                                 nu=self.nu)
+                                 back_leaf_value=self.back_leaf_value)
             if self.tree.is_goal():
                 return self.tree
         node = self.tree
+        depth = 1
         while node.expanded:
-            node = node.choose_next()
+            node = node.choose_next(depth)
+            depth += 1
         leaf = node
-        assert hash(leaf) not in self.debug_expanded_nodes, '%s already in debug_expanded_nodes' % str(leaf.puzzle)
-        self.debug_expanded_nodes.add(hash(leaf))
         leaf.expand()
         leaf.backward_prop()
         self.expanded_nodes += 1
-        #self.log_info('new leaf: ', leaf.puzzle)
         return leaf
 
     def get_name(self):
-        return '%s[c=%.2g][nu=%.2g]%s[%s]' % (self.__class__.__name__,
-                                              self.c,
-                                              self.nu,
-                                              '[trim]' if self.trim_tree else '',
-                                              self.heuristic.get_name())
+        return '%s[c=%.2g]%s[%s]' % (self.__class__.__name__,
+                                     self.c,
+                                     '[trim]' if self.trim_tree else '',
+                                     self.heuristic.get_name())
 
 ########################################################################################################################

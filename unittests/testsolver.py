@@ -3,7 +3,6 @@
 ########################################################################################################################
 from unittest import TestCase
 from math import inf
-from numpy.random import randint
 from os.path import isfile
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
@@ -15,7 +14,7 @@ from rubiks.learners.perfectlearner import PerfectLearner
 from rubiks.learners.deeplearner import DeepLearner
 from rubiks.learners.deepqlearner import DeepQLearner
 from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
-from rubiks.utils.utils import get_model_file_name, remove_file
+from rubiks.utils.utils import get_model_file_name, remove_file, ms_format
 ########################################################################################################################
 
 
@@ -142,6 +141,7 @@ class TestSolver(TestCase):
                                               dimension=dimension,
                                               model_name='test_deep_q_learning_solver')
         re_learn = False
+        run_trim = False
         if re_learn or not isfile(model_file_name):
             remove_file(model_file_name)
             learner = DeepQLearner(puzzle_type=Puzzle.sliding_puzzle,
@@ -165,46 +165,49 @@ class TestSolver(TestCase):
             logger.log_info(learner.get_config())
             learner.learn()
         # Then we use this learning to solve
-        for nb_puzzle in range(1000):
-            nb_moves = randint(1, 20)
-            solver = Solver.factory(solver_type=Solver.mcts,
-                                    heuristic_type=Heuristic.deep_q_learning,
-                                    model_file_name=model_file_name,
-                                    puzzle_type=puzzle_type,
-                                    time_out=inf,
-                                    n=dimension[0],
-                                    m=dimension[1],
-                                    trim_tree=False,
-                                    )
-                                    #c=c,
-                                    #nu=nu)
-            puzzle = Puzzle.factory(**solver.get_config()).apply_random_moves(nb_moves)
-            logger.log_info('Puzzle # %d ' % (nb_puzzle + 1), puzzle)
+        solver = Solver.factory(solver_type=Solver.mcts,
+                                heuristic_type=Heuristic.deep_q_learning,
+                                model_file_name=model_file_name,
+                                puzzle_type=puzzle_type,
+                                time_out=inf,
+                                n=dimension[0],
+                                m=dimension[1],
+                                trim_tree=False)
+        solver2 = Solver.factory(solver_type=Solver.mcts,
+                                 heuristic_type=Heuristic.deep_q_learning,
+                                 model_file_name=model_file_name,
+                                 puzzle_type=puzzle_type,
+                                 time_out=inf,
+                                 n=dimension[0],
+                                 m=dimension[1],
+                                 trim_tree=True)
+        goal = Puzzle.factory(**solver.get_config())
+        nb_moves = 20
+        nb_puzzles = 1000
+        puzzles = [goal.apply_random_moves(nb_moves) for _ in range(nb_puzzles)]
+        for nb_puzzle, puzzle in enumerate(puzzles):
+            nb_puzzle += 1
             solution_1 = solver.solve(puzzle=puzzle)
-            logger.log_debug(solution_1)
-            self.assertTrue(solution_1.success)
+            #logger.log_debug(solution_1)
+            self.assertTrue(solution_1.success, solution_1.puzzle)
             # with trim
-            solver = Solver.factory(solver_type=Solver.mcts,
-                                    heuristic_type=Heuristic.deep_q_learning,
-                                    model_file_name=model_file_name,
-                                    puzzle_type=puzzle_type,
-                                    time_out=inf,
-                                    n=dimension[0],
-                                    m=dimension[1],
-                                    trim_tree=True,
-                                    )
-                                    #c=c,
-                                    #nu=nu)
-            solution_2 = solver.solve(puzzle=puzzle)
-            logger.log_debug(solution_2)
-            self.assertTrue(solution_2.success)
+            if run_trim:
+                solution_2 = solver2.solve(puzzle=puzzle)
+                logger.log_debug(solution_2)
+                self.assertTrue(solution_2.success)
+            else:
+                solution_2 = solution_1
+            if solution_1.cost > 10*nb_moves:
+                logger.log_warning('Puzzle # %d ' % (nb_puzzle + 1), puzzle)
             if solution_2.cost != solution_1.cost:
+                logger.log_info('Puzzle # %d ' % (nb_puzzle + 1), puzzle)
                 logger.log_info('Puzzle %d improvement nb_moves %d solutions costs %d -> %d' % (nb_puzzle + 1,
                                                                                                 nb_moves,
                                                                                                 solution_1.cost,
                                                                                                 solution_2.cost))
             else:
-                logger.log_info('Puzzle %d same nb_moves %d solutions costs %d' % (nb_puzzle + 1, nb_moves, solution_1.cost))
+                run_time = ms_format(solution_1.run_time)
+                logger.log_info('log_info %d nb_moves %d solutions costs %d nodes %d in %s' % (nb_puzzle + 1, nb_moves, solution_1.cost, solution_1.expanded_nodes, run_time))
         if re_learn:
             remove_file(model_file_name)
 

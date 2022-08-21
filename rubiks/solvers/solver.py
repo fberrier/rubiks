@@ -91,6 +91,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             b4 = snap()
             solution = self.solve_impl(puzzle, **kw_args)
             run_time = snap() - b4
+            solution.set_run_time(run_time)
             solution.add_additional_info(run_time=ms_format(run_time))
         except Exception as error:
             solution = Solution.failure(puzzle=puzzle,

@@ -19,7 +19,7 @@ if '__main__' == __name__:
     logger = Loggable(name=__file__)
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    tiles = [[4, 1, 2], [0, 8, 3], [5, 7, 6]]
+    tiles = [[5,1,0], [7,2,3], [8,4,6]]
     puzzle = Puzzle.factory(**globals())
     logger.log_info(puzzle)
     solver_type = Solver.mcts

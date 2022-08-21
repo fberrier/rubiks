@@ -331,3 +331,33 @@ def lighten_deep_reinforcement_learning_file(learning_file_name):
 
 ########################################################################################################################
 
+
+def fix_perf_learning_file(perf_file_name):
+    """ I used to have a bug where what should have shown as exponential_scheduler was showing as
+    gamma_scheduler ... this function fixes pkl files by replacing the former by the latter
+    """
+    from rubiks.core.loggable import Loggable
+    logger = Loggable(name='fix_perf_learning_file')
+    if isdir(perf_file_name):
+        logger.log_info('This is a directory. Will call function on all pkl files in here:')
+        pkl_files = [pf for pf in listdir(perf_file_name) if
+                     isfile(join(perf_file_name, pf)) and pf.endswith('.pkl')]
+        for pkl_file in pkl_files:
+            logger.log_info('\t -> ', join(perf_file_name, pkl_file))
+            fix_perf_learning_file(join(perf_file_name, pkl_file))
+        return
+    data = read_pickle(perf_file_name)
+    solver_name_tag = 'solver_name'
+    if not isinstance(data, DataFrame) or solver_name_tag not in data.columns:
+        return
+    from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
+    data.loc[:, solver_name_tag] = data[solver_name_tag].apply\
+        (lambda solver_name: solver_name.replace(DeepReinforcementLearner.gamma_scheduler,
+                                                 DeepReinforcementLearner.exponential_scheduler))
+    data.to_pickle(perf_file_name)
+    logger.log_info('Replaced \'', DeepReinforcementLearner.gamma_scheduler, '\' by \'',
+                    DeepReinforcementLearner.exponential_scheduler,
+                    '\' in ', perf_file_name)
+
+########################################################################################################################
+

@@ -8,7 +8,7 @@ class Node:
     As long as:
     - state and parent are either None or of a type that satisfies 
       the interface of BaseState
-    - action is of a type that satistifes the interface of BaseAction 
+    - action is of a type that satisfies the interface of BaseAction
       and parent.action(action) == state
     Then we can run the search algorithms from this module on Nodes
     """

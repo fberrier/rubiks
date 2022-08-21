@@ -8,6 +8,15 @@ from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 from rubiks.deeplearning.deeplearning import DeepLearning
 ########################################################################################################################
 
+dql_cross_entropy_loss = CrossEntropyLoss()
+dql_mse_loss = MSELoss()
+
+def dql_loss(output, target):
+    return dql_mse_loss(output[:, 0], target[:, 0]) + \
+           dql_cross_entropy_loss(output[:, 1:], target[:, 1].long())
+
+########################################################################################################################
+
 
 class DeepQLearner(DeepReinforcementLearner):
     """ This learner will learn jointly a policy and value function via deep reinforcement learning
@@ -22,13 +31,7 @@ class DeepQLearner(DeepReinforcementLearner):
 
     @classmethod
     def get_loss_function(cls):
-        cross_entropy_loss = CrossEntropyLoss()
-        mse_loss = MSELoss()
-
-        def loss(output, target):
-            return mse_loss(output[:, 0], target[:, 0]) + \
-                   cross_entropy_loss(output[:, 1:], target[:, 1].long())
-        return loss
+        return dql_loss
 
     def __construct_target__(self, known_values, puzzle):
         try:

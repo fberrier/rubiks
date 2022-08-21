@@ -193,6 +193,9 @@ class Puzzle(Factory, metaclass=ABCMeta):
         """ return moves in some natural order """
         return
 
+    def theoretical_move(self, move_nb):
+        return self.theoretical_moves()[move_nb]
+
     @abstractmethod
     def possible_moves(self) -> list:
         """ return the set of possible moves from this configuration """

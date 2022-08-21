@@ -3,6 +3,7 @@
 ########################################################################################################################
 from unittest import TestCase
 from math import inf
+from numpy.random import randint
 from os.path import isfile
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
@@ -140,42 +141,70 @@ class TestSolver(TestCase):
         model_file_name = get_model_file_name(puzzle_type=puzzle_type,
                                               dimension=dimension,
                                               model_name='test_deep_q_learning_solver')
-        re_learn = True
+        re_learn = False
         if re_learn or not isfile(model_file_name):
             remove_file(model_file_name)
             learner = DeepQLearner(puzzle_type=Puzzle.sliding_puzzle,
                                    learning_file_name=model_file_name,
-                                   solver_type=Solver.astar,
                                    n=dimension[0],
                                    m=dimension[1],
-                                   nb_cpus=1,
+                                   nb_cpus=3,
                                    network_type=DeepLearning.fully_connected_net,
                                    layers_description=(600, 300, 100),
-                                   nb_epochs=10000,
+                                   nb_epochs=25000,
                                    one_hot_encoding=True,
-                                   nb_shuffles=30,
+                                   nb_shuffles=50,
                                    max_target_not_increasing_epochs_pct=0.5,
                                    max_target_uptick=0.01,
-                                   max_nb_target_network_update=35,
+                                   max_nb_target_network_update=100,
                                    update_target_network_threshold=1e-2,
                                    update_target_network_frequency=500,
+                                   cap_target_at_network_count=True,
                                    learning_rate=1e-2,
-                                   nb_sequences=30)
+                                   nb_sequences=100)
             logger.log_info(learner.get_config())
             learner.learn()
         # Then we use this learning to solve
-        solver = Solver.factory(solver_type=Solver.mcts,
-                                heuristic_type=Heuristic.deep_q_learning,
-                                model_file_name=model_file_name,
-                                puzzle_type=puzzle_type,
-                                time_out=inf,
-                                n=dimension[0],
-                                m=dimension[1])
-        puzzle = Puzzle.factory(**solver.get_config()).apply_random_moves(inf)
-        logger.log_info(puzzle)
-        solution = solver.solve(puzzle=puzzle)
-        logger.log_info(solution)
-        self.assertTrue(solution.success)
+        for nb_puzzle in range(1000):
+            nb_moves = randint(1, 20)
+            solver = Solver.factory(solver_type=Solver.mcts,
+                                    heuristic_type=Heuristic.deep_q_learning,
+                                    model_file_name=model_file_name,
+                                    puzzle_type=puzzle_type,
+                                    time_out=inf,
+                                    n=dimension[0],
+                                    m=dimension[1],
+                                    trim_tree=False,
+                                    )
+                                    #c=c,
+                                    #nu=nu)
+            puzzle = Puzzle.factory(**solver.get_config()).apply_random_moves(nb_moves)
+            logger.log_info('Puzzle # %d ' % (nb_puzzle + 1), puzzle)
+            solution_1 = solver.solve(puzzle=puzzle)
+            logger.log_debug(solution_1)
+            self.assertTrue(solution_1.success)
+            # with trim
+            solver = Solver.factory(solver_type=Solver.mcts,
+                                    heuristic_type=Heuristic.deep_q_learning,
+                                    model_file_name=model_file_name,
+                                    puzzle_type=puzzle_type,
+                                    time_out=inf,
+                                    n=dimension[0],
+                                    m=dimension[1],
+                                    trim_tree=True,
+                                    )
+                                    #c=c,
+                                    #nu=nu)
+            solution_2 = solver.solve(puzzle=puzzle)
+            logger.log_debug(solution_2)
+            self.assertTrue(solution_2.success)
+            if solution_2.cost != solution_1.cost:
+                logger.log_info('Puzzle %d improvement nb_moves %d solutions costs %d -> %d' % (nb_puzzle + 1,
+                                                                                                nb_moves,
+                                                                                                solution_1.cost,
+                                                                                                solution_2.cost))
+            else:
+                logger.log_info('Puzzle %d same nb_moves %d solutions costs %d' % (nb_puzzle + 1, nb_moves, solution_1.cost))
         if re_learn:
             remove_file(model_file_name)
 

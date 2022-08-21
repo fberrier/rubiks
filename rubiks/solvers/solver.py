@@ -147,6 +147,13 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
+            if (index + 1) in self.skip:
+                if self.verbose:
+                    print('Skipping ', puzzle, ' # ', index + 1, ' ... ')
+                solution = Solution.failure(puzzle)
+                solution.set_run_time(self.time_out)
+                solution.set_additional_info(index=index)
+                return solution
             if self.verbose:
                 print('Starting solving ', puzzle, ' # ', index + 1, ' ... ')
             solution = self.solve_impl(puzzle, **self.get_config())
@@ -171,7 +178,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         except Exception as error:
             solution = Solution.failure(puzzle)
             solution.set_run_time(self.time_out)
-            print('Failed to solve ', puzzle, ': ', error)
+            if self.verbose:
+                print('Failed to solve ', puzzle, ': ', error)
         solution.set_additional_info(index=index)
         return solution
 
@@ -205,6 +213,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     action_type = 'action_type'
     do_plot = 'do_plot'
     do_solve = 'do_solve'
+    skip = 'skip'
     do_performance_test = 'do_performance_test'
     do_cleanup_performance_file = 'do_cleanup_performance_file'
     do_cleanup_shuffles_file = 'do_cleanup_shuffles_file'
@@ -316,6 +325,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          cls.do_not_reattempt_failed,
                          default=False,
                          action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.skip,
+                         type=int,
+                         nargs='+')
     
     def performance_test(self):
         """
@@ -619,7 +632,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         performance.loc[:, Solver.nb_shuffles] = \
             performance[Solver.nb_shuffles].replace(inf, shuffle_max)
         pprint(performance)
-        y = self.performance_metrics
+        y = [_ for _ in self.performance_metrics if _ in performance.columns]
+        if self.performance_metrics != y:
+            self.log_info('Will ignore following perf metrics which cannot be found in data: ',
+                          [_ for _ in self.performance_metrics if _ not in performance.columns])
         puzzle_type = self.get_puzzle_type()
         puzzle_dimension = self.get_puzzle_dimension()
         title = {cls.puzzle_type: puzzle_type,
@@ -658,6 +674,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                       ['\u221e' for _ in ticks[1]]]
             bax.set_xticks('whatahorriblehack', 2, ticks, labels)
             for sn, grp in gb:
+                assert len(grp[Solver.nb_shuffles]) == len(grp[what]), \
+                    'Issue with %s len(x) = %d != len(y) = %d' % (sn,
+                                                                  len(grp[Solver.nb_shuffles]),
+                                                                  len(grp[what]))
                 bax.scatter(x=Solver.nb_shuffles,
                             y=what,
                             data=grp,

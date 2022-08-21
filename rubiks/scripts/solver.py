@@ -32,7 +32,7 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 40
+    nb_samples = 120
     min_nb_shuffles = 8
     max_nb_shuffles = 8
     step_nb_shuffles = 2
@@ -44,6 +44,7 @@ if '__main__' == __name__:
     append = True
     verbose = True
     do_not_reattempt_failed = False
+    skip = (36,39,85,)
     """ For plot """
     loc = 'upper center'
     performance_metrics = [Solver.pct_solved,

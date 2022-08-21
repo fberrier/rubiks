@@ -25,7 +25,7 @@ if '__main__' == __name__:
                             } """
     action_type = Learner.do_learn
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
+    puzzle_type = Puzzle.sliding_puzzle
     n = 3
     m = 3
     """ more init for specific puzzles """
@@ -35,7 +35,7 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             } 
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.deep_q_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
@@ -61,18 +61,18 @@ if '__main__' == __name__:
     puzzle_generation = PerfectLearner.permutation_puzzle_generation
     heuristic_type = Heuristic.manhattan
     plus = True
-    """ If it's a DRL learner config is here ... """
+    """ If it's a DRL/DQL learner config is here ... """
     nb_epochs = 25000
     training_data_every_epoch = False
-    nb_sequences = 1000
-    nb_shuffles = 35 # (30 if n == 2 else 70) if puzzle_type == Puzzle.watkins_cube else (20 if n == 2 else 35)
+    nb_sequences = 100
+    nb_shuffles = 50 # (30 if n == 2 else 70) if puzzle_type == Puzzle.watkins_cube else (20 if n == 2 else 35)
     cap_target_at_network_count = True
     update_target_network_frequency = 500
     update_target_network_threshold = 1e-2
     max_nb_target_network_update = nb_shuffles + 10
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
-    learning_rate = 1e-3
+    learning_rate = 1e-2
     scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
     """ DL learner """
@@ -100,6 +100,7 @@ if '__main__' == __name__:
                                                  dimension=dimension,
                                                  model_name=PerfectLearner.perfect)
     elif learner_type in [Learner.deep_reinforcement_learner,
+                          Learner.deep_q_learner,
                           Learner.deep_learner]:
         learning_file_name = Learner.factory(**globals()).get_model_name()
     """ And we fire the action """

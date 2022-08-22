@@ -3,6 +3,8 @@
 ########################################################################################################################
 from math import inf
 from numpy import sqrt
+from numpy.random import uniform
+from pandas import Series
 from time import time as snap
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
@@ -14,7 +16,16 @@ from rubiks.solvers.solver import Solver, Solution
 
 class MCTSNode(Loggable):
 
-    def __init__(self, puzzle, parent, action, heuristic, value, c, back_leaf_value, tree=None):
+    def __init__(self,
+                 puzzle,
+                 parent,
+                 action,
+                 heuristic,
+                 value,
+                 c,
+                 random_choice,
+                 back_leaf_value,
+                 tree=None):
         Loggable.__init__(self, name=str(puzzle) + '%s' % hash(puzzle))
         self.puzzle = puzzle
         self.parent = parent
@@ -25,8 +36,10 @@ class MCTSNode(Loggable):
         self.heuristic = heuristic
         self.value = value
         self.c = c
+        self.random_choice = random_choice
         self.back_leaf_value = back_leaf_value
         self.children = dict()
+        self.children_ignore_redundant = dict()
         """ # times action has been taken """
         self.n = dict()
         """ # best value of taking this action """
@@ -59,6 +72,8 @@ class MCTSNode(Loggable):
             child = self.puzzle.apply(move)
             hash_child = hash(child)
             if hash_child in self.tree:
+                """ Used for the trim if later run """
+                self.children_ignore_redundant[move_nb] = self.tree[hash_child]
                 continue
             self.n[move_nb] = 0
             self.w[move_nb] = self.heuristic.cost_to_go(puzzle=child)
@@ -72,12 +87,17 @@ class MCTSNode(Loggable):
                                                   heuristic=self.heuristic,
                                                   value=self.w[move_nb],
                                                   c=self.c,
+                                                  random_choice=self.random_choice,
                                                   back_leaf_value=self.back_leaf_value,
                                                   tree=self.tree)
+            self.children_ignore_redundant[move_nb] = self.children[move_nb]
         if not self.p:
             return
         scaling = sum(self.p.values())
-        self.p = {action: proba/scaling for action, proba in self.p.items()}
+        if scaling <= 0:
+            self.p = {action: 1 / len(self.p) for action in self.p.keys()}
+        else:
+            self.p = {action: proba/scaling for action, proba in self.p.items()}
 
     def backward_prop(self, action=None, w=None):
         if action is not None:
@@ -93,14 +113,32 @@ class MCTSNode(Loggable):
     def choose_next(self, depth):
         best_value = -inf
         self.best_action = None
-        num = sqrt(sum(self.n.values()))
-        for action in self.p.keys():
-            u = self.c * self.p[action] * num / (1 + self.n[action])
-            q = self.w[action]
-            value = u - q
-            if value > best_value:
-                best_value = value
-                self.best_action = action
+        if self.random_choice:
+            """ otherwise it's not really a Monte Carlo now is it? """
+            #self.log_info('random choice for depth ', depth, ' p: ', Series(self.p))
+            #self.log_info('w = ', self.w)
+            probas = {action: proba for action, proba in self.p.items() if self.w[action] < inf}
+            if probas and sum(probas.values()) > 0:
+                num = sqrt(len(self.n) + sum(self.n.values()))
+                u = Series({action: self.p[action] * num / (1 + self.n[action]) for action in probas.keys()}).\
+                    sort_values(ascending=False).cumsum()
+                #self.log_info('u=', u)
+                choice = uniform() * u.iloc[-1]
+                #self.log_info('choice=', choice)
+                u = u[u >= choice]
+                #self.log_info('u=', u)
+                if not u.empty:
+                    self.best_action = u.index[0]
+        else:
+            num = sqrt(sum(self.n.values()))
+            for action in self.p.keys():
+                assert self.n[action] >= 0, 'WTF? n negative? %s' % str(self.n)
+                u = self.c * self.p[action] * num / (1 + self.n[action])
+                q = self.w[action]
+                value = u - q
+                if value > best_value:
+                    best_value = value
+                    self.best_action = action
         if self.best_action is None:
             return
         self.n[self.best_action] += 1
@@ -133,13 +171,13 @@ class MCTSNode(Loggable):
             return 1
 
         def apply(self, node):
-            return node.children[self.action_nb]
+            return node.children_ignore_redundant[self.action_nb]
 
     def apply(self, move):
         return move.apply(self)
 
     def possible_moves(self):
-        return [self.TrimMove(action_nb) for action_nb in self.children.keys()]
+        return [self.TrimMove(action_nb) for action_nb in self.children_ignore_redundant.keys()]
 
     def trim(self) -> Solution:
         """ We perform a BFS on the whole tree from init to solution to trim the tree a bit
@@ -169,6 +207,7 @@ class MonteCarloTreeSearchSolver(Solver):
     c = 'c'
     trim_tree = 'trim_tree'
     back_leaf_value = 'back_leaf_value'
+    random_choice = 'random_choice'
 
     @classmethod
     def populate_parser(cls, parser):
@@ -184,6 +223,10 @@ class MonteCarloTreeSearchSolver(Solver):
                          field=cls.back_leaf_value,
                          default=False,
                          action=cls.store_true)
+        cls.add_argument(parser,
+                         field=cls.random_choice,
+                         default=False,
+                         action=cls.store_true)
 
     def __init__(self, **kw_args):
         Solver.__init__(self, **kw_args)
@@ -192,6 +235,7 @@ class MonteCarloTreeSearchSolver(Solver):
         self.expanded_nodes = 0
         self.puzzle = None
         self.heuristic = Heuristic.factory(**self.get_config())
+        self.depth = 0
         assert self.heuristic.heuristic_type == Heuristic.deep_q_learning, \
             'MonteCarloTreeSearchSolver only works with %s heuristic' % Heuristic.deep_q_learning
 
@@ -200,6 +244,7 @@ class MonteCarloTreeSearchSolver(Solver):
         self.expanded_nodes = 0
         self.puzzle = None
         self.heuristic = Heuristic.factory(**self.get_config())
+        self.depth = 0
 
     def known_to_be_optimal(self):
         return False
@@ -213,6 +258,7 @@ class MonteCarloTreeSearchSolver(Solver):
                 if self.run_time + snap() > self.time_out:
                     raise TimeoutError()
                 leaf = self.construct_new_leaf()
+                #self.log_info('Got to leaf ', leaf.puzzle, ' with depth ', self.depth)
                 if leaf.is_goal():
                     if not self.trim_tree:
                         solution = leaf.construct_solution()
@@ -237,14 +283,15 @@ class MonteCarloTreeSearchSolver(Solver):
                                  heuristic=self.heuristic,
                                  value=self.heuristic.cost_to_go(puzzle=self.puzzle),
                                  c=self.c,
+                                 random_choice=self.random_choice,
                                  back_leaf_value=self.back_leaf_value)
             if self.tree.is_goal():
                 return self.tree
         node = self.tree
-        depth = 1
+        self.depth = 1
         while node.expanded:
-            node = node.choose_next(depth)
-            depth += 1
+            node = node.choose_next(self.depth)
+            self.depth += 1
         leaf = node
         leaf.expand()
         leaf.backward_prop()
@@ -252,9 +299,10 @@ class MonteCarloTreeSearchSolver(Solver):
         return leaf
 
     def get_name(self):
-        return '%s[c=%.2g]%s[%s]' % (self.__class__.__name__,
-                                     self.c,
-                                     '[trim]' if self.trim_tree else '',
-                                     self.heuristic.get_name())
+        return '%s[c=%.2g]%s%s[%s]' % (self.__class__.__name__,
+                                       self.c,
+                                       '[trim]' if self.trim_tree else '',
+                                       '[mc]' if self.random_choice else '',
+                                       self.heuristic.get_name())
 
 ########################################################################################################################

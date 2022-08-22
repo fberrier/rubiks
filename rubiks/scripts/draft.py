@@ -19,7 +19,7 @@ if '__main__' == __name__:
     logger = Loggable(name=__file__)
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    tiles = [[5,1,0], [7,2,3], [8,4,6]]
+    tiles=[[3,1,5], [4,2,7], [0,6,8]]
     puzzle = Puzzle.factory(**globals())
     logger.log_info(puzzle)
     solver_type = Solver.mcts
@@ -34,7 +34,8 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.deep_q_learning
     """ If MCTS """
     c = 1
-    nu = 1
+    random_choice=False
+    trim_tree=True
     learner_type = Learner.deep_q_learner
     model_file_name = get_model_file_name(puzzle_type=puzzle_type,
                                           dimension=(3, 3),

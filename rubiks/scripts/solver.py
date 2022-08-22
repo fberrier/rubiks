@@ -32,7 +32,7 @@ if '__main__' == __name__:
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 120
+    nb_samples = 140
     min_nb_shuffles = 8
     max_nb_shuffles = 8
     step_nb_shuffles = 2

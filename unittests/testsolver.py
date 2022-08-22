@@ -3,6 +3,7 @@
 ########################################################################################################################
 from unittest import TestCase
 from math import inf
+from numpy import mean
 from os.path import isfile
 ########################################################################################################################
 from rubiks.core.loggable import Loggable
@@ -141,7 +142,7 @@ class TestSolver(TestCase):
                                               dimension=dimension,
                                               model_name='test_deep_q_learning_solver')
         re_learn = False
-        run_trim = False
+        run_trim = True
         if re_learn or not isfile(model_file_name):
             remove_file(model_file_name)
             learner = DeepQLearner(puzzle_type=Puzzle.sliding_puzzle,
@@ -164,6 +165,8 @@ class TestSolver(TestCase):
                                    nb_sequences=100)
             logger.log_info(learner.get_config())
             learner.learn()
+        c = 100
+        random_choice = False
         # Then we use this learning to solve
         solver = Solver.factory(solver_type=Solver.mcts,
                                 heuristic_type=Heuristic.deep_q_learning,
@@ -172,7 +175,9 @@ class TestSolver(TestCase):
                                 time_out=inf,
                                 n=dimension[0],
                                 m=dimension[1],
-                                trim_tree=False)
+                                trim_tree=False,
+                                c=c,
+                                random_choice=random_choice)
         solver2 = Solver.factory(solver_type=Solver.mcts,
                                  heuristic_type=Heuristic.deep_q_learning,
                                  model_file_name=model_file_name,
@@ -180,21 +185,26 @@ class TestSolver(TestCase):
                                  time_out=inf,
                                  n=dimension[0],
                                  m=dimension[1],
-                                 trim_tree=True)
+                                 trim_tree=True,
+                                 c=c,
+                                 random_choice=random_choice)
         goal = Puzzle.factory(**solver.get_config())
         nb_moves = 20
-        nb_puzzles = 1000
+        nb_puzzles = 100
+        costs = list()
+        run_times = list()
+        nodes = list()
         puzzles = [goal.apply_random_moves(nb_moves) for _ in range(nb_puzzles)]
         for nb_puzzle, puzzle in enumerate(puzzles):
             nb_puzzle += 1
             solution_1 = solver.solve(puzzle=puzzle)
             #logger.log_debug(solution_1)
-            self.assertTrue(solution_1.success, solution_1.puzzle)
+            self.assertTrue(solution_1.success, '%s' % solution_1)
             # with trim
             if run_trim:
                 solution_2 = solver2.solve(puzzle=puzzle)
                 logger.log_debug(solution_2)
-                self.assertTrue(solution_2.success)
+                self.assertTrue(solution_2.success, '%s' % solution_2)
             else:
                 solution_2 = solution_1
             if solution_1.cost > 10*nb_moves:
@@ -208,6 +218,12 @@ class TestSolver(TestCase):
             else:
                 run_time = ms_format(solution_1.run_time)
                 logger.log_info('log_info %d nb_moves %d solutions costs %d nodes %d in %s' % (nb_puzzle + 1, nb_moves, solution_1.cost, solution_1.expanded_nodes, run_time))
+            costs.append(min(solution_1.cost, solution_2.cost))
+            run_times.append(min(solution_1.run_time, solution_2.run_time))
+            nodes.append(min(solution_1.expanded_nodes, solution_2.expanded_nodes))
+        logger.log_info('avg cost = ', mean(costs))
+        logger.log_info('avg run_time = ', mean(run_times))
+        logger.log_info('avg nodes = ', mean(nodes))
         if re_learn:
             remove_file(model_file_name)
 

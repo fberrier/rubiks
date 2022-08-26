@@ -4,6 +4,46 @@
 
 \label{sec:ResultsSP} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
 
+
+
+
+
+\begin{center}
+\begin{tabular}{l*{9}{c}r}
+\hline
+\textbf{solver}      & & \textbf{Sliding Puzzle} & \textbf{2x2} & \textbf{2x3} & \textbf{2x4} & \textbf{2x5}  & \textbf{3x3} & \textbf{3x4} & \textbf{4x4} \\ 
+\hline
+BFS   & & & & & & &  x  & & \\
+\hline
+A$^{*}$[Manhattan]   & & & & & & &  x  & & \\
+\hline
+A$^{*}$[Manhattan++]   & & & & & & &  x  & & \\
+\hline
+A$^{*}$[Perfect]   & & &  x  &  x  &  x  &  x  &  x  & & \\
+\hline
+Naive   & & & & & & &  x  & & \\
+\hline
+A$^{*}$[DL[A$^{*}$[Perfect]]]   & & & & & & &  x  & & \\
+\hline
+A$^{*}$[DRL]   & & & & & & &  x  & & \\
+\hline
+A$^{*}$[DQL]   & & & & & & &  x  & & \\
+\hline
+MCTS[DQL][c=TBD]   & & & & & & &  x  & & \\
+\end{tabular}
+\end{center}
+
+
+
+
+
+
+
+
+
+
+
+
 %----------------------------------------------------------------------------------------
 %	SECTION 1
 %----------------------------------------------------------------------------------------
@@ -189,9 +229,15 @@ To finish with the 3x3 SP, let me try to throw one of the two hardest 3x3 config
 \hline
 AStarSolver[Manhattan]   &   &      31  & 58,859  & 11,327  \\
 \hline
+AStarSolver[Manhattan++]   &   &      31  & 34,224  & 7,080  \\
+\hline
 AStarSolver[PerfectHeuristic]  &   & 31 & 1,585 & 202 \\
 \hline
-AStarSolver[DeepLearningHeuristic]  &   & 31 & 101 & 58 \\
+AStarSolver[DRLHeuristic]  &   & 31 & 101 & 58 \\
+\hline
+MCTSSolver[DQLHeuristic][c=0]  &   & 101 & 103 & 456 \\
+\hline
+MCTSSolver[DQLHeuristic][c=69]  &   & 35 & 2,244 & 8,873 \\
 \hline
 BFS  &   & - & - & time out \\
 \hline

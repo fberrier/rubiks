@@ -3,7 +3,7 @@
 ########################################################################################################################
 from enum import Enum
 from itertools import product, permutations
-from math import factorial
+from math import factorial, inf
 from numpy.random import randint, permutation
 from pandas import DataFrame, read_pickle
 from random import choice
@@ -200,7 +200,32 @@ class RubiksCube(Puzzle):
 
     @classmethod
     def generate_all_puzzles(cls, **kw_args):
-        pass
+        n = kw_args.get('n')
+        assert 2 == n
+        cls.__populate_goals__(n)
+        corners = cls.corners_map[n]
+        targets = cls.corners_target_map[n]
+        tiles = dict()
+
+        def permutate(corner, r):
+            corner = list(corner)
+            corner.extend(corner[:2])
+            corner = corner[r: r+3]
+            return corner
+        permut = [0, 1, 2]
+        for p_corners in permutations(corners):
+            for r1, r2, r3, r4, r5, r6, r7 in product(permut, permut, permut, permut, permut, permut, permut):
+                total_r = sum([r1, r2, r3, r4, r5, r6, r7]) % 3
+                r8 = (3 - total_r) % 3
+                R = [r1, r2, r3, r4, r5, r6, r7, r8]
+                for nb, (target, corner) in enumerate(zip(targets, p_corners)):
+                    corner = permutate(corner, R[nb])
+                    for ((face, pos_x, pos_y), color) in zip(target, corner):
+                        if face not in tiles:
+                            tiles[face] = zeros(2, 2)
+                        t = tiles[face]
+                        t[pos_x, pos_y] = color
+                yield RubiksCube(tiles=tiles)
 
     move_type = CubeMove
 
@@ -263,6 +288,53 @@ class RubiksCube(Puzzle):
     def __add_edge_to_map__(cls, edge, position, n):
         cls.edges_map[n][edge] = position
         cls.edges_map[n][cls.__swap__(edge)] = cls.__swap__(position)
+
+    def is_standard(self):
+        return self.tiles[Face.F][1][1] == rubiks_to_int_map[Color.r] and self.tiles[Face.U][1][1] == rubiks_to_int_map[Color.w]
+
+    def to_standard(self):
+        """ due to imho bug in Kociemba ... I implement a function that returns necessary whole cube
+        moves to get to standard colors orientation
+        """
+        assert self.n == 3
+        clone = self.clone()
+        moves = list()
+
+        def whole_move(face):
+            return CubeMove(face, whole_cube=True)
+
+        for r1 in range(4):
+            for r2 in range(4):
+                if clone.is_standard():
+                    return moves
+                clone = clone.whole_cube_front_rotation()
+                moves.append(whole_move(Face.F))
+                if clone.is_standard():
+                    return moves
+            moves = moves[:-4]
+            clone = clone.whole_cube_up_rotation()
+            moves.append(whole_move(Face.U))
+            if clone.is_standard():
+                return moves
+        moves = list()
+        clone = clone.whole_cube_right_rotation()
+        moves.append(whole_move(Face.R))
+        for r2 in range(4):
+            if clone.is_standard():
+                return moves
+            clone = clone.whole_cube_front_rotation()
+            moves.append(whole_move(Face.F))
+        moves = moves[:-4]
+        clone = clone.whole_cube_right_rotation()
+        clone = clone.whole_cube_right_rotation()
+        moves.append(whole_move(Face.R))
+        moves.append(whole_move(Face.R))
+        for r2 in range(4):
+            if clone.is_standard():
+                return moves
+            clone = clone.whole_cube_front_rotation()
+            moves.append(whole_move(Face.F))
+        return moves
 
     def get_equivalent(self):
         """ generate and return all cubes which are visually indistinguishable from self """
@@ -350,10 +422,8 @@ class RubiksCube(Puzzle):
                                       file_type=PossibleFileNames.utils,
                                       name='edges_oriented_distances_to_home')
             load_ok = False
-            log_info = Loggable(name='edges_oriented_distances_to_home').log_info
             try:
                 cls.edges_oriented_distances_to_home[n] = read_pickle(data_base)
-                log_info('Loaded ', data_base)
                 load_ok = True
             except FileNotFoundError:
                 pass
@@ -365,9 +435,6 @@ class RubiksCube(Puzzle):
                     cls.edges_oriented_distances_to_home[n][edge][position] = \
                         cls.compute_edge_orientated_distance_to_home(edge, position, n)
             to_pickle(cls.edges_oriented_distances_to_home[n], data_base)
-            message = 'Saved %d data points to %s' % (len(cls.edges_oriented_distances_to_home[n]),
-                                                      data_base)
-            log_info(message)
 
     def __init__(self, **kw_args):
         from_tiles = self.tiles in kw_args
@@ -433,9 +500,6 @@ class RubiksCube(Puzzle):
 
     def dimension(self):
         return (self.n,)*3
-
-    def get_goal(self):
-        return RubiksCube(n=self.n, init_from_random_goal=True)
 
     def clone(self):
         return self.__class__(tiles={face: self.tiles[face].detach().clone() for face in Face})
@@ -637,7 +701,6 @@ class RubiksCube(Puzzle):
 
     def possible_puzzles_nb(self):
         if self.n == 2:
-            """ Notice for my purpose each orientation in space is different """
             return factorial(8) * 3**7
         elif self.n == 3:
             return factorial(8) * 3**7 * factorial(12) / 2 * 2 ** 11
@@ -796,6 +859,19 @@ class RubiksCube(Puzzle):
             if hash(cube_1.apply(move_1).apply(move_2).apply(move_3).apply(move_4)) == hash(cube_2):
                 return [move_1, move_2, move_3, move_4]
         raise RuntimeError
+
+    @classmethod
+    def optimal_solver_config(cls) -> dict:
+        from rubiks.solvers.solver import Solver
+        from rubiks.heuristics.heuristic import Heuristic
+        return {Solver.solver_type: Solver.astar,
+                Solver.time_out: inf,
+                Heuristic.heuristic_type: Heuristic.kociemba,
+                }
+
+    def get_goal(self):
+        self.__populate_goals__(self.n)
+        return choice(self.goals_map[self.n])
     
 ########################################################################################################################
 

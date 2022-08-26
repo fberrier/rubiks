@@ -139,24 +139,23 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                         if self.verbose:
                             print('Already ',
                                   (' failed ' if failed else 'solved '),
-                                  puzzle, ' # ', index + 1, ' with ', self.get_name())
+                                  ' # ', index + 1, ' with ', self.get_name())
                         return self.shuffles_data[nb_shuffles][index][2][self.get_name()]
                     if failed:
                         if self.verbose:
-                            print('Will reattempt failed ',
-                                  puzzle, ' # ', index + 1, ' with ', self.get_name())
+                            print('Will reattempt failed  # ', index + 1, ' with ', self.get_name())
             else:
                 puzzle = self.get_goal().apply_random_moves(nb_moves=nb_shuffles,
                                                             min_no_loop=nb_shuffles)
             if (index + 1) in self.skip:
                 if self.verbose:
-                    print('Skipping ', puzzle, ' # ', index + 1, ' ... ')
+                    print('Skipping puzzle # ', index + 1, ' ... ')
                 solution = Solution.failure(puzzle)
                 solution.set_run_time(self.time_out)
                 solution.set_additional_info(index=index)
                 return solution
             if self.verbose:
-                print('Starting solving ', puzzle, ' # ', index + 1, ' ... ')
+                print('Starting solving puzzle # ', index + 1, ' ... ')
             solution = self.solve_impl(puzzle, **self.get_config())
             run_time = snap() - start
             solution.set_run_time(run_time)
@@ -168,9 +167,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 if solution.failed():
                     print(' ... failed to solve ', puzzle, ' # ', index + 1)
                 else:
-                    print(' ... solved ',
-                          puzzle,
-                          ' # ',
+                    print(' ... solved puzzle # ',
                           index + 1,
                           ' with cost ',
                           solution.cost,
@@ -229,6 +226,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                    pct_optimal,
                                    median_expanded_nodes,
                                    pct_solved]
+    show_title = 'show_title'
     verbose = 'verbose'
     fig_size = 'fig_size'
     loc = 'loc'
@@ -285,6 +283,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
+                         cls.show_title,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
                          cls.log_solution,
                          default=False,
                          action=cls.store_true)
@@ -329,7 +331,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         cls.add_argument(parser,
                          field=cls.skip,
                          type=int,
-                         nargs='+')
+                         nargs='+',
+                         default=tuple())
     
     def performance_test(self):
         """
@@ -602,6 +605,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             self.log_warning('Could not remove \'%s\':' % self.shuffles_file_name,
                              error)
 
+    @staticmethod
+    def axis_label_format(what):
+        return what.upper().replace('_', ' ')
+
     def plot_performance(self):
         cls = self.__class__
         try:
@@ -651,7 +658,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
         plt.axis('off')
         title = pformat(title)
-        plt.title(title, fontname='Consolas')
+        if self.show_title:
+            plt.title(title, fontname='Consolas')
         n_cols = ceil(len(y) / 2)
         n_rows = ceil(len(y) / n_cols)
         sps = GridSpec(n_rows, n_cols, figure=fig)
@@ -660,6 +668,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         markers = cycle(['x', '|', '.', '+', '1', 'v', '$f$', '$a$', '$t$'])
         markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
         labels_shown = False
+        colors = cycle(['royalblue', 'darkred', 'goldenrod', 'darkcyan', 'darkseagreen', 'gainsboro'])
+        colors_map = dict()
         for r, c in product(range(n_rows), range(n_cols)):
             index = r * n_cols + c
             if index >= len(y):
@@ -669,7 +679,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                     (max_shuffle - 1.5, max_shuffle + 1.5)),
                              subplot_spec=sps[r, c])
             if r == n_rows - 1:
-                bax.set_xlabel(Solver.nb_shuffles)
+                bax.set_xlabel(self.axis_label_format(Solver.nb_shuffles), fontweight='bold')
             ticks = bax.get_xticks()
             labels = [['%d' % t for t in ticks[0]],
                       ['\u221e' for _ in ticks[1]]]
@@ -679,13 +689,16 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     'Issue with %s len(x) = %d != len(y) = %d' % (sn,
                                                                   len(grp[Solver.nb_shuffles]),
                                                                   len(grp[what]))
+                if sn not in colors_map:
+                    colors_map[sn] = next(colors)
                 bax.scatter(x=Solver.nb_shuffles,
                             y=what,
                             data=grp,
                             label=sn,
                             marker=markers[sn],
-                            linewidths=2,
-                            s=50)
+                            linewidths=3,
+                            s=70,
+                            c=colors_map[sn])
             (handles, labels) = bax.get_legend_handles_labels()[0]
             if what in [cls.avg_expanded_nodes,
                         cls.avg_run_time,
@@ -693,16 +706,18 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                         cls.median_run_time,
                         ]:
                 bax.set_yscale('log')
-                bax.set_ylabel(what + ' (log scale)')
+                bax.set_ylabel(self.axis_label_format(what) + ' (log scale)', fontweight='bold')
             else:
-                bax.set_ylabel(what)
+                bax.set_ylabel(self.axis_label_format(what), fontweight='bold')
+            bax.grid(True)
             if what in [cls.pct_solved] and not labels_shown:
                 """ Ideally we can show the labels on one of these so we don't have to
                 display at top where it might overlap with the title. """
-                bax.legend(loc=self.loc)
+                bax.legend(loc=self.loc, prop={'weight': 'bold'})
                 labels_shown = True
         if not labels_shown:
             fig.legend(handles, labels, loc='upper center')
+        self.log_info(performance[[cls.solver_name, cls.optimality_score]].groupby(cls.solver_name).mean().transpose())
         plt.show()
 
 ########################################################################################################################

@@ -25,17 +25,16 @@ if '__main__' == __name__:
                             } """
     action_type = Learner.do_learn
     """ What puzzle """
-    puzzle_type = Puzzle.sliding_puzzle
-    n = 3
+    puzzle_type = Puzzle.rubiks_cube
+    n = 2
     m = 3
     """ more init for specific puzzles """
-    init_from_random_goal = True
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
-                            } 
+                            }
     """
-    learner_type = Learner.deep_q_learner
+    learner_type = Learner.deep_reinforcement_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
@@ -62,12 +61,12 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL/DQL learner config is here ... """
-    nb_epochs = 25000
+    nb_epochs = 100000
     training_data_every_epoch = False
-    nb_sequences = 100
-    nb_shuffles = 50 # (30 if n == 2 else 70) if puzzle_type == Puzzle.watkins_cube else (20 if n == 2 else 35)
+    nb_sequences = 1000
+    nb_shuffles = 50 if n == 3 else 20 # (30 if n == 2 else 70) if puzzle_type == Puzzle.watkins_cube else (20 if n == 2 else 35)
     cap_target_at_network_count = True
-    update_target_network_frequency = 500
+    update_target_network_frequency = 2000 if n == 3 else 1000
     update_target_network_threshold = 1e-2
     max_nb_target_network_update = nb_shuffles + 10
     max_target_not_increasing_epochs_pct = 0.5
@@ -77,15 +76,15 @@ if '__main__' == __name__:
     gamma_scheduler = 0.9999
     """ DL learner """
     save_at_each_epoch = True
-    threshold = 0.001
-    training_data_freq = 10
+    threshold = 0.0001
+    training_data_freq = 1000
     high_target = nb_shuffles + 1
     training_data_from_data_base = True
-    nb_shuffles_min = 0
-    nb_shuffles_max = 30
+    nb_shuffles_min = 1
+    nb_shuffles_max = 32
     """ ... and its network config """
     network_type = DeepLearning.fully_connected_net
-    layers_description = (600, 300, 100)
+    layers_description = (600, 300, 100) # (4096, 2048, 512)
     one_hot_encoding = True
     drop_out = 0.
     """ Or for convo """

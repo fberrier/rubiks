@@ -528,7 +528,7 @@ class DeepReinforcementLearner(Learner):
 
     def plot_learning(self):
         cls = self.__class__
-        data = self.read_data_file()
+        data = DeepReinforcementLearner.read_data_file(self)
         if isinstance(data[self.convergence_data_tag][cls.learning_rate].iloc[0], list):
             data[self.convergence_data_tag].loc[:, cls.learning_rate] = \
                 data[self.convergence_data_tag][cls.learning_rate].apply(lambda lr: lr[0])

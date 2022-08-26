@@ -102,11 +102,6 @@ class WatkinsCube(Puzzle):
                                                              min_no_loop - min_no_loop_start)
         return cube
 
-    def get_goal(self):
-        random_rubiks_goal = RubiksCube(n=self.n).get_goal()
-        return WatkinsCube(tiles_goal=random_rubiks_goal.tiles,
-                           tiles_start=random_rubiks_goal.tiles)
-
     def possible_moves(self):
         return self.tiles_start.possible_moves()
 

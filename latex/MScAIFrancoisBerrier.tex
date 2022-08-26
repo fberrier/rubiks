@@ -154,11 +154,11 @@ headsepline, % Uncomment to get a line under the header
 %	THESIS INFORMATION
 %----------------------------------------------------------------------------------------
 
-\thesistitle{Solving \\ the \\ Sliding Puzzle \\ \& \\ Rubiks' Cube \\by \\Deep Reinforcement Learning} % Your thesis title, this is used in the title and abstract, print it elsewhere with \ttitle
+\thesistitle{Solving \\ the \\ 15-Puzzle \& Rubik's Cube \\by \\Deep Reinforcement Learning} % Your thesis title, this is used in the title and abstract, print it elsewhere with \ttitle
 \supervisor{Pr. Chris \textsc{Watkins}} % Your supervisor's name, this is used in the title page, print it elsewhere with \supname
 \examiner{} % Your examiner's name, this is not currently used anywhere in the template, print it elsewhere with \examname
-\degree{MSc in Artificial Intelligence} % Your degree name, this is used in the title page and abstract, print it elsewhere with \degreename
-\author{Francois \textsc{Berrier}} % Your name, this is used in the title page and abstract, print it elsewhere with \authorname
+\degree{\textbf{MSc in Artificial Intelligence}} % Your degree name, this is used in the title page and abstract, print it elsewhere with \degreename
+\author{Fran\c{c}ois \textsc{Berrier}} % Your name, this is used in the title page and abstract, print it elsewhere with \authorname
 \addresses{} % Your address, this is not currently used anywhere in the template, print it elsewhere with \addressname
 
 \subject{Artificial Intelligence} % Your subject area, this is not currently used anywhere in the template, print it elsewhere with \subjectname
@@ -188,7 +188,7 @@ headsepline, % Uncomment to get a line under the header
 \begin{center}
 
 \vspace*{.06\textheight}
-{\scshape\LARGE \univname\par}\vspace{1.5cm} % University name
+{\scshape\LARGE \univname\par}\vspace{1cm} % University name
 \textsc{\Large MSc Thesis}\\[0.5cm] % Thesis type
 
 \HRule \\[0.4cm] % Horizontal line
@@ -201,15 +201,20 @@ headsepline, % Uncomment to get a line under the header
 \href{francois.berrier@cantab.net}{\authorname} % Author name - remove the \href bracket to remove the link
 \end{flushleft}
 \end{minipage}
-\begin{minipage}[t]{0.4\textwidth}
+\begin{minipage}[t]{0.5\textwidth}
 \begin{flushright} \large
 \emph{Supervisor:} \\
 \href{https://www.cs.rhul.ac.uk/~chrisw/}{\supname} % Supervisor name - remove the \href bracket to remove the link  
 \end{flushright}
-\end{minipage}\\[3cm]
+\end{minipage}
  
 \vfill
 
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{./Figures/RHUL}
+%\decoRule
+\end{figure}
 \large \textit{A thesis submitted in fulfillment of the requirements\\ for the degree of \degreename}\\[0.3cm] % University requirement text
 %\textit{in the}\\[0.4cm]
 %\groupname\\\deptname\\[2cm] % Research group name and department name
@@ -244,14 +249,14 @@ headsepline, % Uncomment to get a line under the header
 \\
 Reinforcement Learning (\textbf{RL}), exposed with brilliant clarity in the Sutton book (\cite{Sutton1998}), has until recently known less success than we might have hoped for. Its framework is very appealing and intuitive. In particular, the mathematical beauty of Value iteration and Q iteration (\cite{WatkinsThesis}) for discrete state and action spaces, blindly iterating from \textit{any} initial value, is quite profound. Sadly, it had until recently proven hard to achieve practical success with these methods.
 \\
-Inspired however by the seminal success of Deep Mind's team in using Deep Reinforcement Learning (\textbf{DRL}) to play Atari games (\cite{Mnih2013})  and to master the game of Go (\cite{AlphaGo}), researchers have in recent years made a lot of progress towards designing algorithms capable of learning and solving, \textit{without human knowledge}, the Rubiks Cube (\textbf{RC}) - as well as similar single player puzzles - by using Deep Q-Learning (\textbf{DQL})  (\cite{DBLP:journals/corr/abs-1805-07470}) or search and (\textbf{DRL}) value iteration (\cite{https://doi.org/10.48550/arxiv.1805.07470}).
+Inspired however by the seminal success of Deep Mind's team in using Deep Reinforcement Learning (\textbf{DRL}) to play Atari games (\cite{Mnih2013})  and to master the game of Go (\cite{AlphaGo}), researchers have in recent years made a lot of progress towards designing algorithms capable of learning and solving, \textit{without human knowledge}, the Rubik's Cube (\textbf{RC}) - as well as similar single player puzzles - by using Deep Q-Learning (\textbf{DQL})  (\cite{DBLP:journals/corr/abs-1805-07470}) or search and (\textbf{DRL}) value iteration (\cite{https://doi.org/10.48550/arxiv.1805.07470}).
 \\
 In this project, I will attempt to implement a variety of solvers combining $A^{*}$ search and heuristics, some of which will be handcrafted, others which I will train on randomly generated sequences of puzzles using (\textbf{DL}) or (\textbf{DRL}), to solve the 15-puzzle (and variations of different dimensions), as well as the Rubik's cube.
 \\
 \\
 \textbf{Organisation of this thesis}
 \\
-In the first chapter, I will quickly describe what I hope to get out of this project, both in terms of personal learning, as well as in terms of tangible results (solving some puzzles!). In chapter 2, I will do a quick recap of the different methods that I will use in the project. Chapter 3 will be dedicated to discussing the mathematics of the sliding puzzle (\textbf{SP}) and the (\textbf{RC}). I might throw a few random (but hopefully interesting) observations in there and give some references for the keen reader. I will then give an overview in chapter 4 of the code base I have developed - and put in the open on my github page (\cite{FB}) - to complete this project before detailing a few examples in chapter 5. Finally, in chapters 6 and 7, I will present all my various results on respectively the sliding puzzle and the Rubiks' cube.
+In the first chapter, I will quickly describe what I hope to get out of this project, both in terms of personal learning, as well as in terms of tangible results (solving some puzzles!). In chapter 2, I will do a quick recap of the different methods that I will use in the project. Chapter 3 will be dedicated to discussing the mathematics of the sliding puzzle (\textbf{SP}) and the (\textbf{RC}). I might throw a few random (but hopefully interesting) observations in there and give some references for the keen reader. I will then give an overview in chapter 4 of the code base I have developed - and put in the open on my github page (\cite{FB}) - to complete this project before detailing a few examples in chapter 5. Finally, in chapters 6 and 7, I will present all my various results on respectively the sliding puzzle and the Rubik's cube before offering some conclusion in chapter 8.
 
 
 
@@ -309,7 +314,10 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 
 \end{abbreviations}
 
-
+\hypersetup{%
+  colorlinks = true,
+  linkcolor  = black
+}
 \tableofcontents % Prints the main table of contents
 
 %----------------------------------------------------------------------------------------
@@ -361,10 +369,11 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 \include{Chapters/Objectives}
 \include{Chapters/DRLSearch}
 \include{Chapters/Puzzles}
-\include{Chapters/Code}
+\include{Chapters/Implementation}
 \include{Chapters/Examples}
 \include{Chapters/SlidingPuzzle}
 \include{Chapters/Rubiks}
+\include{Chapters/Conclusion}
 
 %----------------------------------------------------------------------------------------
 %	THESIS CONTENT - APPENDICES

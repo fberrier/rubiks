@@ -100,9 +100,9 @@ class Puzzle(Factory, metaclass=ABCMeta):
         returns:
             list of puzzles
         """
-        init = cls(**kw_args)
         training_data = list()
         for _ in range(nb_sequences):
+            init = cls(**kw_args)
             moves = init.random_moves(nb_shuffles, min_no_loop=min_no_loop)
             puzzles = init.get_puzzle_sequence(moves)
             if one_list:

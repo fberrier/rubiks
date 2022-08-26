@@ -23,30 +23,30 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.rubiks_cube
-    n = 3
-    m = 5
+    n = 2
+    m = None
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 140
-    min_nb_shuffles = 8
-    max_nb_shuffles = 8
-    step_nb_shuffles = 2
-    add_perfect_shuffle = False
+    nb_samples = 200 if n == 2 else 100
+    min_nb_shuffles = 0
+    max_nb_shuffles = 20
+    step_nb_shuffles = 2 if n == 2 else 4
+    add_perfect_shuffle = True
     nb_cpus = 1
-    chunk_size = int(nb_samples / nb_cpus / 2)
+    chunk_size = 0
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
     verbose = True
     do_not_reattempt_failed = False
-    skip = (36,39,85,)
+    #skip = (36,39,85,145,146,161,174,190,) <- these 8 took more than 90 mins for 3x3x3 Rubiks'
     """ For plot """
-    loc = 'upper center'
+    loc = 'center'   # 'upper center'
     performance_metrics = [Solver.pct_solved,
                            #Solver.pct_optimal,
                            Solver.median_cost,
@@ -64,7 +64,7 @@ if '__main__' == __name__:
                            } """
     solver_type = Solver.astar
     limit = 12
-    time_out = 3600 + 1800
+    time_out = 7200
     log_solution = False
     check_optimal = False
     max_consecutive_timeout = 100
@@ -77,15 +77,15 @@ if '__main__' == __name__:
     plus = True
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
                                              DeepLearning.convolutional_net} """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.deep_learner
     network_type = DeepLearning.fully_connected_net
-    layers_description = (600, 300, 100)
-    nb_epochs = 25000
-    nb_sequences = 250
-    nb_shuffles = 35
-    nb_shuffles_min = 40
-    nb_shuffles_max = 60
-    learning_rate = 1e-3
+    layers_description = (4096, 2048, 512) if n == 3 else (600, 300, 100)
+    nb_epochs = 100000
+    nb_sequences = 1000
+    nb_shuffles = 30
+    nb_shuffles_min = 1
+    nb_shuffles_max = 14
+    learning_rate = 1e-2
     scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
     training_data_every_epoch = False

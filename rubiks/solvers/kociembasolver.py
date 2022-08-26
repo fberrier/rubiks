@@ -1,6 +1,7 @@
 ########################################################################################################################
 # Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
 ########################################################################################################################
+from rubiks.puzzle.puzzle import Puzzle
 from rubiks.puzzle.rubikscube import RubiksCube, Face, rubiks_int_to_face_map, CubeMove
 from rubiks.puzzle.watkinscube import WatkinsCube
 from rubiks.solvers.solver import Solver, Solution
@@ -13,6 +14,10 @@ class KociembaSolver(Solver):
     __import_done__ = False
     __kociemba_solve__ = None
     __hkociemba_solve__ = None
+
+    def __init__(self, **kw_args):
+        Solver.__init__(self, **{**kw_args,
+                                 Puzzle.puzzle_type: Puzzle.rubiks_cube})
 
     @staticmethod
     def to_kociemba(puzzle):
@@ -76,6 +81,11 @@ class KociembaSolver(Solver):
 
     def solve_impl_rubiks(self, puzzle, **kw_args) -> Solution:
         assert isinstance(puzzle, RubiksCube) and puzzle.dimension() in {(3, 3, 3), (2, 2, 2)}
+        original_puzzle = None
+        if puzzle.n == 3 and not puzzle.is_standard():
+            original_puzzle = puzzle.clone(), puzzle.to_standard()
+            puzzle = puzzle.apply_moves(original_puzzle[1])
+            assert puzzle.is_standard()
         cube_string = self.to_kociemba(puzzle)
         try:
             if puzzle.is_goal():
@@ -85,6 +95,9 @@ class KociembaSolver(Solver):
                 solution_string = self.kociemba_solve(cube_string) if puzzle.dimension()[0] == 3 else \
                     self.hkociemba_solve(cube_string)
                 moves = self.from_kociemba(solution_string)
+            if original_puzzle is not None:
+                moves = original_puzzle[1] + moves
+                puzzle = original_puzzle[0]
             solution = Solution(cost=len(moves),
                                 path=moves,
                                 expanded_nodes=float('nan'),
@@ -93,6 +106,10 @@ class KociembaSolver(Solver):
                                 cube_string=cube_string,
                                 solution_string=solution_string,
                                 )
+            if puzzle.n == 3:
+                """ Kociemba 3 imp is wonky imho .... assumes we are always facing red center and top white center !!!! """
+                if not solution.apply(puzzle).is_goal():
+                    raise RuntimeError('Kociemba 3 wonkiness')
         except Exception as error:
             self.log_error(error)
             raise RuntimeError('%s[%s]' % (error, cube_string))

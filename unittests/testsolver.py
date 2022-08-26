@@ -165,7 +165,8 @@ class TestSolver(TestCase):
                                    nb_sequences=100)
             logger.log_info(learner.get_config())
             learner.learn()
-        c = 100
+        c = 1
+        logger.log_info('Running with c=', c, ' and run_trim=', run_trim)
         random_choice = False
         # Then we use this learning to solve
         solver = Solver.factory(solver_type=Solver.mcts,
@@ -210,8 +211,8 @@ class TestSolver(TestCase):
             if solution_1.cost > 10*nb_moves:
                 logger.log_warning('Puzzle # %d ' % (nb_puzzle + 1), puzzle)
             if solution_2.cost != solution_1.cost:
-                logger.log_info('Puzzle # %d ' % (nb_puzzle + 1), puzzle)
-                logger.log_info('Puzzle %d improvement nb_moves %d solutions costs %d -> %d' % (nb_puzzle + 1,
+                logger.log_debug('Puzzle # %d ' % (nb_puzzle + 1), puzzle)
+                logger.log_debug('Puzzle %d improvement nb_moves %d solutions costs %d -> %d' % (nb_puzzle + 1,
                                                                                                 nb_moves,
                                                                                                 solution_1.cost,
                                                                                                 solution_2.cost))

@@ -40,9 +40,10 @@ digraph g {
     nodepuzzled [label="Puzzled"]
 	# HEURISTICS
     nodeheuristic [label="Heuristic", fillcolor=cadetblue4]
-    nodemanhattan [label="Manhattan"]
+    nodemanhattan [label="Manhattan\nManhattan++"]
     nodeperfectheuristic [label="PerfectHeuristic"]
     nodedlheuristic [label="DeepLearningHeuristic"]
+    nodedqlheuristic [label="DeepQLearningHeuristic"]
 	# SEARCH
 	nodesearchstrategy [label="SearchStrategy", fillcolor=cadetblue4]
 	nodenode [label="Node"]
@@ -57,6 +58,7 @@ digraph g {
 	nodelearner [label="Learner", fillcolor=cadetblue4]
 	nodeperfectlearner [label="PerfectLearner"]
 	nodedeepreinforcementlearner [label="DeepReinforcementLearner"]
+	nodedeepqlearner [label="DeepQLearner"]
 	nodedeeplearner [label="DeepLearner"]
 	# SOLVERS
 	nodesolver [label="Solver", fillcolor=cadetblue4]
@@ -64,7 +66,9 @@ digraph g {
 	nodebfssolver [label="BFSSolver"]
 	nodedfssolver [label="DFSSolver"]
 	nodestarsolver [label="AStarSolver"]
+	nodemctssolver [label="MCTSSolver"]
 	nodenaiveslidingsolver [label="NaiveSlidingSolver"]
+	nodekociembasolver [label="KociembaSolver"]
 	######################################################################################################
 	# CLUSTERS
 	subgraph clusterFB {
@@ -149,9 +153,11 @@ digraph g {
 			nodemanhattan
 			nodeperfectheuristic
 			nodedlheuristic [fillcolor=violetred4]
+			nodedqlheuristic [fillcolor=violetred4]
 			nodeheuristic -> nodemanhattan
 			nodeheuristic -> nodeperfectheuristic
 			nodeheuristic -> nodedlheuristic
+			nodeheuristic -> nodedqlheuristic
 		}
 		nodecorefactory -> nodeheuristic
 		nodepuzzled -> nodeheuristic
@@ -195,9 +201,11 @@ digraph g {
 			nodeperfectlearner
 			nodedeeplearner [fillcolor=violetred4]
 			nodedeepreinforcementlearner [fillcolor=violetred4]
+			nodedeepqlearner [fillcolor=violetred4]
 			nodelearner -> nodeperfectlearner
 			nodelearner -> nodedeeplearner
 			nodelearner -> nodedeepreinforcementlearner
+			nodedeepreinforcementlearner -> nodedeepqlearner
 		}
 		nodepuzzled -> nodelearner
 		nodecorefactory -> nodelearner
@@ -210,11 +218,15 @@ digraph g {
 			nodebfssolver [fillcolor=brown3]
 			nodedfssolver [fillcolor=brown3]
 			nodestarsolver [fillcolor=brown3]
+			nodemctssolver
+			nodekociembasolver
 			nodenaiveslidingsolver
 			nodesolution -> nodesolver [style=dashed, arrowhead=none]
 			nodesolver -> nodebfssolver
 			nodesolver -> nodedfssolver
 			nodesolver -> nodestarsolver
+			nodesolver -> nodemctssolver
+			nodesolver -> nodekociembasolver
 			nodesolver -> nodenaiveslidingsolver
 		}
 		nodecorefactory -> nodesolver

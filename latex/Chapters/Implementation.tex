@@ -143,7 +143,8 @@ n              & m & 2 & 3 & 4 & 5\\
 
 
 \item \textbf{PerfectHeuristic}: this reads from a data base the optimal costs, pre-computed by the PerfectLearner (see below \ref{PLcode})
-\item \textbf{DeepLearningHeuristic}: this uses a network which has been trained using DRL by the DeepReinforcementLearner (see below \ref{DRLcode})
+\item \textbf{DeepLearningHeuristic}: this uses a network which has been trained using \textbf{DRL} by the DeepReinforcementLearner (see below \ref{DRLcode})
+\item \textbf{DeepQHeuristic}: this uses a network which has been trained using \textbf{DQL} by the DeepQLearner (see below \ref{DQLcode})
 \end{itemize}
 
 
@@ -182,7 +183,8 @@ This module implements learners, which learn something from a puzzle, store what
 \item \textbf{PerfectLearner}: It instantiates an optimal solver ($A^{*}$ with a configurable heuristic - but will only accept heuristic that advertise themselves as optimal. The learning consists in generating all the possible configuration of the considered puzzle, solve them with the optimal solver, and save the optimal cost of it as well as those of the whole solution path. The code allows for parallelization, stop and restart so that we can run on several different occasions and keep completing a database of solutions if necessary or desired. Once the PerfectLearner has completed its job, it can display some interesting information, such as the puzzle's God's number, the distribution of number of puzzles versus optimal cost, the hardest configuration it came across, and how long it took it to come up with the full knowledge of that puzzle. I will show in section \ref{PLSS} how to run an example. Notice that for puzzles of too high dimension, where my computing resources will not allow to solve exhaustively all the configurations of a given dimension, this class can still be used to populate a data base of optimal costs, which can then be used by DeepLearner. If it is to be used this way, the PerfectLearner can be configured to use perfectly random configurations to learn from, rather than going through the configurations one by one in a well defined order.
 
 \item \textbf{DeepLearner} tbd
-\item \textbf{DeepReinforcementLearner}: It instantiates a DeepLearning (network), and trains it using DRL. It then saves the trained network, which can then be used in the DeepLearningHeuristic we have seen earlier in section \ref{HSS}. The DeepReinforcementLearner runs for a number of epochs (or less if, based on other parameters discussed below, it is deemed to have converged). 
+\item \textbf{DeepReinforcementLearner}: It instantiates a DeepLearning (network), and trains it using \textbf{DRL}. It then saves the trained network, which can then be used in the DeepLearningHeuristic we have seen earlier in section \ref{HSS}. The DeepReinforcementLearner runs for a number of epochs (or less if, based on other parameters discussed below, it is deemed to have converged). 
+\item \textbf{DeepQLearner}: It instantiates a DeepLearning (network), and trains it using \textbf{DQL}. It then saves the trained network, which can then be used in the DeepLearningHeuristic as well as the DeepQHeuristic we have seen earlier in section \ref{HSS}. The DeepQLearner runs for a number of epochs (or less if, based on other parameters discussed below, it is deemed to have converged). 
 
 
 \end{itemize}
@@ -204,7 +206,7 @@ This module implements solvers, which solve puzzles. The base class Solver is a 
 \item \textbf{BFSSolver} TBD
 \item \textbf{AStarSolver} TBD
 \item \textbf{NaiveSlidingSolver} TBD
-\item \textbf{Kociemba} TBD
+\item \textbf{KociembaSolver} TBD
 \item \textbf{MonteCarloSearchTreeSolver} TBI I want to implement this in August when working on the Rubiks' ... following the Rubik's paper fromMcAleer \& Agostilenni et al \cite{https://doi.org/10.48550/arxiv.1805.07470}
 \end{itemize}
 

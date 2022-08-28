@@ -25,8 +25,8 @@ if '__main__' == __name__:
                             } """
     action_type = Solver.do_plot
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
-    n = 2
+    puzzle_type = Puzzle.sliding_puzzle
+    n = 4
     m = None
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
@@ -55,6 +55,8 @@ if '__main__' == __name__:
                            Solver.median_run_time,
                            Solver.median_expanded_nodes,
                            ]
+    plot_abbreviated_names = True
+    #exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
     fig_size = [20, 12]
     """ Which solver type {Solver.dfs,
                            Solver.bfs,

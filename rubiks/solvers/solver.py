@@ -231,6 +231,15 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     fig_size = 'fig_size'
     loc = 'loc'
     plot_abbreviated_names = 'plot_abbreviated_names'
+    markers = 'markers'
+    colors = 'colors'
+    log_scale = 'log_scale'
+    default_log_scale = [avg_expanded_nodes,
+                         avg_run_time,
+                         median_expanded_nodes,
+                         median_run_time,
+                        ]
+    exclude_solver_names = 'exclude_solver_names'
 
     @classmethod
     def populate_parser(cls, parser):
@@ -239,6 +248,26 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          type=str,
                          nargs='+',
                          default=cls.default_performance_metrics)
+        cls.add_argument(parser,
+                         field=cls.log_scale,
+                         type=str,
+                         nargs='+',
+                         default=cls.default_log_scale)
+        cls.add_argument(parser,
+                         field=cls.exclude_solver_names,
+                         type=str,
+                         nargs='+',
+                         default=tuple())
+        cls.add_argument(parser,
+                         field=cls.markers,
+                         type=str,
+                         nargs='+',
+                         default=tuple())
+        cls.add_argument(parser,
+                         field=cls.colors,
+                         type=str,
+                         nargs='+',
+                         default=tuple())
         cls.add_argument(parser,
                          field=cls.time_out,
                          type=int,
@@ -624,8 +653,11 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             return
         from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
         from rubiks.heuristics.deepqlearningheuristic import DeepQLearningHeuristic
+        for solver_name in self.exclude_solver_names:
+            performance = performance[performance[cls.solver_name].
+                apply(lambda sn: sn.find(solver_name) < 0)].reset_index(drop=True)
 
-        def short_name(solver_name):
+        def short_name(plot_abbreviated_names, solver_name):
             """ @Francois this function is a horrible hack ... abstract away by having short_name in Solver API """
             shorts = ['Naive', 'BFS', 'DFS', 'Kociemba']
             for short in shorts:
@@ -637,17 +669,18 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                 solver_name = solver_name.replace('AStarSolver', 'A*')
             if mcts:
                 mcts = 'MCTS'
-                if solver_name.find('[trim]') >= 0:
-                    mcts += '[trim]'
                 if solver_name.find('[c=') >= 0:
                     begin = solver_name.find('[c=')
-                    mcts += solver_name[begin: begin + solver_name[begin:].find(']') + 1]
+                    c = int(float((solver_name[begin + 3: begin + solver_name[begin:].find(']')])))
+                    mcts += '[c=%d]' % c
+                if solver_name.find('[trim]') >= 0:
+                    mcts += '[trim]'
             pos = solver_name.find(DeepLearningHeuristic.__name__)
             if pos < 0:
                 pos = solver_name.find(DeepQLearningHeuristic.__name__)
                 if pos < 0:
                     return solver_name
-            if self.plot_abbreviated_names:
+            if plot_abbreviated_names:
                 shorts = ['DeepReinforcementLearner',
                           'DeepQLearner',
                           'DeepLearner']
@@ -667,7 +700,14 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             if mcts:
                 solver_name = '%s[%s]' % (mcts, solver_name)
             return solver_name
-        performance.loc[:, Solver.solver_name] = performance[Solver.solver_name].apply(short_name)
+        for solver_name in self.exclude_solver_names:
+            performance = performance[performance[cls.solver_name].
+                apply(lambda sn: partial(short_name, False)(sn).find(solver_name) < 0)].reset_index(drop=True)
+        performance.loc[:, Solver.solver_name] = performance[Solver.solver_name].\
+            apply(partial(short_name, self.plot_abbreviated_names))
+        for solver_name in self.exclude_solver_names:
+            performance = performance[performance[cls.solver_name].
+                apply(lambda sn: sn.find(solver_name) < 0)].reset_index(drop=True)
         self.log_info(performance)
         assert 1 == len(set(performance.puzzle_type))
         assert 1 == len(set(performance.puzzle_dimension))
@@ -702,11 +742,16 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
-        markers = cycle(['x', '|', '.', '+', '1', 'v', '$o$', '3', '4', '_'])
-        markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
+        if not self.markers:
+            self.markers = ['x', '|', '.', '+', '1', '$o$', '3', '4', '_', 'v', ]
+        self.markers = cycle(self.markers)
+        solver_names = list(performance.drop_duplicates(cls.solver_name)[cls.solver_name])
+        self.markers = {sn: next(self.markers) for sn in solver_names}
         labels_shown = False
-        colors = cycle(['royalblue', 'darkred', 'goldenrod', 'darkcyan', 'darkseagreen', 'gainsboro',
-                        'olive', 'cadetblue'])
+        if not self.colors:
+            self.colors = ['royalblue', 'darkred', 'goldenrod', 'darkcyan', 'darkseagreen', 'gainsboro',
+                           'olive', 'cadetblue', 'crimson']
+        self.colors = cycle(self.colors)
         colors_map = dict()
         for r, c in product(range(n_rows), range(n_cols)):
             index = r * n_cols + c
@@ -728,21 +773,17 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                                                   len(grp[Solver.nb_shuffles]),
                                                                   len(grp[what]))
                 if sn not in colors_map:
-                    colors_map[sn] = next(colors)
+                    colors_map[sn] = next(self.colors)
                 bax.scatter(x=Solver.nb_shuffles,
                             y=what,
                             data=grp,
                             label=sn,
-                            marker=markers[sn],
+                            marker=self.markers[sn],
                             linewidths=3,
                             s=70,
                             c=colors_map[sn])
             (handles, labels) = bax.get_legend_handles_labels()[0]
-            if what in [cls.avg_expanded_nodes,
-                        cls.avg_run_time,
-                        cls.median_expanded_nodes,
-                        cls.median_run_time,
-                        ]:
+            if what in self.log_scale:
                 bax.set_yscale('log')
                 bax.set_ylabel(self.axis_label_format(what) + ' (log scale)', fontweight='bold')
             else:

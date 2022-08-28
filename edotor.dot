@@ -12,7 +12,7 @@ digraph g {
 			fillcolor="white",
 			style="filled, solid",
 			fontsize=10,
-			penwidth=1
+			penwidth=2
 		];
 
 	# PYTORCH
@@ -219,7 +219,7 @@ digraph g {
 			nodedfssolver [fillcolor=brown3]
 			nodestarsolver [fillcolor=brown3]
 			nodemctssolver
-			nodekociembasolver
+			nodekociembasolver [fillcolor=antiquewhite4]
 			nodenaiveslidingsolver
 			nodesolution -> nodesolver [style=dashed, arrowhead=none]
 			nodesolver -> nodebfssolver

@@ -27,18 +27,18 @@ if '__main__' == __name__:
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 3
-    m = None
+    m = 4
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 100
+    nb_samples = 1000
     min_nb_shuffles = 0
-    max_nb_shuffles = 50
-    step_nb_shuffles = 5
+    max_nb_shuffles = 0
+    step_nb_shuffles = 1
     add_perfect_shuffle = True
     nb_cpus = 10
-    chunk_size = 10
+    chunk_size = 0
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
     append = True
@@ -46,7 +46,7 @@ if '__main__' == __name__:
     do_not_reattempt_failed = False
     #skip = (36,39,85,145,146,161,174,190,) <- these 8 took more than 90 mins for 3x3x3 Rubiks'
     """ For plot """
-    loc = 'upper center'   # 'upper center'
+    loc = 'center'   # 'upper center'
     performance_metrics = [Solver.pct_solved,
                            #Solver.pct_optimal,
                            Solver.median_cost,
@@ -55,7 +55,9 @@ if '__main__' == __name__:
                            Solver.median_run_time,
                            Solver.median_expanded_nodes,
                            ]
-    plot_abbreviated_names = True
+    #markers = ['x', '.']
+    #colors = ['royalblue', 'royalblue', 'darkred', 'darkred', 'goldenrod', 'goldenrod', 'darkcyan', 'darkcyan']
+    plot_abbreviated_names = False
     fig_size = [20, 12]
     """ Which solver type {Solver.dfs,
                            Solver.bfs,
@@ -63,23 +65,25 @@ if '__main__' == __name__:
                            Solver.naive,
                            Solver.kociemba,
                            } """
-    solver_type = Solver.mcts
-    c = 1
-    trim_tree = False
+    solver_type = Solver.astar
+    c = 100
+    trim_tree = True
     limit = 12
-    time_out = 1800
+    time_out = 600
     log_solution = False
     check_optimal = False
-    max_consecutive_timeout = 100
+    max_consecutive_timeout = 1000
     """ Heuristic if a* {Heuristic.manhattan,
                          Heuristic.perfect,
                          Heuristic.deep_learning,
                          } """
-    heuristic_type = Heuristic.deep_q_learning
+    heuristic_type = Heuristic.manhattan
     """ If manhattan """
-    plus = True
+    plus = False
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
                                              DeepLearning.convolutional_net} """
+    log_scale = Solver.default_log_scale
+    exclude_solver_names = ['Naive']
     learner_type = Learner.deep_q_learner
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)

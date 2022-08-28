@@ -13,7 +13,7 @@ from rubiks.learners.deepreinforcementlearner import DeepReinforcementLearner
 from rubiks.learners.deeplearner import DeepLearner
 from rubiks.deeplearning.fullyconnected import FullyConnected
 from rubiks.deeplearning.convolutional import Convolutional
-from rubiks.utils.utils import snake_case
+from rubiks.utils.utils import snake_case, from_snake_case
 ########################################################################################################################
 
 

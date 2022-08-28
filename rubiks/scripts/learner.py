@@ -64,7 +64,7 @@ if '__main__' == __name__:
     nb_epochs = 100000
     training_data_every_epoch = False
     nb_sequences = 1000
-    nb_shuffles = 50 if n == 3 else 20 # (30 if n == 2 else 70) if puzzle_type == Puzzle.watkins_cube else (20 if n == 2 else 35)
+    nb_shuffles = 20
     cap_target_at_network_count = True
     update_target_network_frequency = 2000 if n == 3 else 1000
     update_target_network_threshold = 1e-2

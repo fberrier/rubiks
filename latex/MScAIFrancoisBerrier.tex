@@ -246,6 +246,7 @@ headsepline, % Uncomment to get a line under the header
 \begin{abstract}
 \addchaptertocentry{\abstractname} % Add the abstract to the table of contents
 \textbf{Motivation}
+\label{Abstract}
 \\
 Reinforcement Learning (\textbf{RL}), exposed with brilliant clarity in the Sutton book (\cite{Sutton1998}), has until recently known less success than we might have hoped for. Its framework is very appealing and intuitive. In particular, the mathematical beauty of Value iteration and Q iteration (\cite{WatkinsThesis}) for discrete state and action spaces, blindly iterating from \textit{any} initial value, is quite profound. Sadly, it had until recently proven hard to achieve practical success with these methods.
 \\
@@ -268,7 +269,7 @@ In the first chapter, I will quickly describe what I hope to get out of this pro
 
 \begin{acknowledgements}
 \addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
-\begin{comment}
+%\begin{comment}
 I am grateful to my employer Bank of America for sponsoring my part time 2-year MSc in Artificial Intelligence at Royal Holloway. I entered in the study of AI with a heavy dose of skepticism and am delighted to have learnt so much and revised my judgment of this field.
 In particular I would like to thank my managers Mitrajit Dutta and Stephen Thompson for supporting me in pursuing this MSc.
 \\
@@ -280,7 +281,7 @@ I would also like to thank Professor Chris Watkins, inventor of QL :), for agree
 \\
 \\
 Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I do, and her continued encouragement and enthusiasm in my pursuit of this MSc has made it so much easier to juggle between a demanding banking job, running 50 to 60 miles a week in preparation of multiple marathons and half marathons, and the coursework, lectures and exam revisions.
-\end{comment}
+%\end{comment}
 \end{acknowledgements}
 %----------------------------------------------------------------------------------------
 %	LIST OF CONTENTS/FIGURES/TABLES PAGES
@@ -305,6 +306,9 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 \textbf{DL} & \textbf{D}eep \textbf{L}earning\\
 \textbf{DQL} & \textbf{D}eep \textbf{Q}-\textbf{L}earning\\
 \textbf{DRL} & \textbf{D}eep \textbf{R}einforcment \textbf{L}earning\\
+\textbf{FIFO} & \textbf{F}irst \textbf{I}n \textbf{F}irst \textbf{O}out\\\
+\textbf{LIFO} & \textbf{L}ast \textbf{I}n \textbf{F}irst \textbf{O}out\\
+\textbf{MCTS} & \textbf{M}onte \textbf{C}arlo \textbf{T}ree \textbf{S}earch \\
 \textbf{ML} & \textbf{M}achine \textbf{L}earning\\
 \textbf{NLP} & \textbf{N}atural \textbf{L}anguage \textbf{P}rocessing\\
 \textbf{RC} & \textbf{R}ubiks' \textbf{C}ube\\
@@ -319,6 +323,11 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
   linkcolor  = black
 }
 \tableofcontents % Prints the main table of contents
+
+\hypersetup{%
+  colorlinks = true,
+  linkcolor  = orange
+}
 
 %----------------------------------------------------------------------------------------
 %	PHYSICAL CONSTANTS/OTHER DEFINITIONS
@@ -391,14 +400,6 @@ Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
 %----------------------------------------------------------------------------------------
-
-
-%\begin{thebibliography}{widest entry}
-
-%\bibitem{sliddingpuzzle} Whatever
-%{\href{https://en.wikipedia.org/wiki/Sliding\_puzzle}{wikipedia}} Sliding Puzzle Wikipedia article, accessed 19th June 2022
-
-%\end{thebibliography}
 
 
 %\printbibliography[heading=bibintoc]

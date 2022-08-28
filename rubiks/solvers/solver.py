@@ -22,7 +22,7 @@ from rubiks.puzzle.puzzled import Puzzled
 from rubiks.search.searchstrategy import SearchStrategy
 from rubiks.solvers.solution import Solution
 from rubiks.utils.utils import pprint, to_pickle, remove_file, s_format, \
-    pformat, ms_format, get_model_file_name, number_format
+    pformat, ms_format, get_model_file_name, number_format, snake_case
 ########################################################################################################################
 
 
@@ -230,6 +230,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     verbose = 'verbose'
     fig_size = 'fig_size'
     loc = 'loc'
+    plot_abbreviated_names = 'plot_abbreviated_names'
 
     @classmethod
     def populate_parser(cls, parser):
@@ -280,6 +281,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          default=0)
         cls.add_argument(parser,
                          cls.append,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         cls.plot_abbreviated_names,
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
@@ -618,17 +623,49 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                            self.performance_file_name)
             return
         from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
+        from rubiks.heuristics.deepqlearningheuristic import DeepQLearningHeuristic
 
         def short_name(solver_name):
+            """ @Francois this function is a horrible hack ... abstract away by having short_name in Solver API """
+            shorts = ['Naive', 'BFS', 'DFS', 'Kociemba']
+            for short in shorts:
+                if solver_name.find(short) >= 0:
+                    return short
+            a_star = solver_name.find('AStarSolver') >= 0
+            mcts = solver_name.find('MonteCarlo') >= 0
+            if a_star:
+                solver_name = solver_name.replace('AStarSolver', 'A*')
+            if mcts:
+                mcts = 'MCTS'
+                if solver_name.find('[trim]') >= 0:
+                    mcts += '[trim]'
+                if solver_name.find('[c=') >= 0:
+                    begin = solver_name.find('[c=')
+                    mcts += solver_name[begin: begin + solver_name[begin:].find(']') + 1]
             pos = solver_name.find(DeepLearningHeuristic.__name__)
             if pos < 0:
-                return solver_name
-            solver_name = solver_name[pos:]
-            solver_name = solver_name[solver_name.find('[') + 1:solver_name.find(']')].replace('.pkl', '')
-            solver_name = get_model_file_name(puzzle_type=self.get_puzzle_type(),
-                                              dimension=self.get_puzzle_dimension(),
-                                              model_name=solver_name)
-            solver_name = DeepLearningHeuristic.short_name(solver_name)
+                pos = solver_name.find(DeepQLearningHeuristic.__name__)
+                if pos < 0:
+                    return solver_name
+            if self.plot_abbreviated_names:
+                shorts = ['DeepReinforcementLearner',
+                          'DeepQLearner',
+                          'DeepLearner']
+                for short in shorts:
+                    if snake_case(short) in solver_name:
+                        solver_name = short
+                        break
+            else:
+                solver_name = solver_name[pos:]
+                solver_name = solver_name[solver_name.find('[') + 1:solver_name.find(']')].replace('.pkl', '')
+                solver_name = get_model_file_name(puzzle_type=self.get_puzzle_type(),
+                                                  dimension=self.get_puzzle_dimension(),
+                                                  model_name=solver_name)
+                solver_name = DeepLearningHeuristic.short_name(solver_name)
+            if a_star:
+                solver_name = 'A*[%s]' % solver_name
+            if mcts:
+                solver_name = '%s[%s]' % (mcts, solver_name)
             return solver_name
         performance.loc[:, Solver.solver_name] = performance[Solver.solver_name].apply(short_name)
         self.log_info(performance)
@@ -665,10 +702,11 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
-        markers = cycle(['x', '|', '.', '+', '1', 'v', '$f$', '$a$', '$t$'])
+        markers = cycle(['x', '|', '.', '+', '1', 'v', '$o$', '3', '4', '_'])
         markers = {sn: next(markers) for sn in set(performance[cls.solver_name])}
         labels_shown = False
-        colors = cycle(['royalblue', 'darkred', 'goldenrod', 'darkcyan', 'darkseagreen', 'gainsboro'])
+        colors = cycle(['royalblue', 'darkred', 'goldenrod', 'darkcyan', 'darkseagreen', 'gainsboro',
+                        'olive', 'cadetblue'])
         colors_map = dict()
         for r, c in product(range(n_rows), range(n_cols)):
             index = r * n_cols + c

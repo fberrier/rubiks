@@ -352,7 +352,7 @@ class PerfectLearner(Learner):
         data = read_pickle(self.learning_file_name)
         if not data[self.__class__.data]:
             return
-        hardest_puzzle = str(data[self.most_difficult_puzzle_tag])
+        hardest_puzzle = data[self.most_difficult_puzzle_tag].black_white_string()
         data = data[self.__class__.data]
         solved_puzzles = len(data)
         total_puzzles = self.get_goal().possible_puzzles_nb()
@@ -374,6 +374,7 @@ class PerfectLearner(Learner):
         for index, value in zip(data.index, data.values):
             plt.text(index, value, str(value))
         plt.legend()
+        plt.grid(True)
         plt.xlabel('Optimal cost')
         plt.ylabel('# of puzzles')
         plt.title(title, fontname='Consolas')

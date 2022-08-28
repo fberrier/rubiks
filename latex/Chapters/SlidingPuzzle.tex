@@ -15,9 +15,9 @@
 \hline
 BFS   & & & & & & &  x  & & \\
 \hline
-A$^{*}$[Manhattan]   & & & & & & &  x  & & \\
+A$^{*}$[Manhattan]   & & & & & &  x  &  x  & & \\
 \hline
-A$^{*}$[Manhattan++]   & & & & & & &  x  & & \\
+A$^{*}$[Manhattan++]   & & & & & &  x  &  x  & & \\
 \hline
 A$^{*}$[Perfect]   & & &  x  &  x  &  x  &  x  &  x  & & \\
 \hline
@@ -155,6 +155,9 @@ Improvement               & n/a &  n/a & x2.5 & x2.2 & x2.5 & x2.5 \\
 
 
 
+
+
+
 %-----------------------------------
 %	SECTION 2
 %-----------------------------------
@@ -191,7 +194,7 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3 by 
 \centering\vspace*{\fill}
 \begin{figure}[H]
 \centering
-\includegraphics[align=c, scale=0.55]{./Figures/33SPDeepReinforcementLearning.jpeg}
+\includegraphics[align=c, scale=0.55]{./Figures/33SPDeepReinforcementLearning}
 \caption[33SPDeepReinforcementLearning]{Deep reinforcement learner 3x3 SP}
 \label{fig:33SPDeepReinforcementLearning}
 \end{figure}
@@ -200,9 +203,30 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3 by 
 \restoregeometry
 
 
+
+\subsection{DRL vs DQL}
+
+
+\subsection{MCTS DQL}
+
+
+
+
 \subsection{Solvers' comparison}
 \label{ssec:33SPSC}
 Let me discuss a comparison of several algorithms on 1000 random puzzles generated for a number of random shuffling (with best-effort-no-backtracking) from 0 to 50 in step of 2, as well as for perfect shuffling (denoted by $\infty$) on the comparison graphs. The results are shown in figure \ref{fig:33SPPerformance}
+\\
+DL: 100 seq 15 to 31 shuffles 10k epochs connected 600 300 100
+\\
+Manhattan vs ++
+\\
+DQL vs DRL
+\\
+DxL vs Perfect
+
+
+
+
 
 \newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
 \begin{landscape}

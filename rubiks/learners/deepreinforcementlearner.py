@@ -70,7 +70,7 @@ class DeepReinforcementLearner(Learner):
     default_nb_cpus = 1
     plot_metrics = 'plot_metrics'
     default_plot_metrics = [learning_rate,
-                            target_network_count,
+                            #target_network_count,
                             max_target,
                             loss,
                             loss_over_max_target,
@@ -523,8 +523,16 @@ class DeepReinforcementLearner(Learner):
                 self.latency_tag: latency,
                 }
         to_pickle(data, self.learning_file_name)
+        versioned_learning_file_name = self.learning_file_name.replace('.pkl', '.%d.pkl' % self.target_network_count)
+        to_pickle(data, versioned_learning_file_name)
         self.log_info('Saved learner state & convergence data in ',
-                      self.learning_file_name)
+                      self.learning_file_name,
+                      ' and ',
+                      versioned_learning_file_name)
+
+    @staticmethod
+    def axis_label_format(what):
+        return what.upper().replace('_', ' ')
 
     def plot_learning(self):
         cls = self.__class__
@@ -571,7 +579,7 @@ class DeepReinforcementLearner(Learner):
         colors = ['royalblue', 'orangered', 'seagreen', 'darkmagenta', 'gold']
         colors = cycle(colors)
 
-        def add_plot(ax, y, c):
+        def add_plot(ax, y, c, x_label):
             if y in [drl.loss,
                      drl.loss_over_max_target,
                      drl.max_target,
@@ -587,16 +595,18 @@ class DeepReinforcementLearner(Learner):
                        s=10,
                        marker='.',
                        label=label)
-            ax.set_xlabel(x)
-            ax.set_ylabel(y)
+            if x_label:
+                ax.set_xlabel(self.axis_label_format(x), fontweight='bold')
+            ax.set_ylabel(self.axis_label_format(y), fontweight='bold')
             if label:
                 ax.legend()
             if y in [drl.loss, drl.loss_over_max_target]:
                 ax.set_yscale('log')
+            ax.grid(True)
 
         data[drl.loss_over_max_target] = data[drl.loss] / data[drl.max_target]
         for a in range(len(self.plot_metrics)):
-            add_plot(axes[a], self.plot_metrics[a], next(colors))
+            add_plot(axes[a], self.plot_metrics[a], next(colors), x_label=a == len(self.plot_metrics) - 1)
         plt.tight_layout()
         plt.show()
 

@@ -46,7 +46,7 @@ if '__main__' == __name__:
     do_not_reattempt_failed = False
     #skip = (36,39,85,145,146,161,174,190,) <- these 8 took more than 90 mins for 3x3x3 Rubiks'
     """ For plot """
-    loc = 'center'   # 'upper center'
+    loc = 'upper center'   # 'upper center'
     performance_metrics = [Solver.pct_solved,
                            #Solver.pct_optimal,
                            Solver.median_cost,

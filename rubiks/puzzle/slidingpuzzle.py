@@ -143,6 +143,17 @@ class SlidingPuzzle(Puzzle):
     def find_tile(self, value):
         return tuple(argwhere(value == self.tiles).squeeze().tolist())
 
+    def black_white_string(self):
+        tiles = DataFrame(self.tiles) #array(self.tiles.numpy(), dtype=str)
+        tiles = tiles.stack()
+        tiles[tiles == 0] = ''
+        tiles = tiles.unstack()
+        tiles = '\n'.join(tabulate(DataFrame(tiles),
+                                   headers='keys',
+                                   tablefmt='grid',
+                                   showindex=False).split('\n')[2:])
+        return '\n' + tiles
+
     def __repr__(self):
         tiles = DataFrame(self.tiles) #array(self.tiles.numpy(), dtype=str)
         tiles = tiles.stack()

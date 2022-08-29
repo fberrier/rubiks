@@ -647,22 +647,28 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         cls = self.__class__
         try:
             performance = read_pickle(self.performance_file_name)
+            self.log_info(performance)
         except FileNotFoundError:
             self.log_error('Cannot find \'%s\'. Did you really want to plot rather than solve?' %
                            self.performance_file_name)
             return
         from rubiks.heuristics.deeplearningheuristic import DeepLearningHeuristic
         from rubiks.heuristics.deepqlearningheuristic import DeepQLearningHeuristic
-        for solver_name in self.exclude_solver_names:
+        exclude_tag = 'exclude'
+        exclude_solver_names = list(self.exclude_solver_names) + [exclude_tag]
+        for _ in exclude_solver_names:
             performance = performance[performance[cls.solver_name].
-                apply(lambda sn: sn.find(solver_name) < 0)].reset_index(drop=True)
+                apply(lambda sn: sn.find(_) < 0)].reset_index(drop=True)
 
         def short_name(plot_abbreviated_names, solver_name):
             """ @Francois this function is a horrible hack ... abstract away by having short_name in Solver API """
-            shorts = ['Naive', 'BFS', 'DFS', 'Kociemba']
-            for short in shorts:
-                if solver_name.find(short) >= 0:
-                    return short
+            shorts = {'Naive': 'Naive',
+                      'BFS': 'BFS',
+                      'DFS': 'DFS',
+                      'KociembaSolver': 'Kociemba'}
+            for short_key, s_name in shorts.items():
+                if solver_name.find(short_key) >= 0:
+                    return s_name
             a_star = solver_name.find('AStarSolver') >= 0
             mcts = solver_name.find('MonteCarlo') >= 0
             if a_star:
@@ -675,6 +681,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                     mcts += '[c=%d]' % c
                 if solver_name.find('[trim]') >= 0:
                     mcts += '[trim]'
+            solver_name = solver_name.replace('KociembaHeuristic', 'Kociemba')
             pos = solver_name.find(DeepLearningHeuristic.__name__)
             if pos < 0:
                 pos = solver_name.find(DeepQLearningHeuristic.__name__)
@@ -695,19 +702,21 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                                   dimension=self.get_puzzle_dimension(),
                                                   model_name=solver_name)
                 solver_name = DeepLearningHeuristic.short_name(solver_name)
+                if solver_name is None:
+                    solver_name = exclude_tag
             if a_star:
                 solver_name = 'A*[%s]' % solver_name
             if mcts:
                 solver_name = '%s[%s]' % (mcts, solver_name)
             return solver_name
-        for solver_name in self.exclude_solver_names:
+        for _ in exclude_solver_names:
             performance = performance[performance[cls.solver_name].
-                apply(lambda sn: partial(short_name, False)(sn).find(solver_name) < 0)].reset_index(drop=True)
+                apply(lambda sn: partial(short_name, False)(sn).find(_) < 0)].reset_index(drop=True)
         performance.loc[:, Solver.solver_name] = performance[Solver.solver_name].\
             apply(partial(short_name, self.plot_abbreviated_names))
-        for solver_name in self.exclude_solver_names:
+        for _ in exclude_solver_names:
             performance = performance[performance[cls.solver_name].
-                apply(lambda sn: sn.find(solver_name) < 0)].reset_index(drop=True)
+                apply(lambda sn: sn.find(_) < 0)].reset_index(drop=True)
         self.log_info(performance)
         assert 1 == len(set(performance.puzzle_type))
         assert 1 == len(set(performance.puzzle_dimension))

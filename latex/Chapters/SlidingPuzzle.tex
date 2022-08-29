@@ -144,17 +144,18 @@ In this section, I verify empirically that, as expected, the overhead of adding 
 
 \begin{figure}[H]
 \centering
-\hspace*{-2.5cm}
+%\hspace*{-2.5cm}
 \includegraphics[scale=0.40]{./Figures/25SPPerformanceManhattan}
 %\decoRule
-\caption[SP]{Manhattan vs Manhattan++}
+\caption[SP]{Manhattan vs Manhattan++ for the 2x5 \textbf{SP}}
 \label{fig:25SPPerformanceManhattan}
 \end{figure}
 
-As can be seen, for low difficulty (up to \textit{nb\_shuffles = 20}), the node expansions are about the same in both cases, and the overhead of adding the linear constraints penalty increases the run time. However, for any non trivial case, Manhattan++ outperforms considerably (by a factor of about 2.5). For the 250 \textit{perfectly} shuffled instances, I got the following:
+As can be seen, for low difficulty (up to \textit{nb\_shuffles = 20}), the node expansions are about the same in both cases, and the overhead of adding the linear constraints penalty increases the run time. However, for any non trivial case, Manhattan++ outperforms considerably (by a factor of about 2.5). Table \ref{tab:mppOutperformance} below summarizes the results for the 250 \textit{perfectly} shuffled instances:
 
 
 
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{l*{7}{c}r}
                               & avg cost  & max cost & avg nodes & max nodes & avg run time (ms) & max run time (ms) \\
@@ -163,7 +164,9 @@ Manhattan                   &  34.7  & 50 & 133,332 & 2,110,887 & 49,561 & 606,8
 Manhattan++              & 34.7 &  50 & 53,637 & 962,324 & 19,723 & 239,468 \\
 Improvement               & n/a &  n/a & x2.5 & x2.2 & x2.5 & x2.5 \\
 \end{tabular}
+\caption{\label{tab:mppOutperformance} Manhattan++ outperformance on perfectly scrambled 2x5 \textbf{SP}}
 \end{center}
+\end{table}
 
 
 
@@ -178,7 +181,7 @@ Improvement               & n/a &  n/a & x2.5 & x2.2 & x2.5 & x2.5 \\
 
 
 \subsection{Perfect learner}
-As discussed in the previous section section \ref{sec:SPLowDimension}, the 3 by 3 SP is one of the cases I have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough that it is worth trying and comparing a few different methods, including deep reinforcement learning. To start with, I ran the PerfectLearner with n=m=3, and the results are shown below in figure \ref{fig:33SPPerfectLearning}. It is interesting to note that there are only two hardest configurations (cost 31) and 221 configurations of cost 30.
+As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \textbf{SP} is one of the cases I have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough that it is worth trying and comparing a few different methods, including deep reinforcement learning. To start with, I ran the PerfectLearner with n=m=3, and the results are shown below in figure \ref{fig:33SPPerfectLearning}. It is interesting to note that there are only two hardest configurations (cost 31) and 221 configurations of cost 30.
 
 
 \newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
@@ -188,7 +191,7 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3 by 
 \centering
 \includegraphics[scale=0.7]{./Figures/33SPPerfectLearning.jpeg}
 %\decoRule
-\caption[33SPPerfectLearning]{Perfect Learning 3x3 SP}
+\caption[33SPPerfectLearning]{Perfect Learning 3x3 \textbf{SP}}
 \label{fig:33SPPerfectLearning}
 \end{figure}
 \vfill
@@ -207,7 +210,7 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3 by 
 \begin{figure}[H]
 \centering
 \includegraphics[align=c, scale=0.55]{./Figures/33SPDeepReinforcementLearning}
-\caption[33SPDeepReinforcementLearning]{Deep reinforcement learner 3x3 SP}
+\caption[33SPDeepReinforcementLearning]{Deep reinforcement learner 3x3 \textbf{SP}}
 \label{fig:33SPDeepReinforcementLearning}
 \end{figure}
 \vfill
@@ -290,9 +293,11 @@ NaiveSlidingSolver  &   & 61 & n/a & 18 \\
 \hline
 \end{tabular}
 \end{center}
-On this specific configuration, there was obviously no chance that the BFS would complete, hence it timed out. It would have no matter what time out I set. Indeed, since it has no heuristic to guide its search, it would need to explore in the order of $3^{31}$ - roughly 617 trillions - nodes to reach the goal!
+On this specific configuration, \textbf{BFS} was unable to complete before the time-out of sixty seconds. In an implementation without duplicate pruning, \textbf{BFS} would time out no matter what the bound is set. Indeed, it would need to explore in the order of $3^{31}$ - roughly 617 trillions - nodes to reach the goal! Even with my implementation which does pruning, it would need to pretty much traverse the entire 3x3 \textbf{SP} tree.
 \\
-Rather interestingly, my DRL heuristic performs much better than the manhattan heuristic (not super suprising), but also outperforms the perfect heuristic quite significantly both in terms of run time and of nodes expansion. Obviously there is no guarantee that the perfect heuristic will not be outperformed on some random configuration, and it does on this occasion. However, as we have seen in the previous subection \ref{ssec:33SPSC}, it is not the case on average.
+Rather interestingly, the \textbf{DRL} heuristic performs much better than the Manhattan heuristic (not super suprising), but also outperforms the perfect heuristic quite significantly both in terms of run time and of nodes expansion. Obviously there is no guarantee that the perfect heuristic will not be outperformed on some random configuration, and it does on this occasion. However, as we have seen in the previous subection \ref{ssec:33SPSC}, it is not the case on average.
+\\
+\textbf{MCTS} with $c$ = 0 performs rather poorly, finding the longest solution (even than my Naive solver). It does behave a bit like \textbf{DFS} when $c$ is very small, expect the direction of travel is a bit more informed. I increased $c$, and for values over 69, it always gave me a solution of cost 35, which is not bad at all.
 \\
 Finally, the naive solver outperforms every other solver in terms of run time, but finds a rather poor solution of 61 moves.
 

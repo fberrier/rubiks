@@ -158,7 +158,9 @@ def get_shuffles_file_name(puzzle_type,
 ########################################################################################################################
 
 
-def pformat(what):
+def pformat(what, floatfmt=None, showindex=False):
+    if floatfmt is None:
+        floatfmt = '.2g'
     if isinstance(what, int):
         what = format_string('%d', what, grouping=True)
     elif isinstance(what, DataFrame):
@@ -167,9 +169,9 @@ def pformat(what):
                 else v for k, v in what.items()}
         return '\n' + tabulate(DataFrame(what),
                                headers='keys',
-                               floatfmt='.2g',
+                               floatfmt=floatfmt,
                                tablefmt='psql',
-                               showindex=False)
+                               showindex=showindex)
     elif isinstance(what, Series):
         what = what.to_dict()
         what = {k: ('%.2g' % v) if isinstance(v, float) else v for k, v in what.items()}

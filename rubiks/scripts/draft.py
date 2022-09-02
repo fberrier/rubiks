@@ -23,11 +23,11 @@ if '__main__' == __name__:
                             Solver.do_cleanup_performance_file,
                             Solver.do_cleanup_shuffles_file,
                             } """
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
     n = 3
-    m = 4
+    m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
@@ -46,19 +46,19 @@ if '__main__' == __name__:
     do_not_reattempt_failed = False
     #skip = (36,39,85,145,146,161,174,190,) <- these 8 took more than 90 mins for 3x3x3 Rubiks'
     """ For plot """
-    loc = 'center'   # 'upper center'
+    loc = 'upper center'   # 'upper center'
     performance_metrics = [Solver.pct_solved,
-                           #Solver.pct_optimal,
+                           Solver.optimality_score,
                            Solver.median_cost,
                            Solver.max_cost,
-                           Solver.optimality_score,
                            Solver.median_run_time,
                            Solver.median_expanded_nodes,
                            ]
+    labels_at_top = True
     #markers = ['x', '.']
     #colors = ['royalblue', 'royalblue', 'darkred', 'darkred', 'goldenrod', 'goldenrod', 'darkcyan', 'darkcyan']
-    plot_abbreviated_names = False
-    fig_size = [20, 12]
+    plot_abbreviated_names = True
+    fig_size = (12, 20)
     """ Which solver type {Solver.dfs,
                            Solver.bfs,
                            Solver.astar,
@@ -83,7 +83,7 @@ if '__main__' == __name__:
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
                                              DeepLearning.convolutional_net} """
     log_scale = Solver.default_log_scale
-    exclude_solver_names = ['Naive']
+    #exclude_solver_names = ['Naive', 'MCTS', 'hattan', 'DeepQ', 'DeepRe', 'Perfect', 'BFS']
     learner_type = Learner.deep_q_learner
     network_type = DeepLearning.fully_connected_net
     layers_description = (600, 300, 100)

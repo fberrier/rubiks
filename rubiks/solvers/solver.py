@@ -232,6 +232,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
     loc = 'loc'
     plot_abbreviated_names = 'plot_abbreviated_names'
     markers = 'markers'
+    marker_size = 'marker_size'
     colors = 'colors'
     log_scale = 'log_scale'
     default_log_scale = [avg_expanded_nodes,
@@ -240,6 +241,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          median_run_time,
                         ]
     exclude_solver_names = 'exclude_solver_names'
+    labels_at_top = 'labels_at_top'
 
     @classmethod
     def populate_parser(cls, parser):
@@ -272,6 +274,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          field=cls.time_out,
                          type=int,
                          default=0)
+        cls.add_argument(parser,
+                         type=int,
+                         field=cls.marker_size,
+                         default=70)
         cls.add_argument(parser,
                          type=int,
                          field=cls.max_consecutive_timeout,
@@ -367,6 +373,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          type=int,
                          nargs='+',
                          default=tuple())
+        cls.add_argument(parser,
+                         cls.labels_at_top,
+                         default=False,
+                         action=cls.store_true)
     
     def performance_test(self):
         """
@@ -561,7 +571,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             res[cls.avg_run_time] = nan if isnan(avg_run_time) else int(avg_run_time * 1000)
             res[cls.median_run_time] = int(median_run_time * 1000)
             res[cls.max_run_time] = nan if isnan(max_run_time) else int(max_run_time * 1000)
-            res[cls.pct_solved] = int(100 * nb_solved / self.nb_samples)
+            res[cls.pct_solved] = int(100 * nb_solved / self.nb_samples) if not isnan(nb_solved) else 0
             res[cls.pct_optimal] = int(100 * (sample - nb_not_optimal) / self.nb_samples)
             optimality_score = [0, 0]
             for opt_c, c in zip(optimal_cost_list, cost_list):
@@ -693,7 +703,16 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                           'DeepLearner']
                 for short in shorts:
                     if snake_case(short) in solver_name:
+                        shorts_networks = ['FullyConnected',
+                                           'Convolutional',]
+                        for short_net in shorts_networks:
+                            if snake_case(short_net) in solver_name:
+                                short_net = short_net
+                                break
+                            short_net = None
                         solver_name = short
+                        if short_net:
+                            solver_name += '[%s]' % short_net
                         break
             else:
                 solver_name = solver_name[pos:]
@@ -746,8 +765,8 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         title = pformat(title)
         if self.show_title:
             plt.title(title, fontname='Consolas')
-        n_cols = ceil(len(y) / 2)
-        n_rows = ceil(len(y) / n_cols)
+        n_rows = ceil(len(y) / 2)
+        n_cols = ceil(len(y) / n_rows)
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])
@@ -759,7 +778,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         labels_shown = False
         if not self.colors:
             self.colors = ['royalblue', 'darkred', 'goldenrod', 'darkcyan', 'darkseagreen', 'gainsboro',
-                           'olive', 'cadetblue', 'crimson']
+                           'olive', 'cadetblue', 'crimson', 'steelblue']
         self.colors = cycle(self.colors)
         colors_map = dict()
         for r, c in product(range(n_rows), range(n_cols)):
@@ -789,7 +808,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                             label=sn,
                             marker=self.markers[sn],
                             linewidths=3,
-                            s=70,
+                            s=self.marker_size,
                             c=colors_map[sn])
             (handles, labels) = bax.get_legend_handles_labels()[0]
             if what in self.log_scale:
@@ -798,14 +817,24 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             else:
                 bax.set_ylabel(self.axis_label_format(what), fontweight='bold')
             bax.grid(True)
-            if what in [cls.pct_solved] and not labels_shown:
+            if what in [cls.pct_solved] and not labels_shown and not self.labels_at_top:
                 """ Ideally we can show the labels on one of these so we don't have to
                 display at top where it might overlap with the title. """
                 bax.legend(loc=self.loc, prop={'weight': 'bold'})
                 labels_shown = True
         if not labels_shown:
-            fig.legend(handles, labels, loc='upper center')
-        self.log_info(performance[[cls.solver_name, cls.optimality_score]].groupby(cls.solver_name).mean().transpose())
+            fig.legend(handles, labels, loc='upper left', prop={'weight': 'bold'})
+        performance = performance[performance[cls.nb_shuffles] == max(performance[cls.nb_shuffles])].\
+            reset_index(drop=True)
+        performance = performance[[cls.solver_name,
+                                   cls.optimality_score,
+                                   cls.median_expanded_nodes,
+                                   cls.median_cost,
+                                   cls.max_cost,
+                                   cls.median_run_time,
+                                   ]].groupby(cls.solver_name).mean().\
+            reset_index(drop=False).sort_values(cls.optimality_score)
+        self.log_info(pformat(performance, floatfmt='.2f', showindex=True))
         plt.show()
 
 ########################################################################################################################

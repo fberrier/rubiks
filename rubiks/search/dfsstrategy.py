@@ -49,12 +49,12 @@ class DepthFirstSearch(SearchStrategy):
         if node.state.is_goal():
             return node
         limit_reached = False
+        self.increment_node_count()
         for move in node.state.possible_moves():
             child = Node(state=node.state.apply(move),
                          parent=node,
                          action=move,
                          path_cost=move.cost() + node.path_cost)
-            self.increment_node_count()
             result = self.depth_first(child, depth+1)
             if result is RecursionError:
                 limit_reached = True

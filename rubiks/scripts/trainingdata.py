@@ -12,14 +12,14 @@ from rubiks.puzzle.trainingdata import TrainingData
 if '__main__' == __name__:
     logger = Loggable(name=__file__)
     puzzle_type = Puzzle.sliding_puzzle
-    n = 3
+    n = 5
     nb_cpus = 1
     chunk_size=0
     verbose=False
-    nb_sequences = nb_cpus * 1000
+    nb_sequences = nb_cpus * 1
     training_data = TrainingData(**globals())
-    repeat = 10
-    for nb_shuffles in [inf]:
+    repeat = 1
+    for nb_shuffles in [10]:
         training_data.generate(nb_shuffles=nb_shuffles,
                                nb_sequences=nb_sequences,
                                repeat=repeat)

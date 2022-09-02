@@ -5,7 +5,7 @@
 \label{sec:ResultsSP} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
 
 
-In this chapter, I show and discuss results on \textbf{SP} of various dimensions, going from \textit{small} dimensions (which I define as those I can reasonably \textit{fully} solve given my computing resources, the finite time I have to complete this project, and the choice of programming language), then I move to studying in much detail the case of the 3x3, and finally move on to slightly higher dimensions 3x4 and 4x4. Table \ref{tab:gridSP} below shows which solvers I have run on each of the dimensions attempted.
+In this chapter, I show and discuss results on \textbf{SP} of various dimensions, going from \textit{small} dimensions (which I define as those I can reasonably \textit{fully} solve given my computing resources, the finite time I have to complete this project, and the choice of programming language), then I move to studying in much detail the case of the 3x3, and finally move on to slightly higher dimensions 3x4 and 4x4. Table \ref{tab:gridSP} below shows which solvers I have run on each of the dimensions attempted. The reader is referred to the implementation chapter \ref{sec:Implementation} for a detailed explanation of each of these solvers, and to the appendix section \ref{sec:Examples} for code examples on how to run them.
 
 \begin{table}[H]
 \begin{center}
@@ -23,7 +23,9 @@ A$^{*}$[Perfect]   & & &  x  &  x  &  x  &  x  &  x  & & \\
 \hline
 Naive   & & & & & & &  x  &  x  & x \\
 \hline
-A$^{*}$[DL[A$^{*}$[Manhattan++]]]   & & & & & & &  x  &  x  & x \\
+A$^{*}$[DL[FullyConnected]]   & & & & & & &  x  &  x  & x \\
+\hline
+A$^{*}$[DL[Convolutional]]   & & & & & & &  x  &  & \\
 \hline
 A$^{*}$[DRL]   & & & & & & &  x  &  x  & x \\
 \hline
@@ -160,9 +162,9 @@ As can be seen, for low difficulty (up to \textit{nb\_shuffles = 20}), the node 
 \begin{tabular}{l*{7}{c}r}
                               & avg cost  & max cost & avg nodes & max nodes & avg run time (ms) & max run time (ms) \\
 \hline
-Manhattan                   &  34.7  & 50 & 133,332 & 2,110,887 & 49,561 & 606,838 \\
-Manhattan++              & 34.7 &  50 & 53,637 & 962,324 & 19,723 & 239,468 \\
-Improvement               & n/a &  n/a & x2.5 & x2.2 & x2.5 & x2.5 \\
+Manhattan                   &  34.6  & 49 & 46,483 & 575,050 & 36,088 & 428,887 \\
+Manhattan++              & 34.6 &  49 & 18,780 & 213,557 & 14,665 & 165,830 \\
+Improvement               & n/a &  n/a & x2.5 & x2.7 & x2.5 & x2.6 \\
 \end{tabular}
 \caption{\label{tab:mppOutperformance} Manhattan++ outperformance on perfectly scrambled 2x5 \textbf{SP}}
 \end{center}
@@ -220,18 +222,18 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 
 \subsection{MCTS DQL}
 
-\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
-\begin{landscape}
-\centering\vspace*{\fill}
+%\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
+%\begin{landscape}
+%\centering\vspace*{\fill}
 \begin{figure}[H]
 \centering
-\includegraphics[align=c, scale=0.55]{./Figures/33SPPerformanceMCTS}
-\caption[33SPPerformanceMCTS]{MCTS tuning 3x3 SP}
+\includegraphics[align=c, scale=0.6]{./Figures/33SPPerformanceMCTS}
+\caption[33SPPerformanceMCTS]{\textbf{MCTS} tuning 3x3 \textbf{SP}}
 \label{fig:33SPPerformanceMCTS}
 \end{figure}
-\vfill
-\end{landscape}
-\restoregeometry
+%\vfill
+%\end{landscape}
+%\restoregeometry
 
 
 
@@ -247,24 +249,18 @@ Manhattan vs ++
 DQL vs DRL
 \\
 DxL vs Perfect
+\\ Put table for nb\_shuffle=inf and highlight best in diff categories (cost, optimality score, run time, nodes)
+\\ say how much of the puzzles the solvers have seen
 
 
 
-
-
-\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
-\begin{landscape}
-\centering\vspace*{\fill}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.63]{./Figures/33SPPerformance}
+\includegraphics[scale=0.65]{./Figures/33SPPerformance}
 %\decoRule
-\caption[33SPPerformance]{Solvers' performance comparison 3x3 SP}
+\caption[33SPPerformance]{Solvers' performance comparison 3x3 \textbf{SP}}
 \label{fig:33SPPerformance}
 \end{figure}
-\vfill
-\end{landscape}
-\restoregeometry
 
 
 \subsection{Solving the hardest 3x3 problem}
@@ -310,19 +306,18 @@ Finally, the naive solver outperforms every other solver in terms of run time, b
 
 \label{ssec:34SPSC}
 
-\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
-\begin{landscape}
-\centering\vspace*{\fill}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.63]{./Figures/34SPPerformance}
 %\decoRule
-\caption[34SPPerformance]{Solvers' performance comparison 3x4 SP}
+\caption[34SPPerformance]{Solvers' performance comparison 3x4 \textbf{SP}}
 \label{fig:34SPPerformance}
 \end{figure}
-\vfill
-\end{landscape}
-\restoregeometry
+
+
+
+
+
 %-----------------------------------
 %	SECTION 4
 %-----------------------------------
@@ -333,17 +328,11 @@ Finally, the naive solver outperforms every other solver in terms of run time, b
 
 \label{ssec:44SPSC}
 
-\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
-\begin{landscape}
-\centering\vspace*{\fill}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.63]{./Figures/44SPPerformanceAll}
 %\decoRule
-\caption[44SPPerformance]{Solvers' performance comparison 4x4 SP}
+\caption[44SPPerformance]{Solvers' performance comparison 4x4 \textbf{SP}}
 \label{fig:44SPPerformance}
 \end{figure}
-\vfill
-\end{landscape}
-\restoregeometry
 

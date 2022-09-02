@@ -57,7 +57,7 @@ class SearchStrategy(Loggable, Factory, metaclass=ABCMeta):
         self.run_time = 0
         self.actions = []
         self.cost = 0
-        self.expanded_nodes = 1
+        self.expanded_nodes = 0
 
     def get_run_time(self):
         return self.run_time

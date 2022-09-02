@@ -50,12 +50,12 @@ class AStar(SearchStrategy):
                 self.check_time_out()
                 return node
             explored.add(node.state)
+            self.increment_node_count()
             for move in node.state.possible_moves():
                 node_2 = Node(state=node.state.apply(move),
                               parent=node,
                               action=move,
                               path_cost=move.cost() + node.path_cost)
-                self.increment_node_count()
                 g_plus_h_2 = node_2.path_cost + self.heuristic.cost_to_go(node_2.state)
                 if node_2 in reverse_frontier:
                     existing_g_plus_h = reverse_frontier[node_2]

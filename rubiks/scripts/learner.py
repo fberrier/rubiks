@@ -23,11 +23,11 @@ if '__main__' == __name__:
                             Learner.do_plot,
                             Learner.do_cleanup_learning_file,
                             } """
-    action_type = Learner.do_learn
+    action_type = Learner.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.rubiks_cube
     n = 2
-    m = 3
+    m = 4
     """ more init for specific puzzles """
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
@@ -66,12 +66,12 @@ if '__main__' == __name__:
     nb_sequences = 1000
     nb_shuffles = 20
     cap_target_at_network_count = True
-    update_target_network_frequency = 2000 if n == 3 else 1000
-    update_target_network_threshold = 1e-2
-    max_nb_target_network_update = nb_shuffles + 10
+    update_target_network_frequency = 1000
+    update_target_network_threshold = 1e-3
+    max_nb_target_network_update = 100
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
-    learning_rate = 1e-2
+    learning_rate = 1e-3
     scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
     """ DL learner """

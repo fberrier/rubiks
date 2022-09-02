@@ -83,6 +83,11 @@ class Solution:
                 string.pop(field, None)
         return '\n' + pformat(string)
 
+    def __getitem__(self, item):
+        if hasattr(self, item):
+            return getattr(self, item)
+        return self.additional_info.get(item)
+
     def to_str_light(self):
         return self.to_str(fields=[Solution.puzzle,
                                    Solution.cost,

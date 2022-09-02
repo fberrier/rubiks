@@ -25,19 +25,19 @@ if '__main__' == __name__:
                             } """
     action_type = Solver.do_plot
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
-    n = 2
-    m = None
+    puzzle_type = Puzzle.sliding_puzzle
+    n = 4
+    m = 4
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
     """ For performance test """
-    nb_samples = 200 if n == 2 else 100
+    nb_samples = 100
     min_nb_shuffles = 0
-    max_nb_shuffles = 20
-    step_nb_shuffles = 2 if n == 2 else 4
+    max_nb_shuffles = 45
+    step_nb_shuffles = 1
     add_perfect_shuffle = True
-    nb_cpus = 1
+    nb_cpus = 8
     chunk_size = 0
     performance_file_name = get_performance_file_name(puzzle_type, dimension)
     shuffles_file_name = get_shuffles_file_name(puzzle_type, dimension)
@@ -48,16 +48,20 @@ if '__main__' == __name__:
     """ For plot """
     loc = 'upper center'   # 'upper center'
     performance_metrics = [Solver.pct_solved,
-                           #Solver.pct_optimal,
+                           Solver.optimality_score,
                            Solver.median_cost,
                            Solver.max_cost,
-                           Solver.optimality_score,
                            Solver.median_run_time,
                            Solver.median_expanded_nodes,
                            ]
     plot_abbreviated_names = True
+    labels_at_top = True
+    #marker_size = 120
+    #markers = ['4', 'x', '.', 'x', '.', 'x', '.', 'x', '.', ]
+    #colors = ['olive', 'royalblue', 'royalblue', 'darkred', 'darkred', 'goldenrod', 'goldenrod', 'darkcyan', 'darkcyan']
+    #exclude_solver_names = ['hattan']
     #exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
-    fig_size = [20, 12]
+    fig_size = (12, 12)
     """ Which solver type {Solver.dfs,
                            Solver.bfs,
                            Solver.astar,
@@ -65,6 +69,8 @@ if '__main__' == __name__:
                            Solver.kociemba,
                            } """
     solver_type = Solver.astar
+    c = 100
+    trim_tree = True
     limit = 12
     time_out = 7200
     log_solution = False
@@ -74,19 +80,19 @@ if '__main__' == __name__:
                          Heuristic.perfect,
                          Heuristic.deep_learning,
                          } """
-    heuristic_type = Heuristic.deep_learning
+    heuristic_type = Heuristic.deep_q_learning
     """ If manhattan """
     plus = True
     """ If deep_learning, what network_type {DeepLearning.fully_connected_net,
                                              DeepLearning.convolutional_net} """
-    learner_type = Learner.deep_learner
+    learner_type = Learner.deep_q_learner
     network_type = DeepLearning.fully_connected_net
-    layers_description = (4096, 2048, 512) if n == 3 else (600, 300, 100)
+    layers_description = (600, 300, 100)
     nb_epochs = 100000
-    nb_sequences = 1000
-    nb_shuffles = 30
-    nb_shuffles_min = 1
-    nb_shuffles_max = 14
+    nb_sequences = 150
+    nb_shuffles = 75
+    nb_shuffles_min = 37
+    nb_shuffles_max = 47
     learning_rate = 1e-2
     scheduler = DeepReinforcementLearner.exponential_scheduler
     gamma_scheduler = 0.9999
@@ -96,12 +102,12 @@ if '__main__' == __name__:
     drop_out = 0.
     """ Or for convo """
     kernel_size = (2, 2)
-    convo_layers_description = (256, 300, 300)
+    convo_layers_description = (81, 300,)
     parallel_fully_connected_layers_description = (300,)
     fully_connected_layers_description = (600, 300, 100,)
     padding = 0
     try:
-        if heuristic_type == Heuristic.deep_learning:
+        if heuristic_type in [Heuristic.deep_learning, Heuristic.deep_q_learning]:
             model_file_name = Learner.factory(**globals()).get_model_name()
             logger.log_info({DeepLearningHeuristic.model_file_name: model_file_name})
         elif heuristic_type == Heuristic.perfect:

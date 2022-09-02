@@ -26,12 +26,12 @@ class BreadthFirstSearch(SearchStrategy):
             node = frontier[-1]
             frontier = frontier[:-1]
             explored.add(node.state)
+            self.increment_node_count()
             for move in node.state.possible_moves():
                 child = Node(state=node.state.apply(move),
                              parent=node,
                              action=move,
                              path_cost=move.cost() + node.path_cost)
-                self.increment_node_count()
                 if child in frontier or child.state in explored:
                     continue
                 if child.state.is_goal():

@@ -523,7 +523,8 @@ class DeepReinforcementLearner(Learner):
                 self.latency_tag: latency,
                 }
         to_pickle(data, self.learning_file_name)
-        versioned_learning_file_name = self.learning_file_name.replace('.pkl', '.%d.pkl' % self.target_network_count)
+        count = self.target_network_count if self.__class__ is DeepReinforcementLearner else self.epoch
+        versioned_learning_file_name = self.learning_file_name.replace('.pkl', '.%d.pkl' % count)
         to_pickle(data, versioned_learning_file_name)
         self.log_info('Saved learner state & convergence data in ',
                       self.learning_file_name,

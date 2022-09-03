@@ -116,12 +116,16 @@ A very poor lower bound can be always obtained by the following reasoning: each 
 %-----------------------------------
 %	SECTION 2
 %-----------------------------------
-\section{Rubiks' Cube}
+\section{Rubik's Cube}
 
 
 
 \subsection{History}
-The second puzzle I will focus on is the well known Rubiks' Cube (\textbf{RC}), invented in 1974 by Erno Rubik, originally known under the name of \textit{Magic Cube} (see \cite{RubiksWiki}). Since it was commericalised in 1980, it has kown a worldwide success: countless people are playing with the famous original 3x3x3 cube, as well as with countless variations, more or less difficult of it. Competitions nowadays bring together \textit{speedcubers} who have trained for years and memorized various algorithms to solve the Rubiks in astonishly effective and fast times (literally in seconds for the best ones). Interestingly, some of the principles used by speedcubers generalise to different dimensions. As an example, it is quite impressive to watch \textit{Cubastic} solve a 15x15x15 RC in two and a half hours (\cite{151515Rubiks}).
+The second puzzle I will focus on is the well known Rubik's Cube (\textbf{RC}), invented in 1974 by Erno Rubik, originally known under the name of \textit{Magic Cube} (see \cite{RubiksWiki}). Since it was commericalised in 1980, it has kown a worldwide success: countless people are playing with the famous original 3x3x3 cube, as well as with countless variations, more or less difficult of it. Competitions nowadays bring together \textit{speedcubers} who have trained for years and memorized various algorithms to solve the Rubik's in astonishly effective and fast times (literally in seconds for the best ones). Interestingly, some of the principles used by speedcubers generalise to different dimensions. As an example, it is quite impressive to watch \textit{Cubastic} solve a 15x15x15 RC in two and a half hours (\cite{151515Rubiks}).
+
+
+
+
 
 \subsection{Search Space \& Solvability}
 In my code as well as in this write-up, as is very customary in the RC literature, I will refer to the faces as F (front), B (back), U (up), D (down), L (left) and R (right). The RC's tiles are of 6 different colors, and without loss of generality, we can consider that these colors are also called F, B, U, D, L and R, and consider the goal state as one where, up to rotations of the whole cube, the color's name match the faces (color F on face F, etc). The RC has, as one would expect, an extremely large state space. If we ignore the equivalence via full-cube rotations, there are 24 goal states, since any of the colors can be placed on the F face, and then any of the 4 adjacent colors can be placed on the U face (say). Once these 2 are chosen, the remaining faces are determined. This is not immediately obvious, but not difficult to convince oneself that this is the case with the following two observations about the structure of corner \textit{cubies}: first observation is that they have 3 determined colors, which are fixed once and for all. In particular, the fact that there is no corner with colors F and B, means that once the RC is in solved state, we have to have colors F and B on opposite faces, and similarly for colors U and D as well as colors L and R. Hence, having fixed the color on face F, the color on face B is fixed too. The second observation is that when facing a corner cubie, the order of its three color (e.g. enumerated clock-wise) is invariant. For instance, consider the corner cubie with colors (F, R, U). There is no scrambling of the cube that will produce clock-wise order of e.g. (F, U, R). This is obvious once you consider that there is no move of the Rubik's cube you could not perform while holding a given corner fixed in space (e.g. by pinching that corner cubie with your fingers and never letting go of it).
@@ -147,6 +151,14 @@ TBD
 \\
 \cite{RubiksRadu}
 \\
+
+
+%-----------------------------------
+%	SECTION 3
+%-----------------------------------
+\section{Solving puzzles \textit{without human knowledge}}
+
+From handcrafted (naive, kociemba) to supervised (DL) to unsupervised (DRL \& DQL) .... but sometimes subtle knowledge injected in e.g. representation or simplifications.
 
 
 

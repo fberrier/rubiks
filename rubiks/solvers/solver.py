@@ -227,6 +227,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                    median_expanded_nodes,
                                    pct_solved]
     show_title = 'show_title'
+    lite_title = 'lite_title'
     verbose = 'verbose'
     fig_size = 'fig_size'
     loc = 'loc'
@@ -324,6 +325,10 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                          action=cls.store_true)
         cls.add_argument(parser,
                          cls.show_title,
+                         default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         cls.lite_title,
                          default=False,
                          action=cls.store_true)
         cls.add_argument(parser,
@@ -752,11 +757,13 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         puzzle_type = self.get_puzzle_type()
         puzzle_dimension = self.get_puzzle_dimension()
         title = {cls.puzzle_type: puzzle_type,
-                 cls.puzzle_dimension: puzzle_dimension,
-                 cls.performance_file_name: self.performance_file_name}
-        fields_to_add = [cls.nb_samples, cls.time_out]
-        for field in fields_to_add:
-            title[field] = self.get_config()[field]
+                 cls.puzzle_dimension: puzzle_dimension}
+        if not self.lite_title:
+            title.update({cls.performance_file_name: self.performance_file_name})
+        if not self.lite_title:
+            fields_to_add = [cls.nb_samples, cls.time_out]
+            for field in fields_to_add:
+                title[field] = self.get_config()[field]
         fig = plt.figure(self.performance_file_name,
                          figsize=tuple(self.fig_size))
         plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
@@ -764,7 +771,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
         plt.axis('off')
         title = pformat(title)
         if self.show_title:
-            plt.title(title, fontname='Consolas')
+            plt.title(title.upper().replace('_', ' '), fontname='Consolas', fontdict={'weight': 'bold'})
         n_rows = ceil(len(y) / 2)
         n_cols = ceil(len(y) / n_rows)
         sps = GridSpec(n_rows, n_cols, figure=fig)

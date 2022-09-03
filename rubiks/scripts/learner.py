@@ -23,11 +23,11 @@ if '__main__' == __name__:
                             Learner.do_plot,
                             Learner.do_cleanup_learning_file,
                             } """
-    action_type = Learner.do_plot
+    action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.rubiks_cube
     n = 2
-    m = 4
+    m = 2
     """ more init for specific puzzles """
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
@@ -61,14 +61,14 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL/DQL learner config is here ... """
-    nb_epochs = 100000
+    nb_epochs = 10000
     training_data_every_epoch = False
-    nb_sequences = 1000
-    nb_shuffles = 20
-    cap_target_at_network_count = True
+    nb_sequences = 10000
+    nb_shuffles = 15
+    cap_target_at_network_count = False
     update_target_network_frequency = 1000
-    update_target_network_threshold = 1e-3
-    max_nb_target_network_update = 100
+    update_target_network_threshold = 1e-2
+    max_nb_target_network_update = 10
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01
     learning_rate = 1e-3
@@ -76,7 +76,7 @@ if '__main__' == __name__:
     gamma_scheduler = 0.9999
     """ DL learner """
     save_at_each_epoch = True
-    threshold = 0.0001
+    threshold = 0.001
     training_data_freq = 1000
     high_target = nb_shuffles + 1
     training_data_from_data_base = True

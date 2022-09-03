@@ -56,12 +56,15 @@ if '__main__' == __name__:
                            ]
     plot_abbreviated_names = True
     labels_at_top = True
+    show_title = True
+    lite_title = True
+    plot_abbreviated_names = True
     #marker_size = 120
     #markers = ['4', 'x', '.', 'x', '.', 'x', '.', 'x', '.', ]
     #colors = ['olive', 'royalblue', 'royalblue', 'darkred', 'darkred', 'goldenrod', 'goldenrod', 'darkcyan', 'darkcyan']
     #exclude_solver_names = ['hattan']
-    #exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
-    fig_size = (12, 12)
+    exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
+    fig_size = (12.5, 12)
     """ Which solver type {Solver.dfs,
                            Solver.bfs,
                            Solver.astar,

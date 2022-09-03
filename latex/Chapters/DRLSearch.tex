@@ -11,7 +11,7 @@ In this section, I will succinctly go through the different techniques that unde
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-\section{Graph Search \& Heuristics}
+\section{Graphs Search \& Heuristics}
 
 \label{GSH}
 
@@ -23,6 +23,27 @@ Graphs search (or graphs traversal) is a rather large, sophisticated and mature 
 \\
 \\
 Search strategies typically maintain a frontier, which is the collection of unexpanded nodes so far. They keep expanding the frontier, by choosing the next node to expand (expanding a node simply means adding all of its children nodes - i.e. those which are reachable via legal transitions - to the frontier for future evaluation) until a solution is found. The question is how to choose the next node to expand! Some graphs search strategies are said to be \textit{uninformed}, in the sense that they do not exploit any domain-specific knowledge or insight about what the graphs represent to choose the next node to expand. In that category fall for instance Breadth First Search (\textbf{BFS}) and Depth First Search (\textbf{DFS}), which as their name suggest expand nodes from the frontier based on, respectively, a \textbf{FIFO} and \textbf{LIFO} policy. \textbf{BFS} and \textbf{DFS} will only work for modest problems where the number of transitions and states are reasonably small; they can however work in a wide variety of situations as they make no assumptions and require no knowledge. It is quite easy to see that \textbf{BFS} is an \textit{optimal} search strategy, in that when it does find a solution, that solution is of smallest possible cost (i.e. optimal). \textbf{DFS} is obvisouly not optimal as it could very well find a solution very deep in the graphs while expanding the very first branch, not realising that a solution was one level away from the start on another branch!
+\\
+\\
+\begin{algorithm}
+\caption{BFS \& DFS}\label{alg:bfsdfs}
+\begin{algorithmic}
+\Require $n \geq 0$
+\Ensure $y = x^n$
+\State $y \gets 1$
+\State $X \gets x$
+\State $N \gets n$
+\While{$N \neq 0$}
+\If{$N$ is even}
+    \State $X \gets X \times X$
+    \State $N \gets \frac{N}{2}$  \Comment{This is a comment}
+\ElsIf{$N$ is odd}
+    \State $y \gets y \times X$
+    \State $N \gets N - 1$
+\EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
 \\
 \\
 \textit{Informed} strategies, on the other hand, exploit domain-specific knowledge. One very popular such strategy is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which always first examine the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to solution (\textbf{h}). The expected cost-to-go \textbf{h} is often called a \textit{heuristic}. The better the heuristic is, the better \textbf{A$^{*}$} usually performs. An important property of heuristics is \textit{admissibility}. In short, admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.

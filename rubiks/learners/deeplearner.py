@@ -193,6 +193,7 @@ class DeepLearner(Learner):
             self.nb_shuffles_max, self.nb_shuffles_min = self.nb_shuffles_min, self.nb_shuffles_max
         self.pool_size = self.nb_cpus
         self.attempt_recovery = self.learning_file_name is not None and isfile(self.learning_file_name)
+        self.epoch = 0
         if self.attempt_recovery:
             try:
                 data = read_pickle(self.learning_file_name)
@@ -327,17 +328,17 @@ class DeepLearner(Learner):
         interrupted = False
         try:
             optimizer, scheduler = self.get_optimiser_and_scheduler()
-            epoch = 0 if self.convergence_data.empty else self.convergence_data[cls.epoch].iloc[-1]
+            self.epoch = 0 if self.convergence_data.empty else self.convergence_data[cls.epoch].iloc[-1]
             pool = Pool(self.pool_size)
             best_current = (inf, self.current_network.clone())
             possible_puzzles_nb = self.possible_puzzles_nb()
             while True:
-                epoch += 1
+                self.epoch += 1
                 self.epoch_latency -= snap()
                 generate_new_training_data = self.training_data_every_epoch or \
-                                             1 == epoch or \
+                                             1 == self.epoch or \
                                              self.attempt_recovery or \
-                                             (self.training_data_freq > 0 and 0 == epoch % self.training_data_freq)
+                                             (self.training_data_freq > 0 and 0 == self.epoch % self.training_data_freq)
                 self.attempt_recovery = False
                 if generate_new_training_data:
                     puzzles, targets = self.get_training_data()
@@ -363,17 +364,17 @@ class DeepLearner(Learner):
                 loss = loss.item()
                 min_targets = min(targets).item()
                 max_targets = max(targets).item()
-                latency = Series({cls.latency_epoch_tag: ms_format(self.epoch_latency / epoch),
-                                  cls.latency_training_data_tag: ms_format(self.training_data_latency / epoch),
-                                  cls.latency_target_data_tag: ms_format(self.target_data_latency / epoch),
-                                  cls.latency_evaluate_tag: ms_format(self.evaluate_latency / epoch),
-                                  cls.latency_loss_tag: ms_format(self.loss_latency / epoch),
-                                  cls.latency_back_prop_tag: ms_format(self.back_prop_latency / epoch),
+                latency = Series({cls.latency_epoch_tag: ms_format(self.epoch_latency / self.epoch),
+                                  cls.latency_training_data_tag: ms_format(self.training_data_latency / self.epoch),
+                                  cls.latency_target_data_tag: ms_format(self.target_data_latency / self.epoch),
+                                  cls.latency_evaluate_tag: ms_format(self.evaluate_latency / self.epoch),
+                                  cls.latency_loss_tag: ms_format(self.loss_latency / self.epoch),
+                                  cls.latency_back_prop_tag: ms_format(self.back_prop_latency / self.epoch),
                                   })
                 latency = pformat(latency)
                 learning_rate = self.learning_rate if scheduler is None else scheduler.get_last_lr()[0]
                 puzzles_seen_pct = len(self.puzzles_seen) / possible_puzzles_nb * 100
-                convergence_data = Series({cls.epoch: epoch,
+                convergence_data = Series({cls.epoch: self.epoch,
                                            cls.nb_epochs: self.nb_epochs,
                                            cls.puzzles_seen_pct: puzzles_seen_pct,
                                            cls.loss: loss,

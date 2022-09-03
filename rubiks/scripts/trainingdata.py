@@ -11,15 +11,15 @@ from rubiks.puzzle.trainingdata import TrainingData
 
 if '__main__' == __name__:
     logger = Loggable(name=__file__)
-    puzzle_type = Puzzle.sliding_puzzle
-    n = 5
-    nb_cpus = 1
+    puzzle_type = Puzzle.rubiks_cube
+    n = 3
+    nb_cpus = 5
     chunk_size=0
     verbose=False
-    nb_sequences = nb_cpus * 1
+    nb_sequences = nb_cpus * 10
     training_data = TrainingData(**globals())
-    repeat = 1
-    for nb_shuffles in [10]:
+    repeat = 100
+    for nb_shuffles in [inf]:
         training_data.generate(nb_shuffles=nb_shuffles,
                                nb_sequences=nb_sequences,
                                repeat=repeat)

@@ -12,7 +12,7 @@ class KociembaHeuristic(Heuristic):
 
     @classmethod
     def known_to_be_admissible(cls):
-        return False
+        return True
 
     def __init__(self, **kw_args):
         Heuristic.__init__(self, **kw_args)

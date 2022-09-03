@@ -52,6 +52,10 @@ def performance(**kw_args):
                            Solver.median_expanded_nodes,
                            ]
     plot_abbreviated_names = True
+    labels_at_top = True
+    show_title = True
+    lite_title = True
+    plot_abbreviated_names = True
     kw_args = {**locals(), **kw_args}
     Solver.factory(**kw_args).action()
 
@@ -59,18 +63,38 @@ def performance(**kw_args):
 
 
 if '__main__' == __name__:
-    action_type = Solver.do_plot
+    action_type = Solver.do_performance_test
     fig_size = (12, 12)
     if action_type == Solver.do_plot:
         performance(**locals())
     elif action_type == Solver.do_performance_test:
         nb_samples = 100
-        nb_cpus = 10
+        nb_cpus = 8
+        performance(solver_type=Solver.astar,
+                    heuristic_type=Heuristic.deep_learning,
+                    learner_type=Learner.deep_reinforcement_learner,
+                    time_out=600,
+                    add_perfect_shuffle=True,
+                    max_nb_shuffles=20,
+                    nb_sequences=1000,
+                    nb_shuffles=20,
+                    nb_epochs=100000,
+                    layers_description=(600, 300, 100),
+                    training_data_every_epoch=False,
+                    cap_target_at_network_count=True,
+                    one_hot_encoding=True,
+                    drop_out=0.,
+                    network_type=DeepLearning.fully_connected_net,
+                    learning_rate=1e-2,
+                    scheduler=DeepReinforcementLearner.exponential_scheduler,
+                    gamma_scheduler=0.9999,
+                    **locals())
+        exit()
         performance(solver_type=Solver.mcts,
                     c=10,
                     trim_tree=True,
                     add_perfect_shuffle=False,
-                    max_nb_shuffles=4,
+                    max_nb_shuffles=6,
                     heuristic_type=Heuristic.deep_q_learning,
                     learner_type=Learner.deep_q_learner,
                     nb_sequences=1000,
@@ -114,22 +138,6 @@ if '__main__' == __name__:
                     **locals())
         performance(solver_type=Solver.astar,
                     heuristic_type=Heuristic.kociemba,
-                    **locals())
-        performance(solver_type=Solver.astar,
-                    heuristic_type=Heuristic.deep_learning,
-                    learner_type=Learner.deep_reinforcement_learner,
-                    nb_sequences=1000,
-                    nb_shuffles=20,
-                    nb_epochs=100000,
-                    layers_description=(600, 300, 100),
-                    training_data_every_epoch=False,
-                    cap_target_at_network_count=True,
-                    one_hot_encoding=True,
-                    drop_out=0.,
-                    network_type=DeepLearning.fully_connected_net,
-                    learning_rate=1e-2,
-                    scheduler=DeepReinforcementLearner.exponential_scheduler,
-                    gamma_scheduler=0.9999,
                     **locals())
         performance(solver_type=Solver.astar,
                     heuristic_type=Heuristic.deep_q_learning,

@@ -42,7 +42,7 @@ if '__main__' == __name__:
         else DeepLearner.default_plot_metrics
     """ If it's a perfect learner config here """
     time_out = 3600
-    nb_cpus = 4
+    nb_cpus = 12
     cpu_multiplier = 100
     max_puzzles = nb_cpus * cpu_multiplier * 10000
     regular_save = nb_cpus * cpu_multiplier * 1

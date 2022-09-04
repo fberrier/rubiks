@@ -102,7 +102,7 @@ rubiks_int_to_face_map = {1: Face.F,
 
 
 rubiks_color_to_print_color_map = {Color.r: '\033[91m',
-                                   Color.w: '\033[90m',
+                                   Color.w: '\033[97m', #'\033[90m',
                                    Color.g: '\033[92m',
                                    Color.b: '\033[94m',
                                    Color.o: '\033[38;2;255;165;0m',

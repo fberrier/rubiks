@@ -34,7 +34,7 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             }
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.deep_q_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
@@ -67,7 +67,7 @@ if '__main__' == __name__:
     nb_shuffles = 15
     cap_target_at_network_count = False
     update_target_network_frequency = 1000
-    update_target_network_threshold = 1e-2
+    update_target_network_threshold = 2e-2
     max_nb_target_network_update = 10
     max_target_not_increasing_epochs_pct = 0.5
     max_target_uptick = 0.01

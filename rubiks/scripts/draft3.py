@@ -1,21 +1,16 @@
-########################################################################################################################
-# Francois Berrier - Royal Holloway University London - MSc Project 2022                                               #
-########################################################################################################################
-from rubiks.core.loggable import Loggable
+#####################################################################
 from rubiks.puzzle.puzzle import Puzzle
 from rubiks.solvers.solver import Solver
-########################################################################################################################
-
-
-if '__main__' == __name__:
-    """ Just create a logger to print some stuff in this script """
-    logger = Loggable(name=__file__)
-    sp = Puzzle.factory(puzzle_type='sliding_puzzle', n=3).apply_random_moves(2)
-    solver = Solver.factory(solver_type='bfs', puzzle_type='sliding_puzzle', n=3, time_out=3600, limit=2)
-    solution = solver.solve(sp)
-    logger.log_info(solution)
-
-
-
-########################################################################################################################
+from rubiks.solvers.kociembasolver import KociembaSolver
+from_kociemba = KociembaSolver.from_kociemba
+to_kociemba = KociembaSolver.to_kociemba
+#####################################################################
+puzzle_type = Puzzle.rubiks_cube
+n=3
+init_from_random_goal=False
+cube = Puzzle.factory(**globals()).get_equivalent()[-1].apply_random_moves(nb_moves=1)
+solver_type = Solver.kociemba
+solver = Solver.factory(**globals())
+print(solver.solve(cube))
+###################################################################
 

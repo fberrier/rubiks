@@ -5,7 +5,7 @@
 \label{sec:Examples} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
 
 
-In this chapter, I will go through some examples, illustrating how to use the code base to learn and solve various puzzles. For each section, simple examples of code will be indicated in \afblue \textbf{python code} \black paragraphs, and can easily be run from command line or copied into a script and run from your favourite IDE.
+In this appendix, I will go through many examples, illustrating how to use the code base to create, learn and solve various puzzles. For each section, a snippet of code will be indicated in \afblue \textbf{python code} \black paragraphs, and can easily be run from command line or copied into a script and run from your favourite Python IDE.
 
 
 
@@ -16,10 +16,10 @@ In this chapter, I will go through some examples, illustrating how to use the co
 %	SECTION 1
 %-----------------------------------
 \section{Puzzles}
-Let me start by showing how to construct puzzles, using the Puzzle factory. Notice that in order to run a learner or solver of any kind (assuming of course that they are meant to work on the puzzle type in question), we can just use the exact same code, but just specify \textit{puzzle\_type}  and the expected parameters to construct a puzzle.
+Let me start by showing how to construct puzzles, using the Puzzle factory. Notice that in order to run a learner or solver of any kind (assuming of course that they are meant to work on the puzzle type in question), we can just use the exact same code, simply specifying \textit{puzzle\_type} and the expected parameters to construct a puzzle. The factories will just pick up the relevant parameters indicating the puzzle type and dimension and everything should work seamlessly.
 \\
 \\
-For instance, let us create a (n=5, m=6) SP, shuffle it a number of times, and print it:
+For instance, let us create a 5x6 \textbf{SP}, shuffle it a thousand times, and print it:
 \afblue
 \paragraph{}{\textbf{python code -- sliding puzzle construction}}
 \begin{python}
@@ -40,12 +40,12 @@ The output from the above code snippet will look like (subject to randomness):
 \centering
 \includegraphics[scale=0.8]{./Figures/examplespconstruction}
 %\decoRule
-\caption[Examples]{sliding puzzle construction example}
+\caption[Examples]{scrambled 5x6 \textbf{SP} example}
 \label{fig:examplespconstruction}
 \end{figure}
-.. similarly to construct a (n=2) RC and shuffle it perfectly:
+.. similarly to construct a perfectly scrambled 2x2x2 \textbf{RC}:
 \afblue
-\paragraph{}{\textbf{python code -- rubiks cube construction}}
+\paragraph{}{\textbf{python code -- Rubik's cube construction}}
 \begin{python}
 ####################################################################
 from math import inf
@@ -68,31 +68,6 @@ print(Puzzle.factory(**globals()).apply_random_moves(nb_moves))
 \label{fig:examplercconstruction}
 \end{figure}
 
-.. finally let me construct a (n=3) RC with non-standard-goal:
-\afblue
-\paragraph{}{\textbf{python code -- non-standard-goal rubiks cube construction}}
-\begin{python}
-####################################################################
-from math import inf
-from rubiks.puzzle.puzzle import Puzzle
-####################################################################
-puzzle_type=Puzzle.watkins_cube
-n=2
-""" Here we use perfect shuffle by spcifying infinite number of shuffles """
-nb_moves=inf
-print(Puzzle.factory(**globals()).apply_random_moves(nb_moves))
-####################################################################
-\end{python}
-\black
-
-\begin{figure}[H]
-\centering
-\includegraphics[scale=0.8]{./Figures/examplewcconstruction}
-%\decoRule
-\caption[Examples]{non-standard-goal rubiks cube construction example}
-\label{fig:examplewcconstruction}
-\end{figure}
-
 
 %-----------------------------------
 %	SECTION 2
@@ -106,7 +81,7 @@ print(Puzzle.factory(**globals()).apply_random_moves(nb_moves))
 \subsection{Perfect Learner}
 \label{PLSS}
 
-The perfect learner has been discussed in details in \ref{sec:codelearners}. We simply show here how to run it to learn the value function for the (n=2, m=3) SP, that is, to solve all 360 possible configurations via an optimal solver (A{*} with Manhattan heuristic).
+The perfect learner has been discussed in details in \ref{sec:codelearners}. We simply show here how to run it to learn the value function for the 2x3 \textbf{SP}, that is, to solve all 360 possible configurations via an optimal solver (A{*} with Manhattan heuristic).
 
 
 \afblue
@@ -139,11 +114,11 @@ if __name__ == '__main__':
 ####################################################################
 \end{python}
 \black
-The above snippet of code will solve the 2 by 3 SP and then display the results, showing the distribution of optimal costs, as well as the most difficult puzzle.
+The above snippet of code solves the 2x3 \textbf{SP} and then displays the results, showing the distribution of optimal costs, as well as the most difficult puzzle:
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.45]{./Figures/exampleperfectlearner}
+\includegraphics[scale=0.41]{./Figures/exampleperfectlearner}
 %\decoRule
 \caption[Examples]{perfect learner example}
 \label{fig:exampleperfectlearner}
@@ -155,7 +130,7 @@ The above snippet of code will solve the 2 by 3 SP and then display the results,
 %-----------------------------------
 \subsection{Deep Learner}
 \label{DLSS}
-The DeepLearner, also discussed in details in \ref{sec:codelearners}, needs some training data. It could in principle of course be trained on any data, not necessarily optimal data (i.e. generated by an optimal solver). Here however, I make use of the TrainingData class to generate 100 sequences of fully solved (n=5, m=2) SP via A{*} with Manhattan++.
+The DeepLearner, also discussed in details in \ref{sec:codelearners}, needs some training data. It could in principle of course be trained on any data, not necessarily optimal data (i.e. generated by an optimal solver). Here however, I make use of the TrainingData class to generate 100 sequences of fully solved 5x2 \textbf{SP} via A{*} with Manhattan++.
 
 
 \afblue

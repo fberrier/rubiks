@@ -69,7 +69,28 @@ if '__main__' == __name__:
         performance(**locals())
     elif action_type == Solver.do_performance_test:
         nb_samples = 100
-        nb_cpus = 8
+        nb_cpus = 1
+        performance(solver_type=Solver.astar,
+                    heuristic_type=Heuristic.deep_learning,
+                    learner_type=Learner.deep_reinforcement_learner,
+                    time_out=600,
+                    add_perfect_shuffle=False,
+                    min_nb_shuffles=12,
+                    max_nb_shuffles=12,
+                    nb_sequences=10000,
+                    nb_shuffles=15,
+                    nb_epochs=10000,
+                    layers_description=(600, 300, 100),
+                    training_data_every_epoch=False,
+                    cap_target_at_network_count=False,
+                    one_hot_encoding=True,
+                    drop_out=0.,
+                    network_type=DeepLearning.fully_connected_net,
+                    learning_rate=1e-2,
+                    scheduler=DeepReinforcementLearner.exponential_scheduler,
+                    gamma_scheduler=0.9999,
+                    **locals())
+        exit()
         performance(solver_type=Solver.astar,
                     heuristic_type=Heuristic.deep_learning,
                     learner_type=Learner.deep_reinforcement_learner,

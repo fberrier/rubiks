@@ -18,7 +18,7 @@ In hkociemba (the third parties 2x2x2 implementation which I used under the hood
 
 
 \afblue
-\paragraph{}{\textbf{Kociemba bug -- 2x2x2 example of good interface design}}
+\paragraph{}{\textbf{Kociemba bug -- 2x2x2 \textbf{RC} -- example of good interface design}}
 \begin{python}
 #####################################################################
 from rubiks.puzzle.puzzle import Puzzle
@@ -44,15 +44,15 @@ which, subject to randomness, gave me the following scrambled cube and solution:
 \centering
 \includegraphics[scale=0.6]{./Figures/KociembaBug222}
 %\decoRule
-\caption[Kociemba Bug]{2x2x2}
+\caption[Kociemba Bug]{2x2x2 \textbf{RC} -- hkociemba finds path to closest of the 24 equivalent goals}
 \label{fig:KociembaBug222}
 \end{figure}
-As we can see, hkociemba happily returned a 1-move solution to green F, white U, instead of the costlier solution it would have taken to get red F white U (clearly at a cost of 3 with solution RUD').
+As we can see, hkociemba happily returned a 1-move solution R to green F, white U, instead of the costlier solution it would have taken to get to \textit{standard} form red F white U (clearly at a cost of 3 with solution RUD').
 \\
 \\
 In the 3x3x3 case, things are not quite that simple. There is no way to reproduce full cube rotation from faces rotations alone, since the center cubies will never move via the latter, but do via the former. If we run the equivalent of the above problem with the (3x3x3) kociemba library, we silently get to a false solution as is apparent from printing the resulting cube.
 \afblue
-\paragraph{}{\textbf{Kociemba bug -- 3x3x3 example of \textbf{bad} interface design}}
+\paragraph{}{\textbf{Kociemba bug -- 3x3x3 \textbf{RC} -- example of \textbf{bad} interface design}}
 \begin{python}
 #####################################################################
 from kociemba import solve
@@ -79,13 +79,13 @@ print(cube.apply_moves(from_kociemba(solution)))
 \centering
 \includegraphics[scale=0.6]{./Figures/KociembaBug333}
 %\decoRule
-\caption[Kociemba Bug]{3x3x3 Buggy}
+\caption[Kociemba Bug]{3x3x3 \textbf{RC} -- kociemba does not check center cubies and returns wrong solution}
 \label{fig:KociembaBug333}
 \end{figure}
-In order to counteract that, and make the comparisons between Kociemba 3x3x3 and other solvers and methods fairer, I have had to implement a layer on top of kociemba. My Kociemba solver basically will check if a cube is in \textit{standard} form, and if not, it will find the sequence of full cube rotations that bring us to an equivalent configuration in \textit{standard} form, pass that to equivalent \textit{standard} cube to kociemba, and stich the cube rotation to the kociemba solution (treating cube rotation as 0 cost everywhere in the code). That way, we seamlessly get to an answer that makes sense from kociemba, without the user having to worry about whether or not the cube they are passing as input is in \textit{standard} form or not! Running the same example as above via my KociembaSolver, we get the expected result:
+In order to counteract that, and make the comparisons between Kociemba 3x3x3 and other solvers and methods fairer, I have had to implement a layer on top of kociemba. My Kociemba solver basically will check if a cube is in \textit{standard} form, and if not, it will find the sequence of full cube rotations that bring us to an equivalent configuration in \textit{standard} form, pass that to equivalent \textit{standard} cube to kociemba, and stich the cube rotation to the kociemba solution (treating cube rotation as 0 cost everywhere in the code). That way, we seamlessly get to an answer that makes sense from kociemba, without the user having to worry about whether or not the cube they are passing as input is in \textit{standard} form or not! Running the same example as above via my KociembaSolver, we get the expected result, composed of 3 cube rotations to bring it to \textit{standard} form, followed by one face rotation to solve it:
 
 \afblue
-\paragraph{}{\textbf{Kociemba bug -- 3x3x3 massage to fix the broken interface}}
+\paragraph{}{\textbf{Kociemba bug -- 3x3x3 \textbf{RC} --  massage to fix the broken interface}}
 \begin{python}
 #####################################################################
 from rubiks.puzzle.puzzle import Puzzle
@@ -108,11 +108,16 @@ print(solver.solve(cube))
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.5]{./Figures/KociembaBug333Fix1}
-%
+%\decoRule
+\label{fig:KociembaBug333Fix1}
+\end{figure}
+
+\begin{figure}[H]
+\centering
 \includegraphics[scale=0.5]{./Figures/KociembaBug333Fix2}
 %\decoRule
-\caption[Kociemba Bug Fix]{3x3x3 Fixed}
-\label{fig:KociembaBug333Fix}
+\caption[Kociemba Bug Fix]{3x3x3 \textbf{RC} -- Fixed kociemba interface}
+\label{fig:KociembaBug333Fix2}
 \end{figure}
 
 

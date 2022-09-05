@@ -4,7 +4,7 @@
 
 \label{Chapter1} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
 
-In this section, I will succinctly go through the different techniques that underly the algorithms I have implemented and compared in this project. Along the way, I will give some references for the interested reader.
+In this chapter, I will succinctly go through the different techniques that underly the algorithms I have implemented and compared in this project and present them in (very simplified) pseudo code. Along the way, I will give some references for the interested reader.
 
 
 %----------------------------------------------------------------------------------------
@@ -25,29 +25,62 @@ Graphs search (or graphs traversal) is a rather large, sophisticated and mature 
 Search strategies typically maintain a frontier, which is the collection of unexpanded nodes so far. They keep expanding the frontier, by choosing the next node to expand (expanding a node simply means adding all of its children nodes - i.e. those which are reachable via legal transitions - to the frontier for future evaluation) until a solution is found. The question is how to choose the next node to expand! Some graphs search strategies are said to be \textit{uninformed}, in the sense that they do not exploit any domain-specific knowledge or insight about what the graphs represent to choose the next node to expand. In that category fall for instance Breadth First Search (\textbf{BFS}) and Depth First Search (\textbf{DFS}), which as their name suggest expand nodes from the frontier based on, respectively, a \textbf{FIFO} and \textbf{LIFO} policy. \textbf{BFS} and \textbf{DFS} will only work for modest problems where the number of transitions and states are reasonably small; they can however work in a wide variety of situations as they make no assumptions and require no knowledge. It is quite easy to see that \textbf{BFS} is an \textit{optimal} search strategy, in that when it does find a solution, that solution is of smallest possible cost (i.e. optimal). \textbf{DFS} is obvisouly not optimal as it could very well find a solution very deep in the graphs while expanding the very first branch, not realising that a solution was one level away from the start on another branch!
 \\
 \\
-\begin{algorithm}
-\caption{BFS \& DFS}\label{alg:bfsdfs}
-\begin{algorithmic}
-\Require $n \geq 0$
-\Ensure $y = x^n$
-\State $y \gets 1$
-\State $X \gets x$
-\State $N \gets n$
-\While{$N \neq 0$}
-\If{$N$ is even}
-    \State $X \gets X \times X$
-    \State $N \gets \frac{N}{2}$  \Comment{This is a comment}
-\ElsIf{$N$ is odd}
-    \State $y \gets y \times X$
-    \State $N \gets N - 1$
-\EndIf
-\EndWhile
-\end{algorithmic}
-\end{algorithm}
-\\
-\\
+\afblue
+\paragraph{}{\textbf{pseudo code -- BFS \& DFS}}
+\begin{python}
+###############################################################################
+def blind_search(initial_node, time_out):
+    """ pseudo code for BFS/DFS """
+    initialize_time_out(time_out)
+    if initial_node.is_goal():
+        return initial_node
+    explored = set()
+    frontier = [initial_node]
+    while True:
+        check_time_out() # -> raise TimeoutError if appropriate
+        if frontier.empty():
+            return None # -> Failure to find a solution
+        node = pop(frontier) # pop as FIFO/LIFO for BFS/DFS
+        explored.add(node)
+        for child in node.children() and not in frontier.union(explored):
+            if child.is_goal():
+                return child
+            frontier.add(child)
+###############################################################################
+\end{python}
+\black
 \textit{Informed} strategies, on the other hand, exploit domain-specific knowledge. One very popular such strategy is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which always first examine the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to solution (\textbf{h}). The expected cost-to-go \textbf{h} is often called a \textit{heuristic}. The better the heuristic is, the better \textbf{A$^{*}$} usually performs. An important property of heuristics is \textit{admissibility}. In short, admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.
-
+\afblue
+\paragraph{}{\textbf{pseudo code -- A$^{*}$}}
+\begin{python}
+###############################################################################
+def A*(initial_node, time_out, heuristic):
+    """ pseudo code for A*
+    g = cost from initial_node to a current node
+    h = heuristic (expected remaining cost from current node to goal)
+    """
+    initialize_time_out(time_out)
+    node = initial_node
+    cost = heuristic(node) # g = 0
+    frontier = sorted_multi_container({cost: {node}})
+    explored = set()
+    while True:
+        check_time_out()
+        if frontier.empty():
+            return None # -> Failure to find a solution
+        (cost, node) = frontier.pop_smallest() # smallest total expected cost
+        if node.is_goal():
+            return node
+        explored.add(node)
+        for child in node.children(): # -> children have g = node.g + 1
+            child_cost = child.g + heuristic(child)
+            if child in frontier and child_cost < cost:
+                frontier.update_cost(child, child_cost)
+            elif child not in explored:
+                frontier.add(child, child_cost)
+###############################################################################
+\end{python}
+\black
 
 %-----------------------------------
 %	SECTION 2
@@ -55,9 +88,26 @@ Search strategies typically maintain a frontier, which is the collection of unex
 
 
 \section{Reinforcement Learning}
+\label{sec:RLTheory}
 
-As mentioned in the abstract, \textbf{RL} (see \cite{Sutton1998} for a brilliant exposition of the basic concepts and theory) has known a bit of false start in the 1950s and 1960s but recently been extremely successfully applied to a variety of problems (from Atari to board games and puzzles, robotics and else). \textbf{RL} is concerned with how intelligent agents can learn optimal decisions from observing/experiencing rewards while interacting in their environment. One of the early concept in the field is that of value function $s \to \textbf{V}(s)$, which tells us the maximum expected reward the agent can obtain from a given state $s$ (if it takes the optimal decisions). In discrete states and transitions spaces, the value function can be remarkably computed (or at least approximated) by a rather mechanical and magic-like procedure called value-iteration (which uses the equivalent of the Bellman equation from optimal control), where each state $s$'s value is iteratively refined by combining the value of $s$'s reachable states.
-
+As mentioned in the abstract, \textbf{RL} (see \cite{Sutton1998} for a brilliant exposition of the basic concepts and theory) has known a bit of false start in the 1950s and 1960s but recently been extremely successfully applied to a variety of problems (from Atari to board games and puzzles, robotics and else). \textbf{RL} is concerned with how intelligent agents can learn optimal decisions from observing/experiencing rewards while interacting in their environment. One of the fundamental concept in the field is that of value function $s \to \textbf{V}(s)$, which tells us the maximum expected reward - or equivalently and better suited to our puzzle solving task, the minimum cost - the agent can obtain from a given state $s$ (if it takes optimal decisions). In finite state and transitions spaces, the value function can be remarkably computed by a rather mechanical and magic-like procedure called value-iteration (which uses the equivalent of the Bellman equation from optimal control), where each state $s$'s value is iteratively refined by combining the value of $s$'s reachable children states.
+\afblue
+\paragraph{}{\textbf{pseudo code -- \textbf{RL} Value Iteration}}
+\begin{python}
+###############################################################################
+def value_iteration(states):
+    """ pseudo code for RL value iteration """
+    V = {state: inf for state in states}
+    change = True
+    while change:
+        change = False
+        for state, cost in V:
+            V[state] = min(V[child] + t_cost for child, t_cost in state.children())
+            change |= V[state] < cost
+    return V 
+###############################################################################
+\end{python}
+\black
 
 
 %----------------------------------------------------------------------------------------
@@ -68,10 +118,7 @@ As mentioned in the abstract, \textbf{RL} (see \cite{Sutton1998} for a brilliant
 
 \section{Deep Learning}
 
-Quite similarly to \textbf{RL}, Deep Learning (\textbf{DL}) has not initially had the success the \textbf{AI} community was hoping it would. Marvin Minsky, who often took the blame for having \textit{killed} funding into the field, even regretted writing his 1969 book (\cite{minskypapert69}) in which he had proved that three-layer feed forward perceptrons were not quite the universal functions approximators some had hypothesized them to be. Since around 2006 (see \cite{GoodBengCour16} for more history of the recent burgeoning of \textbf{DL}), the field has known a rebirth, probably due to combination of factors, from ever more powerful computers and larger storage, the availability of data sets large and small on the internet, the advances in many techniques and heuristics (backward propagation, normalisation, drop-outs, different optimisation schemes, etc...) and the huge amount of experimentation with different architectures (from very deep feed forward fully connected networks, to convolutional, recurrent and more exoctic networks). It is not an exageration to say that \textbf{DL} has rendered obsolete entire fields of research and bodies of knowledge, most notably in \textbf{CV}, robotics, computational biology and \textbf{NLP}. \textbf{DL} has often become the method of choice to learn or approximate highly dimensional functions or random processes. The beauty of it is that the relevant features are autodiscovered during the training of the network, via back-ward propagation and trial-and-error, rather than having to be postulated or handcrafted as is often the case with other \textbf{ML} techniques.
-\\
-\\
-For this project, I have implemented the procedure of training a \textbf{DL} network from the solutions of other solvers/heuristics in a class called DeepLearner (see section \ref{sec:codelearners} for details).
+Quite similarly to \textbf{RL}, Deep Learning (\textbf{DL}) has not initially had the success the \textbf{AI} community was hoping it would. Marvin Minsky, who often took the blame for having \textit{killed} funding into the field, even regretted writing his 1969 book (\cite{minskypapert69}) in which he had proved that three-layer feed forward perceptrons were not quite the universal functions approximators some had hypothesized them to be. Since around 2006 (see \cite{GoodBengCour16} for more history of the recent burgeoning of \textbf{DL}), the field has known a rebirth, probably due to combination of factors, from ever more powerful computers and larger storage, the availability of data sets large and small on the internet, the advances in many techniques and heuristics (backward propagation, normalisation, drop-outs, different optimisation schemes, etc \dots) and the huge amount of experimentation with different architectures (from very deep feed forward fully connected networks, to convolutional, recurrent and more exoctic networks). It is not an exageration to say that \textbf{DL} has rendered obsolete entire fields of research and bodies of knowledge, most notably in \textbf{CV}, robotics, computational biology and \textbf{NLP}. \textbf{DL} has often become the method of choice to learn or approximate highly dimensional functions or random processes. The beauty of it is that the relevant features are autodiscovered during the training of the network, via back-ward propagation and trial-and-error, rather than having to be postulated or handcrafted as is often the case with other \textbf{ML} techniques.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
@@ -79,27 +126,78 @@ For this project, I have implemented the procedure of training a \textbf{DL} net
 
 \section{DL and DLR Heuristics}
 
-So what is the link between all of these - A$^{*}$'s heuristics, \textbf{DL}, \textbf{RL}'s value iteration?
+So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \textbf{RL}'s value iteration?
 \\
 \\
-Sometimes we have ways of computing good solutions/heuristics to our puzzles, but cannot computationally do this for all possible states (maybe the state space is simply too large!). One approach in that case is to compute the solution/heuristic for some states, and let a \textbf{DL} model learn how to extrapolate to the rest of the state space. This is a case of \textit{supervised} learning in some sense, since we need a teacher-solver to tell us good solutions or heuristics to extrapolate from.
+Sometimes we have ways of computing good solutions/heuristics to our puzzles, but cannot computationally do this for all possible states (maybe the state space is simply too large!). One approach in that case is to compute the solution/heuristic for some states, and let a \textbf{DL} model learn how to extrapolate to the rest of the state space. This is a case of \textit{supervised} learning in some sense, since we need a teacher-solver to tell us good solutions or heuristics to extrapolate from. In very simplified pseudo code, the procedure looks like the following:
+\afblue
+\paragraph{}{\textbf{pseudo code -- \textbf{DL} heuristics}}
+\begin{python}
+###############################################################################
+def deep_learning(puzzle_type,
+                  teacher_heuristic,
+                  loss_function,
+                  network_architecture):
+    """ pseudo code for learning a puzzle via deep learning and a teacher heuristic """
+    target_value_function = {state: teacher_heuristic(state)
+                             for state in generate_random_states(puzzle_type)}
+    dl_heuristic = train_neural_network(target_value_function,
+                                        loss_function,
+                                        network_architecture)
+    return dl_heuristic
+###############################################################################
+\end{python}
+\black
+
+For this project, I have implemented the above procedure of training a \textbf{DL} network from the solutions of other solvers/heuristics in a class called DeepLearner (see section \ref{sec:codelearners} for details).
 \\
 \\
-An alternative approach in order to compute the cost-to-go is via \textbf{RL} value-iteration. Indeed, minimizing the cost-to-go (heuristic) is equivalent to maximising the cumulative reward given by -1 for each transition not reaching the goal state and +1 for the last transition to the goal. Clearly these two quantities are equivalent (modulo a trivial linear transformation). We can perform this value-iteration in an unsupervised way: we do not need a teacher to tell us the target value of the value function/cost-to-go but instead learn it simply from refining a state $s$'s value by replacing it at each iteration by the minimum of its current value, and the minimum value of all reachable states from $s$ polus one (since it takes one move to reach them). That is, we can start with arbitrary (e.g. 0) $V_{0}(s0$ and recursively update for $t \in \mathbb{N}^{*}, s \in \mathcal{S}$, the state space via the following iteration:
-\begin{equation} \label{eq:DLVI}
-\begin{split}
-if \  s & \in \mathcal{G}: \\
-& \ V_{t+1}(s) = 0 \\
-else&: \\
-& \ V_{t+1}(s) \leftarrow min \Big( V_{t}(s), 1 + min_{s' \in \mathcal{C}(s)}(V_{t}(s'))  \Big)
-\end{split}
-\end{equation}
-where $\mathcal{C}(s)$ are the children (reachable states via 1 move) of $s$ and $\mathcal{G}$ are the goal states.
+An alternative approach in order to compute the cost-to-go is via \textbf{RL} value-iteration as described in the previous section (\ref{sec:RLTheory}) The state space is often so large however - and this certainly is the case for pretty much all \textbf{SP} and \textbf{RC}, except maybe the smallest dimensional \textbf{SP}s - that we cannot practically perform the value iteration procedure for all states. This is where \textbf{DL} comes again to the rescue to act as function approximator, combining with \textbf{RL} into what has become known as \textbf{DRL}. The subtelty is then that both the left-hand-side and right hand side in the value-iteration procedure are given by a \textbf{DL} network which we are constantly tweaking. For my implementation of \textbf{DRL}, I followed the same approach as in \cite{Mnih2013}, utilising two loops. During iteration over the first (inner) loop, the right hand-side $V$ of \ref{eq:DLVI} is computed using a fixed \textit{target-network}. The left hand side $V$ is using another \textit{current-network} which alone is modified by the \textbf{DL} learning (backward propagation and optimization), until convergence is deemed reached. When convergence in the inner loop is deemed obtained, we break out of it, and run the outer loop, which updates the \textit{target-network} via a copy of the \textit{current-network}. The outer loop is itself broken out of when deemed appropriate (some kind of convergence criteria). In simplified pseudo-code, this looks like:
 \\
 \\
-The state space is often so large however, that we cannot practically perform this procedure for all states. This is where \textbf{DL} comes again to the rescue to act as function approximator, combining with \textbf{RL} into what has become known as \textbf{DRL}. The subtelty is then that both the left-hand-side and right hand side in the value-iteration procedure \ref{eq:DLVI} are given by a \textbf{DL} network which we are constantly tweaking. For my implementation of \textbf{DRL}, I followed the same approach as in \cite{Mnih2013}, utilising two loops. During iteration over the first (inner) loop, the right hand-side $V$ of \ref{eq:DLVI} is computed using a fixed \textit{target-network}. The left hand side $V$ is using another \textit{current-network} which alone is modified by the \textbf{DL} learning (backward propagation and optimization), until convergence is deemed reached. When convergence in the inner loop is deemed obtained, we break out of it, and run the outer loop, which updates the \textit{target-network} via a copy of the \textit{current-network}. The outer loop is itself broken out of when deemed appropriate (some kind of convergence criteria).
-\\
-\\
+\afblue
+\paragraph{}{\textbf{pseudo code -- \textbf{DRL} heuristics}}
+\begin{python}
+###############################################################################
+def deep_reinforcement_learning(puzzle_type,
+                                loss_function,
+                                max_epochs,
+                                target_network_update_criteria,
+                                puzzles_generation_criteria,
+                                network_architecture):
+    """ pseudo code for learning a puzzle via deep reinforcement learning """
+    network = get_network(puzzle_type, network_architecture)
+    target_network = get_network(puzzle_type, network_architecture)
+    epoch = 0
+    puzzles = list()
+    while epoch < max_epochs and other_convergence_criteria(network):
+        epoch += 1
+        """ Generate a new bunch of puzzles """
+        if puzzles_generation_criteria(puzzles):
+            puzzles = generate_random_states(puzzle_type)
+        V = dict()
+        """ Compute their updated cost via value iteration ... 
+             all moves are assumed to have cost 1 """
+        for puzzle in puzzles:
+            if puzzle.is_goal():
+                V[puzzle] = 0
+            else:
+                V[puzzle] = min(target_network(puzzle),
+                                1 + min(target_network(child) for child in puzzle.children()))
+        """ Train left-hand-side network to approximate right-hand-side target network better
+        i.e. perform a forward / backward-propagation update of the network
+        """
+        network = train_neural_network(V,
+                                       loss_function,
+                                       network_architecture)
+        """ Update the target network if criteria are met 
+        (e.g. epochs, convergence, no progress, etc...) """
+        if target_network_update_criteria(network, target_network):
+            target_network = copy(network)
+    return network
+###############################################################################
+\end{python}
+\black
 For this project, I have implemented this procedure in a class called DeepReinforcementLearner (see section \ref{sec:codelearners} for details)
 
 
@@ -123,6 +221,50 @@ where $R(a)$ is the reward of performing action $a$ and $a(s)$ is the state we r
 Similarly to our discussion about \textbf{DRL}, in cases where the state space is large, it can be useful to approximate $Q$, or a somewhat related quantity (such as e.g. a probability distribution over the actions that can be taken from $s$) by a neural network, and use a similar procedure to that of the previous section to update the right-hand-side and left-hand-side of the iterations. That becomes \textbf{DQL}!
 \\
 \\
+I have for this project followed the exact same procedure described in \cite{https://doi.org/10.48550/arxiv.1805.07470} (and also used by alpha-go \cite{AlphaGo}): the output of the neural network that is learnt by \textbf{DQL}, which actually is surprisingly similar to the approach and pseudo code shown for \textbf{DRL} earlier. The only 3 differences are that:
+\begin{itemize}
+\item the networks (target and current) now output a vector of size $a$ + 1, where $a$ is the number of possible actions/moves. That is, one dimension for each of the possible actions, representing the probability/desirability of that action, and one dimension for the value-function's value.
+\item the target update by Q-iteration now needs to update both the value-function and the optimal decision ($a$-dimensional vector of 0s, with a 1 for the optimal decision only)
+\item the loss function used need to be compatible with the size of the output and target vectors. I have used as loss the average of the mean square error of the value function difference (current network and target) and the cross entropy loss of the actions probability versus the actual optimal move.
+\item
+Since in my \textbf{DRL} pseudo-code above (as well as in my actual code), the loss function is abstracted, and the network architecture (including the size of the output) configurable, the only modification to get \textbf{DQL} in lieu of \textbf{DRL} are extremely minimal, and essentially only to do with the Q-iteration-update section:
+
+
+\afblue
+\paragraph{}{\textbf{pseudo code -- \textbf{DQL} heuristics}}
+\begin{python}
+###############################################################################
+def deep_q_learning(... same as DRL ...):
+    """ pseudo code for learning a puzzle via deep q learning """
+    # ... same as DRL ...
+    nb_actions = puzzle_type.get_nb_actions()
+    while epoch < max_epochs and other_convergence_criteria(network):
+        # ... same as DRL ...
+        Q_and_V = dict()
+        """ Compute updated cost and actions via V & Q iteration ... 
+             all moves are assumed to have cost 1 """
+        for puzzle in puzzles:
+            value = target_network(puzzle)[-1]
+            actions = [0] * nb_actions
+            best_action_id = 0
+            if puzzle.is_goal():
+                value = 0
+            else:
+                for action_id, child in puzzle.children():
+                    child_value = target_network(child)[-1]
+                    if child_value < value:
+                        value = child_value
+                        best_action_id = action_id
+            # We update both the value function and the best action
+            actions[best_action_id] = 1
+            Q_and_V[puzzle] = actions + [value]
+        # ... same as DRL ...
+###############################################################################
+\end{python}
+\black
+
+
+\end{itemize}
 For this project, I have implemented the procedure described in \cite{https://doi.org/10.48550/arxiv.1805.07470} in a class called DeepQLearner (see section \ref{sec:codelearners} for details). The network jointly learns the value function (heuristic, or cost-to-go) as well as a probability distribution over the actions.
 
 %----------------------------------------------------------------------------------------
@@ -131,7 +273,7 @@ For this project, I have implemented the procedure described in \cite{https://do
 
 \section{Monte Carlo Tree Search}
 
-In my implementation of \textbf{DQL}, which follows \cite{https://doi.org/10.48550/arxiv.1805.07470} (and is also the same procedure followed by alpha-go \cite{AlphaGo}), the output of the neural network that is learnt by \textbf{DQL} is no longer just a cost-to-go estimate as with \textbf{DRL}, but a joint cost-to-go and distribution over actions (to be concrete, that means a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss leads to better heuristics, since we use more information during the learning and iterations.
+Since my implementation of \textbf{DQL} is no longer just a cost-to-go estimate as with \textbf{DRL}, but a joint cost-to-go and distribution over actions (to be concrete, that means a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss leads to better heuristics, since we use more information during the learning and iterations.
 \\
 \\
 Another possibility is to use an algorithm which combines both the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. In short, it generates at each step (and possibly in a distributed manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (following the most promising actions) as well as the value function, according to a trade-off which can be tuned via a hyper-parameter. In order to prevent always following the same paths (which might take us very far from the goal), \textbf{MCTS} algorithms usually keep track of actions they have followed already and underweight their probability so that subsequent paths explore other actions.

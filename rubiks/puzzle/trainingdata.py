@@ -9,7 +9,7 @@ from pandas import read_pickle, Series
 from rubiks.core.loggable import Loggable
 from rubiks.puzzle.puzzled import Puzzled
 from rubiks.solvers.solver import Solver
-from rubiks.utils.utils import to_pickle, get_training_file_name, remove_file, is_inf, number_format
+from rubiks.utils.utils import to_pickle, get_training_file_name, remove_file, is_inf, number_format, pformat
 ########################################################################################################################
 
 
@@ -128,9 +128,14 @@ class TrainingData(Loggable, Puzzled):
                           repeat=repeat - 1)
 
     def print_data_stats(self):
-        s = Series({optimal_cost: len(solutions) for optimal_cost, solutions in
-                    self.data[self.solutions_tag].items()}).sort_index()
-        self.log_info(s, ' total sequences = ', sum(s))
+        s = Series(data={optimal_cost: len(solutions) for optimal_cost, solutions in
+                         self.data[self.solutions_tag].items()},
+                   name='# SEQUENCES').sort_index().to_frame()
+        if s.empty:
+            return
+        s.index.name = 'SEQUENCE MAX COST'
+        s = s.reset_index(drop=False)
+        self.log_info(pformat(s, showindex=True), ' total sequences = ', sum(s))
 
     def get(self, nb_shuffles):
         self.fetch_data()

@@ -337,6 +337,10 @@ class PerfectLearner(Learner):
         self.log_data()
 
     @staticmethod
+    def axis_label_format(what):
+        return what.upper().replace('_', ' ')
+
+    @staticmethod
     def puzzles_vs_cost(data):
         puzzles_per_cost = dict()
         for puzzle_hash, cost in data.items():
@@ -364,7 +368,7 @@ class PerfectLearner(Learner):
                  'max cost': number_format(max_cost),
                  'hardest puzzle': hardest_puzzle,
                  }
-        title = pformat(title)
+        title = pformat(title).upper().replace('_', ' ')
         fig = plt.figure(self.learning_file_name, figsize=(15, 10))
         ax = fig.gca()
         data = self.puzzles_vs_cost(data)
@@ -373,11 +377,11 @@ class PerfectLearner(Learner):
                   color='royalblue')
         for index, value in zip(data.index, data.values):
             plt.text(index, value, str(value))
-        plt.legend()
+        plt.legend(prop={'weight': 'bold'})
         plt.grid(True)
-        plt.xlabel('Optimal cost')
-        plt.ylabel('# of puzzles')
-        plt.title(title, fontname='Consolas')
+        plt.xlabel('OPTIMAL COST', fontweight='bold')
+        plt.ylabel('# OF PUZZLES', fontweight='bold')
+        plt.title(title, fontname='Consolas', fontdict={'weight': 'bold'})
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
         plt.tight_layout()
         plt.show()

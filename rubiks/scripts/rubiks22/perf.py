@@ -69,11 +69,11 @@ if '__main__' == __name__:
         performance(**locals())
     elif action_type == Solver.do_performance_test:
         nb_samples = 100
-        nb_cpus = 1
+        nb_cpus = 4
         performance(solver_type=Solver.astar,
                     heuristic_type=Heuristic.deep_learning,
                     learner_type=Learner.deep_reinforcement_learner,
-                    time_out=600,
+                    time_out=3600,
                     add_perfect_shuffle=False,
                     min_nb_shuffles=12,
                     max_nb_shuffles=12,

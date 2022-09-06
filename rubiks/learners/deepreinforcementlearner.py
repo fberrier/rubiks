@@ -567,11 +567,12 @@ class DeepReinforcementLearner(Learner):
             title[field] = config[field]
         title = pformat(title)
         title = cls.__name__ + '\n' + title
-        fig = plt.figure(self.learning_file_name, figsize=(20, 10))
+        fig = plt.figure(self.learning_file_name, figsize=(15, 10))
         plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
         plt.axis('off')
-        plt.title(title, fontname='Consolas')
+        title = pformat(title).upper().replace('_', ' ')
+        plt.title(title, fontname='Consolas', fontdict={'weight': 'bold'})
         x = drl.epoch
         gs = fig.add_gridspec(len(self.plot_metrics), 1)
         axes = list()
@@ -600,7 +601,7 @@ class DeepReinforcementLearner(Learner):
                 ax.set_xlabel(self.axis_label_format(x), fontweight='bold')
             ax.set_ylabel(self.axis_label_format(y), fontweight='bold')
             if label:
-                ax.legend()
+                ax.legend(prop={'weight': 'bold'})
             if y in [drl.loss, drl.loss_over_max_target]:
                 ax.set_yscale('log')
             ax.grid(True)

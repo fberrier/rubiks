@@ -23,18 +23,18 @@ if '__main__' == __name__:
                             Learner.do_plot,
                             Learner.do_cleanup_learning_file,
                             } """
-    action_type = Learner.do_learn
+    action_type = Learner.do_plot
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
-    n = 2
-    m = 2
+    puzzle_type = Puzzle.sliding_puzzle
+    n = 3
+    m = 3
     """ more init for specific puzzles """
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
                             }
     """
-    learner_type = Learner.deep_q_learner
+    learner_type = Learner.deep_reinforcement_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
@@ -61,11 +61,11 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL/DQL learner config is here ... """
-    nb_epochs = 10000
+    nb_epochs = 25000
     training_data_every_epoch = False
-    nb_sequences = 10000
-    nb_shuffles = 15
-    cap_target_at_network_count = False
+    nb_sequences = 100
+    nb_shuffles = 50
+    cap_target_at_network_count = True
     update_target_network_frequency = 1000
     update_target_network_threshold = 2e-2
     max_nb_target_network_update = 10

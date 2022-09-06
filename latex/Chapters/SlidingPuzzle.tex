@@ -1,5 +1,3 @@
-% Chapter Template
-
 \chapter{Results - Sliding Puzzle} % Main chapter title
 
 \label{sec:ResultsSP} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
@@ -186,19 +184,12 @@ Improvement               & n/a &  n/a & x2.5 & x2.7 & x2.5 & x2.6 \\
 As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \textbf{SP} is one of the cases I have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough that it is worth trying and comparing a few different methods, including deep reinforcement learning. To start with, I ran the PerfectLearner with n=m=3, and the results are shown below in figure \ref{fig:33SPPerfectLearning}. It is interesting to note that there are only two hardest configurations (cost 31) and 221 configurations of cost 30.
 
 
-\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
-\begin{landscape}
-\centering\vspace*{\fill}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.7]{./Figures/33SPPerfectLearning.jpeg}
-%\decoRule
-\caption[33SPPerfectLearning]{Perfect Learning 3x3 \textbf{SP}}
+\includegraphics[scale=0.42]{./Figures/33SPPerfectLearning}
+\caption[33SPPerfectLearning]{Perfect Learning of the 3x3 \textbf{SP}}
 \label{fig:33SPPerfectLearning}
 \end{figure}
-\vfill
-\end{landscape}
-\restoregeometry
 
 
 
@@ -206,34 +197,24 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 \subsection{Deep reinforcement learner}
  The DeepReinforcementLearner's learning is shown in figure \ref{fig:33SPDeepReinforcementLearning}:
 
-\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
-\begin{landscape}
-\centering\vspace*{\fill}
 \begin{figure}[H]
 \centering
-\includegraphics[align=c, scale=0.55]{./Figures/33SPDeepReinforcementLearning}
-\caption[33SPDeepReinforcementLearning]{Deep reinforcement learner 3x3 \textbf{SP}}
+\includegraphics[align=c, scale=0.42]{./Figures/33SPDeepReinforcementLearning}
+\caption[33SPDeepReinforcementLearning]{\textbf{DRL} of the 3x3 \textbf{SP}}
 \label{fig:33SPDeepReinforcementLearning}
 \end{figure}
-\vfill
-\end{landscape}
-\restoregeometry
 
 
 \subsection{MCTS DQL}
+\label{sec:MTCSHyperParamsEffect}
 
-%\newgeometry{top=0mm, bottom=0mm, left=0mm, right=0mm}
-%\begin{landscape}
-%\centering\vspace*{\fill}
+
 \begin{figure}[H]
 \centering
 \includegraphics[align=c, scale=0.6]{./Figures/33SPPerformanceMCTS}
 \caption[33SPPerformanceMCTS]{\textbf{MCTS} tuning 3x3 \textbf{SP}}
 \label{fig:33SPPerformanceMCTS}
 \end{figure}
-%\vfill
-%\end{landscape}
-%\restoregeometry
 
 
 

@@ -221,19 +221,29 @@ This module implements solvers, which solve puzzles. The base class Solver is a 
 \item \textbf{DFSSolver} This solver is literally a few lines of code, extremely close to the pseudo code detailed in \ref{sec:TheoryBFSDFS}
 \item \textbf{BFSSolver} Ditto, see \ref{sec:TheoryBFSDFS}
 \item \textbf{AStarSolver} Ditto, see \ref{sec:TheoryAStar}
-\item \textbf{NaiveSlidingSolver} The NaiveSolver is conceptually simple, but was far from trivial to implement and debug. Its functioning is detailed in the appendix section \ref{sec:Examples}. Basically, it does what a beginner player would do (certainly what I do when I play the sliding puzzle), solving the top row first, then the left column, hence reducing the puzzle to a smaller dimensional one, and keep iterating until done.
-\item \textbf{KociembaSolver} This solver is a wrapper around two libraries. The first one, hkociemba (see \cite{HKociemba}) is a 2x2x2 implementation written by Kociemba himself, the second one is a Python pip-installable which solves the 3x3x3 Rubik's. My  wrapper simply translates my cube representation in that accepted by these 2 solvers, and their result string into moves usable by my code. I also do some additional massaging for the 3x3x3 case, due to a shortcoming/bug in the 3x3x3 implementation, as I have detailed in appendix \ref{sec:Kociemba}.
-\item \textbf{MonteCarloSearchTreeSolver} TBI I want to implement this in August when working on the Rubiks' ... following the Rubik's paper fromMcAleer \& Agostilenni et al \cite{https://doi.org/10.48550/arxiv.1805.07470}
+\item \textbf{NaiveSlidingSolver} The NaiveSolver is conceptually simple, but was far from trivial to implement and debug. Its functioning is detailed in the appendix section \ref{sec:Examples}. Basically, it does what a beginner player would do, certainly what I do when I play the sliding puzzle: solving the top row first, then the left column, hence reducing the puzzle to a smaller dimensional one, and keep iterating until done.
+\item \textbf{KociembaSolver} This solver is a wrapper around two libraries. The first one, hkociemba (see \cite{HKociemba}) is a 2x2x2 implementation written by Kociemba himself, the second one is a Python pip-installable library which solves the 3x3x3 Rubik's. My  wrapper simply translates my cube representation in that accepted by these 2 solvers, and their result string into moves usable by my code. I also do some additional massaging for the 3x3x3 case, due to a shortcoming/bug in the 3x3x3 Python library, as I have detailed in appendix \ref{sec:Kociemba}.
+\item \textbf{MonteCarloSearchTreeSolver} I have implemented the algorithm described in the paper from McAleer \& Agostilenni et al \cite{https://doi.org/10.48550/arxiv.1805.07470}. My implementation is single-threaded however (in part due to my using Python for this project, which would have made using multiprocessing not efficient at all for their algorithm). A consequence of that is that I dropped the $\nu$ parameter from their implementation, since it only introduces a penalty to discourage parallel threads from generating the same paths from initial node to leaves (in single threaded mode, this parameter is inconsequential since the generation of a path decrements it, only to reincrement it once the leaf is generated).
+\\
+This solver basically generates (pseudo-random) paths from initial node to a new leaf at each iteration, until we obtain a goal leaf. I use the word pseudo-random since the paths are actually completely deterministic. They indeed result from a trade-off between the probability of actions (penalised over time by discounting actions which have been taken already) and the value function, but there is no random draws performed anywhere in there.
+\\ As is described in McAleer \& Agostilenni's paper, I have implemented a final pruning via BFS of the tree resulting from the above \textit{Monte-Carlo} process consisting in generating random paths until a goal state is reached. Indeed, it is clear that the paths generated have very little chance of being optimal since there is no correction mechanism to avoid long and unecessary loops. I have however made this tree trimming by BFS optional via a \textit{trim\_tree} parameter as I wanted to study its effect on solutions' optimality and run time (see results section \ref{sec:MTCSHyperParamsEffect}).
+\\
+Similarly to their implementation, the trade off between optimal actions and value function is driven by a hyper-parameter \textit{c}, as I wanted to study its effect as well, and confirm my intuitions as to how it would affect solutions' quality and run time (again see results section \ref{sec:MTCSHyperParamsEffect}).
+
 \end{itemize}
 
-\section{rubiks.scripts}
+\section{data}
 
-\begin{figure}[H]
-\centering
-\includegraphics[scale=0.25]{./Figures/codebasescripts}
-%\decoRule
-\caption[Codebase]{rubiks.scripts}
-\label{fig:Codebasescripts}
-\end{figure}
+Finally it is worth noting that the code can/will save on disk a lot of data, including:
+\begin{itemize}
+\item Manhattan++ generates databases of linear constraint penalties (see \ref{HSS})
+\item TrainingData: (see e.g. \ref{DLSS}) generates databases of puzzles and their associated costs for later training of a DeepLearner.
+\item Learners: models generated by the DeepLearner, DeepReinforcementLearner, DeepQLearner as well as some convergence data useful to understand how the networks learnt. Similarly PerfectLearner saves its results for later reuse (in e.g. PerfectHeuristic) or display.
+\item Solver: Sequences of scrambled puzzles which we use to make the performance tests (comparing different solvers) fair.
+\item Solver.performance\_test: Results of the performance tests (all the metrics discussed earlier in \ref{sec:codesolvers}, for each solver and each difficulty level)
+\item etc \dots
+\end{itemize}
+The data is saved according to a file system tree of the form:
+$$root/data\_type/puzzle\_type/dimension/file\_name.pkl$$
+where the root is driven by the "RUBIKSDATA" environment variable or, if not set, will go somewhere in your HOME.
 
-Finally it is worth noting that the code will save on disk a lot of data (e.g. the learners will save what they have learnt, e.g. a Pytorch network or a data base of optimal costs, the performance comparison will run solvers versus very many configurations of puzzles and save the results for later being able to display) etc... The base of the tree to save all this data can be chosen by setting up the "RUBIKSDATA" environment variable. If not, it will go somewhere in you HOME :)

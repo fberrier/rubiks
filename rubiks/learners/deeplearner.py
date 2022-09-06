@@ -261,11 +261,9 @@ class DeepLearner(Learner):
             if puzzle.is_goal():
                 target = 0
             else:
-                """ We solve using A* and admissible """
                 config = self.get_config()
-                config[Solver.solver_type] = Solver.astar
-                config[Heuristic.heuristic_type] = Heuristic.manhattan
-                config['plus'] = True
+                """ @todo Francois: probably should make that configurable """
+                config.update(puzzle.optimal_solver_config())
                 solution = Solver.factory(**config).solve(puzzle)
                 if solution.success:
                     target = solution.cost

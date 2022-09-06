@@ -12,11 +12,12 @@ def MCTS(initial_node, time_out, q_v_network):
 def construct_path_to_new_leaf(tree, q_v_network):
     leaf = tree.initial_node
     while leaf.expanded:
-        actions_proba, value = q_v_network(leaf)
-        historical_actions_count = leaf.actions_taken
-        leaf = leaf.choose_child(actions_proba,
-                                 value,
-                                 historical_actions_count)
+        actions_probas, actions_values = q_v_network(leaf)
+        """ choose next node based on joint actions probas & values
+        as well as history of actions taken
+        """
+        leaf = leaf.choose_child(actions_probas,
+                                 actions_values)
     # add children of leaf to tree
     leaf.expand()
     # penalize path taken to favour exploration

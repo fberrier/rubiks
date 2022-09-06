@@ -27,6 +27,7 @@ Search strategies typically maintain a frontier, which is the collection of unex
 \\
 \teal
 \paragraph{}{\textbf{pseudo code -- BFS \& DFS}}
+\label{sec:TheoryBFSDFS}
 \begin{pseudocode}
 ###############################################################################
 def blind_search(initial_node, time_out, search_type=Search.BFS):
@@ -53,6 +54,7 @@ def blind_search(initial_node, time_out, search_type=Search.BFS):
 \textit{Informed} strategies, on the other hand, exploit domain-specific knowledge. One very popular such strategy is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which always first examine the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to solution (\textbf{h}). The expected cost-to-go \textbf{h} is often called a \textit{heuristic}. The better the heuristic is, the better \textbf{A$^{*}$} usually performs. An important property of heuristics is \textit{admissibility}. In short, admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.
 \teal
 \paragraph{}{\textbf{pseudo code -- A$^{*}$}}
+\label{sec:TheoryAStar}
 \begin{pseudocode}
 ###############################################################################
 def A*(initial_node, time_out, heuristic):
@@ -126,7 +128,7 @@ Quite similarly to \textbf{RL}, Deep Learning (\textbf{DL}) has not initially ha
 %----------------------------------------------------------------------------------------
 
 \section{DL and DLR Heuristics}
-
+\label{sec:TheoryDLDRL}
 So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \textbf{RL}'s value iteration?
 \\
 \\
@@ -206,7 +208,7 @@ For this project, I have implemented the above algorithm in a class called DeepR
 %----------------------------------------------------------------------------------------
 
 \section{Deep Q-Learning}
-
+\label{sec:TheoryDQL}
 Another fundamental concept of \textbf{RL} is that of the Q-function $Q(s, a)$, the maximum expected reward the agent can obtain from state $s$, taking action $a$ and acting optimally afterwards. Notice that the knowledge of $V$ everywhere is equivalent to that of $Q$, since obviously:
 \begin{equation} \label{eq:QI}
 V(s) = max_{a \in \mathcal{A}(s)} Q(s, a)
@@ -294,11 +296,12 @@ def MCTS(initial_node, time_out, q_v_network):
 def construct_path_to_new_leaf(tree, q_v_network):
     leaf = tree.initial_node
     while leaf.expanded:
-        actions_proba, value = q_v_network(leaf)
-        historical_actions_count = leaf.actions_taken
-        leaf = leaf.choose_child(actions_proba,
-                                 value,
-                                 historical_actions_count)
+        actions_probas, actions_values = q_v_network(leaf)
+        """ choose next node based on joint actions probas & values
+        as well as history of actions taken
+        """
+        leaf = leaf.choose_child(actions_probas,
+                                 actions_values)
     # add children of leaf to tree
     leaf.expand()
     # penalize path taken to favour exploration

@@ -189,11 +189,60 @@ Some quick googling suggests the 2x2x2 Rubik's God number to be 11 in the quarte
 %-----------------------------------
 %	SECTION 3
 %-----------------------------------
-\section{Solving puzzles \textit{without human knowledge}}
+\section{Solving puzzles without human knowledge}
+\label{sec:WHK}
 
-In the upcoming implementation (\ref{sec:Implementation}) and results (\ref{sec:ResultsSP}, \ref{sec:ResRubiks}) sections, I will be discussing various solvers. Some of them, such as my implementation of a naive \textbf{SP} solver, or the Kociemba open source implementation for the \textbf{RC}, make heavy use of specific knowledge about these two puzzles. Then there are the A$^{*}$ with handcrafted heuristics (e.g. Manhattan heuristic for the \textbf{SP}) algorithms which .
+In the upcoming implementation (\ref{sec:Implementation}) and results (\ref{sec:ResultsSP}, \ref{sec:ResRubiks}) sections, I will be discussing various solvers. I would put them broadly in four different categories, by decreasing level of human knowledge that has been assumed and handcrafted in them. Notice that this human-knowledge-required scale is obviously somewhat arbitrary, but good to keep in mind in later (and in particular results) sections.
 
-, which I have taken from third parties (kociemba) to supervised (DL) to unsupervised (DRL \& DQL) .... but sometimes subtle knowledge injected in e.g. representation or simplifications.
+\paragraph{Domain-specific solvers}
+At 4 on the human-knowledge-required scale, I would put my NaiveSolver (handcrafted to solve the \textbf{SP}) as well as the hkociemba (2x2x2) and kociemba (3x3x3) open source implementations which I have integrated in my KociembaSolver. They make heavy use of specific knowledge about the two puzzles, not only about their mechanics, but also about how to actually (provably) solve them.
+
+
+\paragraph{Domain-specific heuristics}
+At 3 on the human-knowledge-required scale, I put A$^{*}$-with-handcrafted-heuristics (e.g. Manhattan heuristic for the \textbf{SP}) algorithms. Constructing the heuristics usually require some knowledge about the puzzle's mechanics, but not necessarily about how to solve them efficiently (though of course knowing the latter might help come up with more efficient heuristics).
+
+
+\paragraph{Supervised learning}
+At 2 on the human-knowledge-required scale, I put my DeepLearner solver (also using A$^{*}$ but whose heuristic is learnt via \textbf{DL}). This solver does not require any knowledge of the structure or mechanics of the puzzle, nor of how to solve them, but just need a teacher algorithm to learn/extrapolate from.
+
+
+\paragraph{Blind search\& unsupervised learning}
+Finally at 1 on the human-knowledge-required scale, I put the blind solvers such as \textbf{BFS} and \textbf{DFS}. Also in that group I put A$^{*}$ with heuristics learnt using my DeepReinforcementLearner and DeepQLearner, and my MonteCarloSearchTree which all know (almost) nothing about the puzzles and do totally work from generic interfaces alone (states, transitions, etc \dots) and are operating in an unsupervised way.
+\\
+\\
+One important comment I would make to end this section is that it is easy to inject, without realising or acknowledging it, specific knowledge into the solvers, or in the tensor representation of the puzzles that the solvers take as input. Pretty much all the papers about \textbf{RC} that I have surveyed chose a more compact representation for the cube than I have. They remove the center cubies of the 3x3x3 cube since, they argue, those never move via face-turns. Some of them go much further and make use of various symmetry arguments to reduce the search space and reduce the \textbf{RC} to having one goal state (instead of 24). One of the main papers I have inspired myself for this project, \cite{DBLP:journals/corr/abs-1805-07470}, reduces the representation of the Rubik's considerably more, by making use of arguments about the physical structure of the edge and corner cubies: knowing the color of one of their face allows you do deduct the other faces, and therefore, they only need to track one face. I of course understand that they do that for the sake of reducing the size of the tensors representing the cube, and in order to remove redundant information. This is still \textit{cheating} a bit in my opinion, especially if you are claiming to solve these puzzles \textit{without-human-knowledge}, as we can only operate these dimensionality reduction tricks if we have external world knowledge about the physical structure of the puzzles. In this project, I have chosen as pure an approach as I could, and not only did not reduce the dimensionality of the tensor representation of the puzzles, but also, specifically for the Rubik's cube, I did not make use of invariance by spacial rotation of the full cube.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

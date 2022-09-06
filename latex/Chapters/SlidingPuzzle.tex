@@ -35,7 +35,7 @@ MCTS[DQL]        & & & & & & &  x  & & \\
 \end{center}
 \end{table}
 
-I am neither making claims of depth (each solver could surely be tuned and optimized/adapted, possibly differently for each dimension) nor breadth (I have not run all of the solvers versus each dimension). Running these experiments takes a lot of time, so I had to be somewhat selective. I wanted however to run all of the solvers I have implemented one particular dimension (the intermediary 3x3 seemed appropriate to do so), to answer some of the following interesting questions:
+I am neither making claims of depth (each solver could surely be tuned and optimized/adapted, possibly differently for each dimension) nor breadth (I have not run all of the solvers versus each dimension). Running these experiments takes a lot of computing time (even though I have very decent computing resources), so I had to be somewhat selective. I wanted however to run all of the solvers I have implemented one one particular dimension (the intermediary 3x3 seemed appropriate to do so) and try to answer as many of the following interesting questions as possible:
 \begin{itemize}
 \item How hard is too hard for \textbf{BFS} to complete in \textit{reasonable} time?
 \item How much, if any, improvement do we get with Manhattan++ over Manhattan?
@@ -65,7 +65,7 @@ All of these questions are answered (obviously not in generality, but in the con
 
 \subsection{God numbers and hardest puzzles}
 
-As mentioned in chapter \ref{sec:Puzzles}, the state space cardinality for the SP grows very quickly with n and m. The only dimensions which have less than 239.5 millions states are shown in table \ref{tab:smallSP}. Note I am also only considering n $\leq$ m since dimension (m, n) can always be solved by symmetry from the solutions (n, m):
+As mentioned in chapter \ref{sec:Puzzles}, the state space cardinality for the SP grows very quickly with n and m. The only dimensions which have less than 239.5 millions states are shown in table \ref{tab:smallSP}. Note I am also only considering n $\leq$ m since dimension mxn can always be solved by symmetry from the solutions mxn:
 
 \begin{table}[H]
 \begin{center}
@@ -91,7 +91,7 @@ n              & m & 2 & 3 & 4 & 5\\
 \caption{\label{tab:smallSPGN}God numbers for \textit{small} dimensions}
 \end{center}
 \end{table}
-Notice that among the above dimensions, (n=2, m=5) is the largest and hardest one. I had to run its PerfectLearner over a many weeks (whenever I had spare computing capacity and over a full week-end on a c5.18xlarge instance (72 cores) on Amazon EC2).
+Notice that among the above dimensions, 2x5 is the largest and hardest one. My current displayed result in table \ref{tab:smallSPGN} is provisional, as I have only solved a bit over 1.1 million puzzles out of the 1.8 million possible, so it is well possible that I haven't yet bumped into the hardest configuration. I ran a combined 600 hours, much of which run over 16 cores, and even over a full week-end on a c5.18xlarge instance (72 cores) on Amazon EC2.
 \\
 \\
 The perfectLearner also keeps track of the hardest puzzle it has encountered (i.e. a configuration whose optimal solution has a cost equal to the God number). I obtained the following hardest puzzles for each of the 5 \textit{small} dimensions:
@@ -140,7 +140,7 @@ The perfectLearner also keeps track of the hardest puzzle it has encountered (i.
 
 \subsection{Manhattan heuristic}
 \label{MHComp}
-In this section, I verify empirically that, as expected, the overhead of adding penalty in Manhattan++ for the linear constraint (which have all been precomputed and stored in a database) is more than compensated for by the reduction in nodes expansion. I have run my solver script for (n=2, m=5) in performance test mode, for both Manhattan and Manhattan++, with 250 randomly shuffled puzzles with \textit{nb\_shuffles} from 0 to 60 by increment of 5, as well as with \textit{nb\_shuffles = $\inf$}. The resulting run time and nodes expansions are as follows:
+In this section, I verify empirically that, as expected, the overhead of adding penalty in Manhattan++ for the linear constraint (which have all been precomputed and stored in a database) is more than compensated for by the reduction in nodes expansion. I have run my solver script for 2x5 in performance test mode, for both Manhattan and Manhattan++, with 250 randomly shuffled puzzles with \textit{nb\_shuffles} from 0 to 60 by increment of 5, as well as with \textit{nb\_shuffles = $\inf$}. The resulting run time and nodes expansions are as follows:
 
 \begin{figure}[H]
 \centering
@@ -179,9 +179,12 @@ Improvement               & n/a &  n/a & x2.5 & x2.7 & x2.5 & x2.6 \\
 \section{Intermediary case - 3x3}
 \label{sec:S33}
 
+In this section, which focusses on the 3x3 \textbf{SP}, I detail some results from the PerfectLearner (\ref{sec:S33PL}), from the DeepReinforcementLearner (\ref{sec:S33DRL}), before moving to a discussion of the \textbf{DQL} \textbf{MCTS} solver and the effect of its trade-off hyper-parameter \textit{c} and of its optional \textbf{BFS} tree-trimming on the quality of the solutions (\ref{sec:MTCSHyperParamsEffect}). I then run a comprehensive comparison of my 10 different solvers on the 3x3 \textbf{SP} in \ref{ssec:33SPSC}. Finally, I end the section by running a few select solvers on one of the two hardest 3x3 puzzle in \ref{ssec:33SPHard}
+
 
 \subsection{Perfect learner}
-As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \textbf{SP} is one of the cases I have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough that it is worth trying and comparing a few different methods, including deep reinforcement learning. To start with, I ran the PerfectLearner with n=m=3, and the results are shown below in figure \ref{fig:33SPPerfectLearning}. It is interesting to note that there are only two hardest configurations (cost 31) and 221 configurations of cost 30.
+\label{sec:S33PL}
+As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \textbf{SP} is one of the cases I have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough that it is worth trying and comparing a few different methods, including \textbf{DL}, \textbf{DRL} and \textbf{DQL}. To start with, I ran the PerfectLearner and the results are shown below in figure \ref{fig:33SPPerfectLearning}. It is interesting to note that there are only two hardest configurations (of cost 31) and 221 configurations of cost 30.
 
 
 \begin{figure}[H]
@@ -195,7 +198,23 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 
 
 \subsection{Deep reinforcement learner}
- The DeepReinforcementLearner's learning is shown in figure \ref{fig:33SPDeepReinforcementLearning}:
+\label{sec:S33DRL}
+Next I have run the DeepReinforcementLearner with the following main parameters:
+\begin{itemize}
+\item Update the target network every 1,000 epochs (\textit{update\_target\_network\_frequency=1000}) or when the MSE falls below 10 basis points of the maximum target cost-to-go (\textit{update\_target\_network\_threshold=1e-3})
+\item Run for a maximum of 11,000 epochs (\textit{nb\_epochs=11000}) or when the maximum target so far has not been increasing by more than 1\% in the last 5,500 epochs (\textit{max\_target\_uptick=1e-2} and \textit{max\_target\_not\_increasing\_epochs\_pct=0.5})
+\item At every update of the target network (\textit{training\_data\_every\_epoch=False}), generate 100 sequences of puzzles (\textit{nb\_sequences=100}), each comprised of a 50-scramble puzzle back to goal state, with all intermediary puzzles along the path (\textit{nb\_shuffles=50}).
+\item Use a fully connected network (\textit{network\_type=fully\_connected\_net}) with three hidden layers of size 600, 300, 100 (\textit{layers\_description=(600,300,100)}) and use torch.optim.RMSProp as optimiser (\textit{optimiser=rms\_prop}) with an exponential scheduler (\textit{scheduler=exponential\_scheduler}) with gamma 0.999 (\textit{gamma\_scheduler=0.9999}).
+\end{itemize}
+Below I show some of the DeepReinforcementLearner's quantities tracked over the epochs (see \ref{fig:33SPDeepReinforcementLearning}). I have shown only the following quantities:
+\begin{itemize}
+\item learning rate, which decreases due to the scheduler, but gets reset at each network update.
+\item max target. One interesting dynamic during learning is that due to the way targets are constructed using value-iteration update, and starting from an all 0 network, the max target only increases by about 1 at best at every network update. That is, the first network only learns how to differentiate goal from non-goal, then the second one learns how to differentiate goals, cost 1 and cost 2+ in some sense. This is why I have introduced the first set of parameters discussed just above. The first one makes sure we do not waste time initially training the left-hand-side network when training is easy (as consist of just goal versus not goal). The second ones make sure that we stop training altogether when the max target does not grow anymore. This is because we do not know a-priori what the God number of a given puzzle/dimension is, but let's assume for the sake of the argument that it is 15. Then that means that after 15 updates of the target network we might not really get so much benefit by keeping training and value-iterating.
+\item the MSE loss
+\item the MSE loss divided by the max target. The exit criterion \textit{update\_target\_network\_threshold} is based on that quantity, since a loss of e.g. 0.01 means little if the we do not compare it to the possible range that the cost-to-go can take.
+\item The percentage of all the possible puzzles of that dimension \textit{seen} by the DeepReinforcementLearner. This is an interesting quantity, as it tells us later on when testing out of sample and comparing with other solvers, how well the solvers are able to generalise. In this case (3x3) we can see that the DeepReinforcementLearner quickly has seen a very large percentage of all puzzles. That being said, it is good to keep in mind that \textit{seen} does not mean really much here, since the learning is unsupervised. This is quite in contrast to the DeepLearner, for which puzzles seen come along with the cost-to-go computed by a \textit{teacher}, usually an optimal or at least efficient solver.
+\end{itemize}
+
 
 \begin{figure}[H]
 \centering
@@ -203,6 +222,9 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 \caption[33SPDeepReinforcementLearning]{\textbf{DRL} of the 3x3 \textbf{SP}}
 \label{fig:33SPDeepReinforcementLearning}
 \end{figure}
+
+Notice that the DeepLearner and DeepQLearner have very similar sets of parameters and track similar metrics during their learning for later display, but I shall not detail it here since there is not much extra insight to be had compared to the DeepReinforcementLearning example we just went through.
+
 
 
 \subsection{MCTS DQL}
@@ -245,6 +267,7 @@ DxL vs Perfect
 
 
 \subsection{Solving the hardest 3x3 problem}
+\label{ssec:33SPHard}
 To finish with the 3x3 SP, let me try to throw one of the two hardest 3x3 configurations (see subsection \ref{sec:SPLowDimension}) at the different solvers to see how they fare. The results are shown here
 
 \begin{center}

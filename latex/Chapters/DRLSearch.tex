@@ -11,7 +11,7 @@ In this chapter, I will succinctly go through the different techniques that unde
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-\section{Graphs Search \& Heuristics}
+\Section{Graphs Search \& Heuristics}
 
 \label{GSH}
 
@@ -29,7 +29,7 @@ Search strategies typically maintain a frontier, which is the collection of unex
 \paragraph{}{\textbf{pseudo code -- BFS \& DFS}}
 \label{sec:TheoryBFSDFS}
 \begin{pseudocode}
-###############################################################################
+#################################################
 def blind_search(initial_node, time_out, search_type=Search.BFS):
    """ pseudo code for BFS/DFS """
     initialize_time_out(time_out)
@@ -48,7 +48,7 @@ def blind_search(initial_node, time_out, search_type=Search.BFS):
             if child.is_goal():
                 return child
             frontier.add(child)
-###############################################################################
+##################################################
 \end{pseudocode}
 \black
 \textit{Informed} strategies, on the other hand, exploit domain-specific knowledge. One very popular such strategy is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which always first examine the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to solution (\textbf{h}). The expected cost-to-go \textbf{h} is often called a \textit{heuristic}. The better the heuristic is, the better \textbf{A$^{*}$} usually performs. An important property of heuristics is \textit{admissibility}. In short, admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.
@@ -90,7 +90,7 @@ def A*(initial_node, time_out, heuristic):
 %-----------------------------------
 
 
-\section{Reinforcement Learning}
+\Section{Reinforcement Learning}
 \label{sec:RLTheory}
 
 As mentioned in the abstract, \textbf{RL} (see \cite{Sutton1998} for a brilliant exposition of the basic concepts and theory) has known a bit of false start in the 1950s and 1960s but recently been extremely successfully applied to a variety of problems (from Atari to board games and puzzles, robotics and else). \textbf{RL} is concerned with how intelligent agents can learn optimal decisions from observing/experiencing rewards while interacting in their environment. One of the fundamental concept in the field is that of value function $s \to \textbf{V}(s)$, which tells us the maximum expected reward - or equivalently and better suited to our puzzle solving task, the minimum cost - the agent can obtain from a given state $s$ (if it takes optimal decisions). In finite state and transitions spaces, the value function can be remarkably computed by a rather mechanical and magic-like procedure called value-iteration (kind of the equivalent of the Bellman equation from optimal control), where each state $s$'s value is iteratively refined by combining the value of $s$'s reachable children states.
@@ -119,7 +119,7 @@ def value_iteration(states):
 
 
 
-\section{Deep Learning}
+\Section{Deep Learning}
 
 Quite similarly to \textbf{RL}, Deep Learning (\textbf{DL}) has not initially had the success the \textbf{AI} community was hoping it would. Marvin Minsky, who often took the blame for having \textit{killed} funding into the field, even regretted writing his 1969 book (\cite{minskypapert69}) in which he had proved that three-layer feed forward perceptrons were not quite the universal functions approximators some had hypothesized them to be. Since around 2006 (see \cite{GoodBengCour16} for more history of the recent burgeoning of \textbf{DL}), the field has known a rebirth, probably due to a combination of factors, from ever more powerful computers and larger storage, the availability of data sets large and small on the internet, the advances in many techniques and heuristics (backward propagation, normalisation, drop-outs, different optimisation schemes, etc \dots) and the huge amount of experimentation with different architectures (from very deep feed forward fully connected networks, to convolutional, recurrent and more exoctic networks). It is not an exageration to say that \textbf{DL} has rendered obsolete entire fields of research and bodies of knowledge, most notably in \textbf{CV}, robotics, computational biology and \textbf{NLP}. \textbf{DL} has often become the method of choice to learn or approximate highly dimensional functions or random processes. The beauty of it is that the relevant features are autodiscovered during the training of the network, via back-ward propagation and trial-and-error, rather than having to be postulated or handcrafted as is often the case with other \textbf{ML} techniques.
 
@@ -127,7 +127,7 @@ Quite similarly to \textbf{RL}, Deep Learning (\textbf{DL}) has not initially ha
 %	SECTION 4
 %----------------------------------------------------------------------------------------
 
-\section{DL and DLR Heuristics}
+\Section{DL and DLR Heuristics}
 \label{sec:TheoryDLDRL}
 So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \textbf{RL}'s value iteration?
 \\
@@ -207,7 +207,7 @@ For this project, I have implemented the above algorithm in a class called DeepR
 %	SECTION 5
 %----------------------------------------------------------------------------------------
 
-\section{Deep Q-Learning}
+\Section{Deep Q-Learning}
 \label{sec:TheoryDQL}
 Another fundamental concept of \textbf{RL} is that of the Q-function $Q(s, a)$, the maximum expected reward the agent can obtain from state $s$, taking action $a$ and acting optimally afterwards. Notice that the knowledge of $V$ everywhere is equivalent to that of $Q$, since obviously:
 \begin{equation} \label{eq:QI}
@@ -272,7 +272,7 @@ For this project, I have implemented the above algorithm in a class called DeepQ
 %	SECTION 6
 %----------------------------------------------------------------------------------------
 
-\section{Monte Carlo Tree Search}
+\Section{Monte Carlo Tree Search}
 
 Since my implementation of \textbf{DQL} is no longer just a cost-to-go estimate as with \textbf{DRL}, but a joint cost-to-go and distribution over actions (to be concrete, that means a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss produces a better network and leads to better heuristics, since we use more information during the learning and iterations.
 \\

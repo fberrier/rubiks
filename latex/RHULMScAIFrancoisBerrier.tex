@@ -1,0 +1,84 @@
+\documentclass[11pt]{article} % do not change this line
+\input{BigDataStyle.txt}      % do not change this line
+\input{Packages/Packages}
+
+
+\addbibresource{references.bib} % The filename of the bibliography
+\newcommand{\chapter}{\section}
+\newcommand{\Section}{\subsection}
+\newcommand{\Subsection}{\subsubsection}
+
+
+\hypersetup{%
+  colorlinks = true,
+  linkcolor  = black
+}
+
+\emergencystretch=5mm
+\tolerance=400
+\allowdisplaybreaks[4]
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{problem}[theorem]{Problem}
+
+\theoremstyle{definition}
+\newtheorem*{remark}{Remark}
+
+\title{Solving \\ the \\ 15-Puzzle \\ \& \\ Rubik's Cube}
+\author{Fran\c{c}ois Berrier}
+
+\newcommand{\Programme}{Artificial Intelligence}
+
+\hypersetup{%
+  citecolor=mdtRed
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{Abstract/Abstract}
+\end{abstract}
+
+\noindent
+\textbf{Acknowledgements}
+\newline
+\newline
+\input{Acknowledgements/Acknowledgements}
+
+%\tableofcontents % Prints the main table of contents
+
+\newpage
+
+\hypersetup{%
+  colorlinks = true,
+  linkcolor  = orange
+}
+\input{Chapters/Objectives}
+\include{Chapters/DRLSearch}
+
+
+
+
+
+\printbibheading
+\hypersetup{pdfpagemode={UseOutlines},
+bookmarksopen=true,
+bookmarksopenlevel=0,
+hypertexnames=false,
+colorlinks=true,% Set to false to disable coloring links
+citecolor=magenta,% The color of citations
+linkcolor=red,% The color of references to document elements (sections, figures, etc)
+urlcolor=mdtRed,% The color of hyperlinks (URLs)
+pdfstartview={FitV},
+unicode,
+breaklinks=true,
+}
+\printbibliography[type=article,heading=subbibliography,title={Journal Papers}]
+\printbibliography[type=book,heading=subbibliography,title={Books}]
+\printbibliography[type=misc,heading=subbibliography,title={Misc}]
+\end{document}

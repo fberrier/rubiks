@@ -1,0 +1,101 @@
+\usepackage{amsmath,amsthm}
+\usepackage[utf8]{inputenc} % Required for inputting international characters
+\usepackage[T1]{fontenc} % Output font encoding for international characters
+\usepackage{mathpazo} % Use the Palatino font by default
+\usepackage[T5,T1]{fontenc}
+\usepackage{verbatim}
+\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} % Use the bibtex backend with the authoryear citation style (which resembles APA)
+\usepackage{float}
+\usepackage{graphbox}
+\usepackage{lscape}
+\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage[paper=portrait,pagesize]{typearea}
+\usepackage{logicpuzzle}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{rubikcube}
+\usepackage{pythonhighlight}
+\usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
+\usepackage{hyperref}
+
+\colorlet{mdtRed}{red!50!black}
+
+\newenvironment{three}[1][]{%
+\begin{logicpuzzle}[rows=2,columns=2,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+\newenvironment{five}[1][]{%
+\begin{logicpuzzle}[rows=2,columns=3,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+\newenvironment{seven}[1][]{%
+\begin{logicpuzzle}[rows=2,columns=4,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+
+\newenvironment{nine}[1][]{%
+\begin{logicpuzzle}[rows=2,columns=5,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+
+\newenvironment{eight}[1][]{%
+\begin{logicpuzzle}[rows=3,columns=3,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+\newenvironment{fifteen}[1][]{%
+\begin{logicpuzzle}[rows=4,columns=4,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+\newenvironment{twenty}[1][]{%
+\begin{logicpuzzle}[rows=4,columns=5,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+\newenvironment{twentyfour}[1][]{%
+\begin{logicpuzzle}[rows=5,columns=5,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+\newenvironment{thityfive}[1][]{%
+\begin{logicpuzzle}[rows=6,columns=6,#1]
+\begin{puzzleforeground}
+\framepuzzle
+\end{puzzleforeground}
+}{\end{logicpuzzle}}
+
+\newcommand{\red}{\color{red}}
+\newcommand{\black}{\color{black}}
+\newcommand{\blue}{\color{blue}}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}
+\newcommand{\afblue}{\color{airforceblue}}
+\newcommand{\teal}{\color{teal}}
+
+\newenvironment{titlemize}[1]{%
+  \paragraph{#1}
+  \begin{enumerate}}
+  {\end{enumerate}}

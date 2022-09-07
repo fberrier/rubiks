@@ -38,108 +38,15 @@ headsepline, % Uncomment to get a line under the header
 %consistentlayout, % Uncomment to change the layout of the declaration, abstract and acknowledgements pages to match the default layout
 ]{MastersDoctoralThesis} % The class file specifying the document structure
 
-\usepackage[utf8]{inputenc} % Required for inputting international characters
-\usepackage[T1]{fontenc} % Output font encoding for international characters
-\usepackage{mathpazo} % Use the Palatino font by default
-\usepackage[T5,T1]{fontenc}
-\usepackage{verbatim}
-\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} % Use the bibtex backend with the authoryear citation style (which resembles APA)
-\usepackage{float}
-\usepackage{graphbox}
-\usepackage{lscape}
-\usepackage{pdflscape}
-\usepackage{rotating}
-\usepackage[paper=portrait,pagesize]{typearea}
-\usepackage{logicpuzzle}
-\usepackage{geometry}
-\usepackage{amsmath}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
-\usepackage{rubikcube}
-\newenvironment{three}[1][]{%
-\begin{logicpuzzle}[rows=2,columns=2,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
-
-\newenvironment{five}[1][]{%
-\begin{logicpuzzle}[rows=2,columns=3,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
-
-\newenvironment{seven}[1][]{%
-\begin{logicpuzzle}[rows=2,columns=4,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
 
 
-\newenvironment{nine}[1][]{%
-\begin{logicpuzzle}[rows=2,columns=5,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
+\input{Packages/Packages}
 
-
-\newenvironment{eight}[1][]{%
-\begin{logicpuzzle}[rows=3,columns=3,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
-
-\newenvironment{fifteen}[1][]{%
-\begin{logicpuzzle}[rows=4,columns=4,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
-
-\newenvironment{twenty}[1][]{%
-\begin{logicpuzzle}[rows=4,columns=5,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
-
-\newenvironment{twentyfour}[1][]{%
-\begin{logicpuzzle}[rows=5,columns=5,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
-
-\newenvironment{thityfive}[1][]{%
-\begin{logicpuzzle}[rows=6,columns=6,#1]
-\begin{puzzleforeground}
-\framepuzzle
-\end{puzzleforeground}
-}{\end{logicpuzzle}}
-
-\newcommand{\red}{\color{red}}
-\newcommand{\black}{\color{black}}
-\newcommand{\blue}{\color{blue}}
-\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}
-\newcommand{\afblue}{\color{airforceblue}}
-\newcommand{\teal}{\color{teal}}
-
-\newenvironment{titlemize}[1]{%
-  \paragraph{#1}
-  \begin{enumerate}}
-  {\end{enumerate}}
-
-\usepackage{pythonhighlight}
+\newcommand{\Section}{\section}
+\newcommand{\Subsection}{\subsection}
 
 
 \addbibresource{references.bib} % The filename of the bibliography
-
-\usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
-\usepackage{hyperref}
 
 %----------------------------------------------------------------------------------------
 %	MARGIN SETTINGS
@@ -248,28 +155,15 @@ headsepline, % Uncomment to get a line under the header
 %	ABSTRACT PAGE
 %----------------------------------------------------------------------------------------
 
+
 \begin{abstract}
 \addchaptertocentry{\abstractname} % Add the abstract to the table of contents
-\textbf{Motivation}
-\label{Abstract}
-\\
-Reinforcement Learning (\textbf{RL}), exposed with brilliant clarity in the Sutton book (\cite{Sutton1998}), has until recently known less success than we might have hoped for. Its framework is very appealing and intuitive. In particular, the mathematical beauty of Value iteration and Q iteration (\cite{WatkinsThesis}) for discrete state and action spaces, blindly iterating from \textit{any} initial value, is quite profound. Sadly, it had until recently proven hard to achieve practical success with these methods.
-\\
-Inspired however by the seminal success of Deep Mind's team in using Deep Reinforcement Learning (\textbf{DRL}) to play Atari games (\cite{Mnih2013})  and to master the game of Go (\cite{AlphaGo}), researchers have in recent years made a lot of progress towards designing algorithms capable of learning and solving, \textit{without human knowledge}, the Rubik's Cube (\textbf{RC}) - as well as similar single player puzzles - by using Deep Q-Learning (\textbf{DQL})  (\cite{DBLP:journals/corr/abs-1805-07470}) or search and (\textbf{DRL}) value iteration (\cite{https://doi.org/10.48550/arxiv.1805.07470}).
-\\
-In this project, I will attempt to implement a variety of solvers combining $A^{*}$ search and heuristics, some of which will be handcrafted, others which I will train on randomly generated sequences of puzzles using (\textbf{DL}) or (\textbf{DRL}), to solve the 15-puzzle (and variations of different dimensions), as well as the Rubik's cube.
-\\
-\\
-\textbf{Organisation of this thesis}
-\\
-In the first chapter, I will quickly describe what I hope to get out of this project, both in terms of personal learning, as well as in terms of tangible results (solving some puzzles!). In chapter 2, I will do a quick recap of the different methods that I will use in the project. Chapter 3 will be dedicated to discussing the mathematics of the sliding puzzle (\textbf{SP}) and the (\textbf{RC}). I might throw a few random (but hopefully interesting) observations in there and give some references for the keen reader. I will then give an overview in chapter 4 of the code base I have developed - and put in the open on my github page (\cite{FB}) - to complete this project. Finally, in chapters 6 and 7, I will present all my various results on respectively the sliding puzzle and the Rubik's cube before offering some conclusion in chapter 8.
-\\
-A first appendix details how to use the code base, from constructing puzzles, to learning and solving them using all the different methods I have implemented for this project. A second appendix describes a limitation I bumped into while using the kociemba library (an open source 3x3x3 \textbf{RC} solver), and how I circumvented it.
-
-
-
-
+\input{Abstract/Abstract}
 \end{abstract}
+
+
+
+
 
 %----------------------------------------------------------------------------------------
 %	ACKNOWLEDGEMENTS
@@ -278,17 +172,7 @@ A first appendix details how to use the code base, from constructing puzzles, to
 \begin{acknowledgements}
 \addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
 %\begin{comment}
-I am grateful to my employer Bank of America for sponsoring my part time 2-year MSc in Artificial Intelligence at Royal Holloway. I entered in the study of AI with a heavy dose of skepticism and am delighted to have learnt so much and revised my judgment of this field.
-In particular I would like to thank my managers Mitrajit Dutta and Stephen Thompson for supporting me in pursuing this MSc.
-\\
-\\
-I have been fortunate to have had the company of my colleague Saurabh Kumar, as he decided to follow me in this MSc journey. We have had countless opportunities to debate about all the new cool stuff we learnt during the MSc, and that has definitely made the whole process much more enjoyable.
-\\
-\\
-I would also like to thank Professor Chris Watkins, for agreeing to supervise my project. It was an honour to attend his very lively lectures on Deep Learning during the first year of the MSc, as well as to absorb some of his wisdom and enthusiasm at our meetings during my work on this project. I am also glad to have followed his advice at our last meeting: I stopped shaving for a month, which did free enough time for me to implement DQL (joint policy and value learning), as well as a Monte Carlo Tree Search algorithm, to nicely complement my assortment of sliding-puzzle and Rubik's cube solvers.
-\\
-\\
-Last but not least, my wife Thanh Nh\~a is my biggest supporter in everything I do, and her continued encouragement in my pursuit of this MSc has made it so much easier to juggle between a demanding banking job, running 50 to 70 miles a week in preparation for the Chicago marathon, and the coursework, lectures and exam revisions.
+\input{Acknowledgements/Acknowledgements}
 %\end{comment}
 \end{acknowledgements}
 %----------------------------------------------------------------------------------------

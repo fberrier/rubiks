@@ -68,7 +68,28 @@ if '__main__' == __name__:
         performance(**locals())
     elif action_type == Solver.do_performance_test:
         nb_samples = 50
-        nb_cpus = 1
+        nb_cpus = 4
+        performance(solver_type=Solver.astar,
+                    heuristic_type=Heuristic.deep_learning,
+                    learner_type=Learner.deep_reinforcement_learner,
+                    time_out=300,
+                    add_perfect_shuffle=False,
+                    max_nb_shuffles=4,
+                    step_nb_shuffles=2,
+                    nb_sequences=10000, #500,
+                    nb_shuffles=12,
+                    nb_epochs=10000,
+                    layers_description=(600, 300, 100),
+                    training_data_every_epoch=False, #True,
+                    cap_target_at_network_count=False,
+                    one_hot_encoding=True,
+                    drop_out=0.,
+                    network_type=DeepLearning.fully_connected_net,
+                    learning_rate=1e-3,
+                    scheduler=DeepReinforcementLearner.exponential_scheduler,
+                    gamma_scheduler=0.9999,
+                    **locals())
+        exit()
         performance(solver_type=Solver.astar,
                     heuristic_type=Heuristic.deep_learning,
                     learner_type=Learner.deep_learner,
@@ -91,27 +112,6 @@ if '__main__' == __name__:
                     gamma_scheduler=0.9999,
                     nb_shuffles_min=1,
                     nb_shuffles_max=32,
-                    **locals())
-        exit()
-        performance(solver_type=Solver.astar,
-                    heuristic_type=Heuristic.deep_learning,
-                    learner_type=Learner.deep_reinforcement_learner,
-                    time_out=120,
-                    add_perfect_shuffle=False,
-                    max_nb_shuffles=2,
-                    step_nb_shuffles=2,
-                    nb_sequences=10000, #500,
-                    nb_shuffles=12,
-                    nb_epochs=10000,
-                    layers_description=(600, 300, 100),
-                    training_data_every_epoch=False, #True,
-                    cap_target_at_network_count=False,
-                    one_hot_encoding=True,
-                    drop_out=0.,
-                    network_type=DeepLearning.fully_connected_net,
-                    learning_rate=1e-3,
-                    scheduler=DeepReinforcementLearner.exponential_scheduler,
-                    gamma_scheduler=0.9999,
                     **locals())
         exit()
         performance(solver_type=Solver.bfs,

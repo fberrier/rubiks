@@ -25,7 +25,7 @@ if '__main__' == __name__:
                             } """
     action_type = Learner.do_plot
     """ What puzzle """
-    puzzle_type = Puzzle.sliding_puzzle
+    puzzle_type = Puzzle.rubiks_cube
     n = 3
     m = 3
     """ more init for specific puzzles """
@@ -61,11 +61,11 @@ if '__main__' == __name__:
     heuristic_type = Heuristic.manhattan
     plus = True
     """ If it's a DRL/DQL learner config is here ... """
-    nb_epochs = 25000
+    nb_epochs = 10000
     training_data_every_epoch = False
-    nb_sequences = 100
-    nb_shuffles = 50
-    cap_target_at_network_count = True
+    nb_sequences = 10000
+    nb_shuffles = 12
+    cap_target_at_network_count = False
     update_target_network_frequency = 1000
     update_target_network_threshold = 2e-2
     max_nb_target_network_update = 10

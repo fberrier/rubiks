@@ -7,13 +7,13 @@
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-\section{Sliding Puzzle}
+\Section{Sliding Puzzle}
 
 
 %-----------------------------------
 %	SUBSECTION 1.1
 %-----------------------------------
-\subsection{History - the 15-Puzzle}
+\Subsection{History - the 15-Puzzle}
 
 
 The first puzzle I will focus on in this thesis is the sliding puzzle (see \cite{SlidingPuzzleWiki}) whose most common variant is the 15-puzzle, seemingly invented in the late 19th century by Noyes Chapman (see \cite{SlidingPuzzleWolfram}), who applied in 1880 for a patent on what was then called "Block Solitaire Puzzle". In 1879, a couple of interesting notes (\cite{Johnson1879}), published in the American Journal of Mathematics proved that exactly half of the $16!$ possible ways of setting up the 16 tiles on the board lead to solvable puzzles. A more modern proof can be found in \cite{Archer1999}.
@@ -27,7 +27,6 @@ Since then, several variations of the 15-puzzle have become popular, such as the
 \centering
 \includegraphics[scale=0.3]{./Figures/coiled15puzzle}
 \includegraphics[scale=0.3]{./Figures/coiled15puzzle2.png}
-\decoRule
 \caption[Coiled 15-puzzle]{Coiled 15-puzzle}
 \end{figure}
 
@@ -86,7 +85,7 @@ Since it is possible to reach an odd parity configuration, we conclude by invoki
 %-----------------------------------
 %	SUBSECTION 1.2
 %-----------------------------------
-\subsection{Search Space \& Solvability}
+\Subsection{Search Space \& Solvability}
 
 In this thesis, as well as in the code base (\cite{FB}) I have written to do this project, we will consider the general case of a board with n columns and m rows, where $(n, m) \in {\mathbb{N}^{+}}^{2}$, forming $n * m$ compartments. $n * m - 1$ tiles, numbered 1 to $n * m - 1$ are placed in all the compartments but one (which is left empty), and we can slide a tile directly adjascent to the empty compartment into it. Notice from a programming and mathematical analysis perspective, it is often easier to equivalently think of the empty compartment being moved into (or swapped with) an adjacent tile. Starting from a given shuffling of the tiles on the board, our goal will be to execute moves until the are tiles in ascending order: left to right, top to bottom (in the usual western reading order), the empty tile being at the very bottom right.
 \\
@@ -102,7 +101,7 @@ As hinted in the previous section when discussing the coiled 15-puzzle, we can n
 %-----------------------------------
 %	SUBSECTION 1.3
 %-----------------------------------
-\subsection{Optimal Cost \& God's Number}
+\Subsection{Optimal Cost \& God's Number}
 
 Let us fix n and m, integers strictly greater than 1 and call $\mathcal{C}_{(n, m)}$ the set of all $\frac{(n * m)!}{2}$ solvable configurations of the n by m sliding-puzzle. For any $c \in \mathcal{C}_{(n, m)}$ we define the optimal cost $\mathcal{O}(c)$ to be the minimum number of moves among all solutions for c. Finally we define $\mathcal{G}(n, m)$, God's number for the n by m puzzle as  $\mathcal{G}(n, m) = \max_{c \in \mathcal{C}_{(n, m)}} \mathcal{O}(c)$. Note that since $\frac{(n * m)!}{2}$ grows rather quickly with n and m, it is impossible to compute $\mathcal{G}$ except in rather trivial cases.
 \\
@@ -116,11 +115,11 @@ A very poor lower bound can be always obtained by the following reasoning: each 
 %-----------------------------------
 %	SECTION 2
 %-----------------------------------
-\section{Rubik's Cube}
+\Section{Rubik's Cube}
 
 
 
-\subsection{History -- from Erno Rubik to speed cubing competitions}
+\Subsection{History -- from Erno Rubik to speed cubing competitions}
 The second puzzle I will focus on is the well known Rubik's Cube (\textbf{RC}), invented in 1974 by Erno Rubik, originally known under the name of \textit{Magic Cube} (see \cite{RubiksWiki}). Since it was commercialized in 1980, it has kown a worldwide success: countless people are playing with the famous original 3x3x3 cube, as well as with many variants of it, more or less difficult and contrived. Competitions nowadays bring together \textit{speedcubers} who have trained for years and memorized various algorithms to solve the Rubik's in astonishly effective and fast times (literally in seconds for the best ones). Interestingly, some of the principles used by speedcubers generalise to different dimensions. As an example, it is quite impressive to watch \textit{Cubastic} solve a 15x15x15 cube in (only) two and a half hours! (see \cite{151515Rubiks}). The key insight to solving high dimensional \textbf{RC}s (short obviously of coming up with specific and sophisticated strategies) is the following: if we manage to group all the inside (i.e. not located on a corner or an edge of the cube) cubies by colour, and then all the non-corner edges on a given tranche of a face by colour, we are essentially reducing the cube to a 3x3x3, since no face rotation will ever undo the inside cubies and non-corner-edge cubies' grouping. For instance, the following picture shows faces of my own 4x4x4 and 3x3x3 cubes which I have arranged to be in identical configurations.
 \\
 \\
@@ -130,7 +129,6 @@ It is quite interesting to note that the difficuly of hand-solving cubes does no
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.3]{./Figures/RC333444}
-\decoRule
 \caption[Reducing RC]{Reducing a 4x4x4 \textbf{RC} to a 3x3x3 -- home made picture}
 \end{figure}
 
@@ -140,7 +138,7 @@ It is quite interesting to note that the difficuly of hand-solving cubes does no
 
 
 
-\subsection{Conventions: faces, moves and configurations}
+\Subsection{Conventions: faces, moves and configurations}
 In my code as well as in this write-up, I follow the conventions and notations of the \textbf{RC} literature and community as much as possible, I will refer to the faces as F (front), B (back), U (up), D (down), L (left) and R (right). The cubes' tiles are of 6 different colors, and without loss of generality (though the interested reader is referred to appendix \ref{sec:Kociemba} for some subtlety around that), we can consider that these colors are also called F, B, U, D, L and R, and consider the goal state as one where, up to rotations of the whole cube, the color's name match the faces (color F on face F, etc). The Rubik's has, as one would expect, an extremely large state space. I will compute the state space size for the 3x3x3 and 2x2x2 cubes in the next two subsections and discuss conditions under which  a cube is solvable.
 \\
 It is common in \textbf{RC} jargon to refer to moves  by the name of the face that is rotated clock-wise (when facing it), and by adding a prime \textit{'} for counter-clock-wise rotations. Sometimes people use a number after the face to indicate repeated similar moves, though I will count in my code that as 2 moves, since obviously e.g. U2 = U U = U' U'. As another example: F B' F2 means rotating the front face clock-wise, the back face counter-clock-wise, followed by the front face twice. Some people refer to the convention I have chosen as the \textit{quarter turn metric}, and obvioulsy the length of solutions is affected by which convention/metric we use.
@@ -156,7 +154,7 @@ Finally, let me make a remark on what I consider in this project to be distinct 
 
 
 
-\subsubsection{3x3x3 Rubik's -- search space, solvability \& God's number}
+\Subsection{3x3x3 Rubik's -- search space, solvability \& God's number}
 
 A good strategy to compute the state space size of a the Rubik's of a given dimension is to compute:
 \begin{itemize}
@@ -176,7 +174,7 @@ Computing $N$ is a bit tricker. For the 3x3x3 Rubik's, each of the 8 corner cubi
 Finally, let me mention that there is a long history of research into finding tighter and tighter bounds on the 3x3x3 God's number (usually, proofs of upper bounds were obtained and refined by decomposing the Rubik's moves group into subgroups, then finding upper bounds of distance between two elements of a given subgroup, and finally summing these upper bounds over the different subgroups). See e.g. \cite{RubiksChicago} for an exposition of this type of approach. In 2007, an upper bound of 34 in the quarter turn metric was published (\cite{RubiksRadu}) but the question got properly settled in \cite{RubiksGodNumber} by Google's researchers which used clever symmetry arguments to reduce the search space to the maximum, followed by Google's vast computing power capabilities to brute force solve all of the configurations they were left with. They concluded that the 3x3x3 Rubik's God number is in fact a mere 26.
 
 
-\subsubsection{2x2x2 Rubik's -- search space, solvability}
+\Subsection{2x2x2 Rubik's -- search space, solvability}
 
 For the 2x2x2 cube, there are eight possible ways of choosing the physical position of the eight corner cubies (and since there are known algorithms, such as R’ U R’ D2 R U’ R’ D2 R2, to swap exactly two and only two adjacent corners we know all can indeed be obtained). Each corner cubie can be oriented in 3 different ways, so we get a total of $8! . 3^{8}$ configurations. However, due to the \textbf{COP} parity discussed in the previous section, we conclude that only one third of these are attainable (namely those for which the \textbf{COP} is equal to 0 \% 3). Overall, this gives $8! * 3^{7}$ = 88,179,840 possible configurations (probably a larger number than most people would expect for a mere 2x2x2 cube).
 \\
@@ -189,7 +187,7 @@ Some quick googling suggests the 2x2x2 Rubik's God number to be 11 in the quarte
 %-----------------------------------
 %	SECTION 3
 %-----------------------------------
-\section{Solving puzzles without human knowledge}
+\Section{Solving puzzles without human knowledge}
 \label{sec:WHK}
 
 In the upcoming implementation (\ref{sec:Implementation}) and results (\ref{sec:ResultsSP}, \ref{sec:ResRubiks}) sections, I will be discussing various solvers. I would put them broadly in four different categories, by decreasing level of human knowledge that has been assumed and handcrafted in them. Notice that this human-knowledge-required scale is obviously somewhat arbitrary, but good to keep in mind in later (and in particular results) sections.

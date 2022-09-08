@@ -60,10 +60,10 @@ All of these questions are answered (obviously not in generality, but in the con
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-\section{Low dimension}
+\Section{Low dimension}
 \label{sec:SPLowDimension}
 
-\subsection{God numbers and hardest puzzles}
+\Subsection{God numbers and hardest puzzles}
 
 As mentioned in chapter \ref{sec:Puzzles}, the state space cardinality for the SP grows very quickly with n and m. The only dimensions which have less than 239.5 millions states are shown in table \ref{tab:smallSP}. Note I am also only considering n $\leq$ m since dimension mxn can always be solved by symmetry from the solutions mxn:
 
@@ -138,7 +138,7 @@ The perfectLearner also keeps track of the hardest puzzle it has encountered (i.
 
 
 
-\subsection{Manhattan heuristic}
+\Subsection{Manhattan heuristic}
 \label{MHComp}
 In this section, I verify empirically that, as expected, the overhead of adding penalty in Manhattan++ for the linear constraint (which have all been precomputed and stored in a database) is more than compensated for by the reduction in nodes expansion. I have run my solver script for 2x5 in performance test mode, for both Manhattan and Manhattan++, with 250 randomly shuffled puzzles with \textit{nb\_shuffles} from 0 to 60 by increment of 5, as well as with \textit{nb\_shuffles = $\inf$}. The resulting run time and nodes expansions are as follows:
 
@@ -176,13 +176,13 @@ Improvement               & n/a &  n/a & x2.5 & x2.7 & x2.5 & x2.6 \\
 %-----------------------------------
 %	SECTION 2
 %-----------------------------------
-\section{Intermediary case - 3x3}
+\Section{Intermediary case - 3x3}
 \label{sec:S33}
 
 In this section, which focusses on the 3x3 \textbf{SP}, I detail some results from the PerfectLearner (\ref{sec:S33PL}), from the DeepReinforcementLearner (\ref{sec:S33DRL}), before moving to a discussion of the \textbf{DQL} \textbf{MCTS} solver and the effect of its trade-off hyper-parameter \textit{c} and of its optional \textbf{BFS} tree-trimming on the quality of the solutions (\ref{sec:MTCSHyperParamsEffect}). I then run a comprehensive comparison of my 10 different solvers on the 3x3 \textbf{SP} in \ref{ssec:33SPSC}. Finally, I end the section by running a few select solvers on one of the two hardest 3x3 puzzle in \ref{ssec:33SPHard}
 
 
-\subsection{Perfect learner}
+\Subsection{Perfect learner}
 \label{sec:S33PL}
 As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \textbf{SP} is one of the cases I have been able to solve perfectly, since it only has 181,440 possible configurations. Its God number is only 31, which definitely makes it manageable. However, this is already an intermediary size, large enough that it is worth trying and comparing a few different methods, including \textbf{DL}, \textbf{DRL} and \textbf{DQL}. To start with, I ran the PerfectLearner and the results are shown below in figure \ref{fig:33SPPerfectLearning}. It is interesting to note that there are only two hardest configurations (of cost 31) and 221 configurations of cost 30.
 
@@ -197,7 +197,7 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 
 
 
-\subsection{Deep reinforcement learner}
+\Subsection{Deep reinforcement learner}
 \label{sec:S33DRL}
 Next I have run the DeepReinforcementLearner with the following main parameters:
 \begin{itemize}
@@ -227,7 +227,7 @@ Notice that the DeepLearner and DeepQLearner have very similar sets of parameter
 
 
 
-\subsection{MCTS DQL}
+\Subsection{MCTS DQL}
 \label{sec:MTCSHyperParamsEffect}
 
 
@@ -240,7 +240,7 @@ Notice that the DeepLearner and DeepQLearner have very similar sets of parameter
 
 
 
-\subsection{Solvers' comparison}
+\Subsection{Solvers' comparison}
 \label{ssec:33SPSC}
 \label{sec:S33DRLDQL}
 Let me discuss a comparison of several algorithms on 1000 random puzzles generated for a number of random shuffling (with best-effort-no-backtracking) from 0 to 50 in step of 2, as well as for perfect shuffling (denoted by $\infty$) on the comparison graphs. The results are shown in figure \ref{fig:33SPPerformance}
@@ -266,7 +266,7 @@ DxL vs Perfect
 \end{figure}
 
 
-\subsection{Solving the hardest 3x3 problem}
+\Subsection{Solving the hardest 3x3 problem}
 \label{ssec:33SPHard}
 To finish with the 3x3 SP, let me try to throw one of the two hardest 3x3 configurations (see subsection \ref{sec:SPLowDimension}) at the different solvers to see how they fare. The results are shown here
 
@@ -306,7 +306,7 @@ Finally, the naive solver outperforms every other solver in terms of run time, b
 %-----------------------------------
 %	SECTION 3
 %-----------------------------------
-\section{3x4}
+\Section{3x4}
 
 \label{ssec:34SPSC}
 
@@ -326,7 +326,7 @@ Finally, the naive solver outperforms every other solver in terms of run time, b
 %	SECTION 4
 %-----------------------------------
 
-\section{4x4}
+\Section{4x4}
 
 
 

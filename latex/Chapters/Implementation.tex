@@ -13,20 +13,27 @@
 The code I have developed for this project is all publicly available on my github page (\cite{FB}). It can easily be installed using the setup file provided, which makes it easy to then use Python's customary import command to play with the code.
 The code is organised in several sub modules and makes use of factories in plenty of places so that I can easily try out different puzzles, dimensions, search techniques, heuristics, network architecture, etc... without having to change anything except the parameters passed in the command line. Here is a visual overview of the code base with the main dependencies between the main submodules and classes. Solid arrows indicate inheritance (e.g. AStar inherits from SearchStrategy), while dotted lines indicate usage (e.g. AStar uses Heuristic, DeepReinforcementLearner uses DeepLearning, etc..).
 
-\begin{landscape}
+
+
 \begin{figure}[H]
-\centering
-\includegraphics[scale=0.40]{./Figures/codebase}
-%\decoRule
-\caption[Codebase]{Code base}
-\label{fig:Codebase}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.5]{./Figures/codebase}}
+  \caption[Codebase]{Code base}
+  \label{fig:Codebase}
 \end{figure}
-\end{landscape}
+
+
+%\begin{figure}
+%\centering
+%\includegraphics[scale=0.52]{./Figures/codebase}
+%\caption[Codebase]{Code base}
+%\label{fig:Codebase}
+%\end{figure}
 
 
 Let me now describe what each submodule does in more details:
 
-\section{rubiks.core}
+\Section{rubiks.core}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.25]{./Figures/codebasecore}
@@ -41,7 +48,8 @@ This submodule contains base classes that make the code base easier to use, debu
 \item \textbf{Factory}: a typical factory pattern. Concrete factories can just define what widget they produce and the factory will help construct them from **kw\_args (or command line, since Factory inherits from Parsable)
 \end{itemize}
 
-\section{rubiks.puzzle}
+
+\Section{rubiks.puzzle}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.25]{./Figures/codebasepuzzle}
@@ -59,7 +67,7 @@ This submodule contains:
 In addition, this module contains a \textbf{Puzzled} base class which most classes below inherit from. That allow e.g. heuristics, search algorithms, solvers and learners to know what puzzle and dimension they operate on, without having to reimplement these basic facts in each of them.
 \end{itemize}
 
-\section{rubiks.search}
+\Section{rubiks.search}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.25]{./Figures/codebasesearch}
@@ -76,7 +84,7 @@ This modules contains graph search strategies. I have actually reused the code I
 \item \textbf{AStar}, which is optimal, and as efficient as the heuristic it makes use of is.
 \end{itemize}
 
-\section{rubiks.heuristics}
+\Section{rubiks.heuristics}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.25]{./Figures/codebaseheuristics}
@@ -149,7 +157,7 @@ n              & m & 2 & 3 & 4 & 5\\
 
 
 
-\section{rubiks.deeplearning}
+\Section{rubiks.deeplearning}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.25]{./Figures/codebasedeeplearning}
@@ -165,7 +173,7 @@ This module is a wrapper around Pytorch. It contains:
 \end{itemize}
 
 
-\section{rubiks.learners}
+\Section{rubiks.learners}
 \label{sec:codelearners}
 \begin{figure}[H]
 \centering
@@ -206,7 +214,7 @@ Once it has completed (or on a regular basis), DeepLearner saves the trained net
 \end{itemize}
 
 
-\section{rubiks.solvers}
+\Section{rubiks.solvers}
 \label{sec:codesolvers}
 \begin{figure}[H]
 \centering
@@ -232,7 +240,7 @@ Similarly to their implementation, the trade off between optimal actions and val
 
 \end{itemize}
 
-\section{data}
+\Section{data}
 
 Finally it is worth noting that the code can/will save on disk a lot of data, including:
 \begin{itemize}

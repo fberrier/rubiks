@@ -5,8 +5,10 @@
 
 \addbibresource{references.bib} % The filename of the bibliography
 \newcommand{\chapter}{\section}
+\newcommand{\Appendix}[1]{\section{Appendix - #1}}
 \newcommand{\Section}{\subsection}
 \newcommand{\Subsection}{\subsubsection}
+\newcommand{\Subsubsection}{\paragraph}
 
 
 \hypersetup{%
@@ -60,6 +62,11 @@
 }
 \input{Chapters/Objectives}
 \include{Chapters/DRLSearch}
+\include{Chapters/Puzzles}
+\include{Chapters/Implementation}
+\include{Chapters/SlidingPuzzle}
+\include{Chapters/Rubiks}
+\include{Chapters/Conclusion}
 
 
 
@@ -81,4 +88,11 @@ breaklinks=true,
 \printbibliography[type=article,heading=subbibliography,title={Journal Papers}]
 \printbibliography[type=book,heading=subbibliography,title={Books}]
 \printbibliography[type=misc,heading=subbibliography,title={Misc}]
+
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+\include{Appendices/Examples}
+\include{Appendices/Kociemba}
+
+
+
 \end{document}

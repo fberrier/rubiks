@@ -23,18 +23,18 @@ if '__main__' == __name__:
                             Learner.do_plot,
                             Learner.do_cleanup_learning_file,
                             } """
-    action_type = Learner.do_plot
+    action_type = Learner.do_learn
     """ What puzzle """
     puzzle_type = Puzzle.rubiks_cube
-    n = 3
-    m = 3
+    n = 2
+    m = 2
     """ more init for specific puzzles """
     dimension = Puzzle.factory(**globals()).dimension()
     """ Which learner_type {Learner.perfect,
                             Learner.deep_reinforcement_learner,
                             }
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.deep_q_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
@@ -64,7 +64,7 @@ if '__main__' == __name__:
     nb_epochs = 10000
     training_data_every_epoch = False
     nb_sequences = 10000
-    nb_shuffles = 12
+    nb_shuffles = 15
     cap_target_at_network_count = False
     update_target_network_frequency = 1000
     update_target_network_threshold = 2e-2

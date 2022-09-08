@@ -67,12 +67,12 @@ if '__main__' == __name__:
         exclude_solver_names = ['122seq_40shf', '500seq_12shf']
         performance(**locals())
     elif action_type == Solver.do_performance_test:
-        nb_samples = 50
+        nb_samples = 20
         nb_cpus = 4
         performance(solver_type=Solver.astar,
                     heuristic_type=Heuristic.deep_learning,
                     learner_type=Learner.deep_reinforcement_learner,
-                    time_out=300,
+                    time_out=1200,
                     add_perfect_shuffle=False,
                     max_nb_shuffles=4,
                     step_nb_shuffles=2,

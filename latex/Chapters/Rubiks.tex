@@ -8,31 +8,34 @@
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-
-
-
+In this second results section, I discuss my experiments on the Rubik's cube. I have run reasonably comprehensive experiments on the 2x2x2, throwing 6 of my solvers at the problem. As mentioned in \ref{sec:Puzzles}, the 2x2x2 \textbf{RC}, in spite of its deceivingly simple physical appearance, is actually not that much easier to solve. For instance, it takes me usually just under 1 minute, whereras the 3x3x3 takes me only double that time, just under 2 minutes. I am obviously a beginner in Rubik's cube handsolving, but my personal ratio of time-to-solve and perceived difficulty is in line with that of experienced speedcubers who might take and average of, say, 2-3 seconds for the 2x2x2 and 10 seconds for the 3x3x3.
+\\
+Computing wise, the 2x2x2 was of decent size for my purpose, with its 88 million configurations, so in particular it 
+\\
+\\
+Let me start with a table summarizing which solvers I have attempted to run on the 2 dimensions I have looked at:
 
 \begin{center}
 \begin{tabular}{l*{5}{c}r}
 \hline
 \textbf{solver}      & & \textbf{Rubik's} & \textbf{2x2x2} & \textbf{3x3x3} \\
 \hline
-BFS   &   &        & x   &   \\
+BFS   &   &        &  x  &  x  \\
 \hline
-Kociemba   &   &      & x  &   \\
+Kociemba   &   &      &  x  &  x  \\
 \hline
-A$^{*}$[Kociemba]  &   &  & x & \\
+A$^{*}$[Kociemba]  &   &  &  x  &  x  \\
 \hline
-A$^{*}$[DL[A$^{*}$[Kociemba]]]  &   &  & x & \\
+A$^{*}$[DL[A$^{*}$[Kociemba]]]  &   &  &  x  &  x  \\
 \hline
-A$^{*}$[DRL]  &   &  & x &  \\
+A$^{*}$[DRL]  &   &  &  x  &  \\
 \hline
-A$^{*}$[DQL]  &   &  & x &  \\
+A$^{*}$[DQL]  &   &  &  x  &  \\
 \hline
-MCTS[DQL][c=0]  &   &  & x &  \\
-\hline
-MCTS[DQL][c=69]  &   & & x &  \\
-\hline
+%MCTS[DQL][c=0]  &   &  & x &  \\
+%\hline
+%MCTS[DQL][c=69]  &   & & x &  \\
+%\hline
 \end{tabular}
 \end{center}
 

@@ -23,7 +23,7 @@ if '__main__' == __name__:
                             Learner.do_plot,
                             Learner.do_cleanup_learning_file,
                             } """
-    action_type = Learner.do_learn
+    action_type = Learner.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.rubiks_cube
     n = 2
@@ -34,7 +34,7 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             }
     """
-    learner_type = Learner.deep_q_learner
+    learner_type = Learner.deep_reinforcement_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \

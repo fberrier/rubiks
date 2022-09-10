@@ -67,9 +67,9 @@
   these have been acknowledged. 
   \begin{description}
   \item[Word Count:]
-  \item[Student Name:]
-  \item[Date of Submission:]
-  \item[Signature:]
+  \item[Student Name: Fran\c{c}ois Berrier]
+  \item[Date of Submission: 12 September 2022]
+  \item[Signature: $\mathcal{FB}errier$]
   \end{description}
 }
 

@@ -533,7 +533,7 @@ class DeepReinforcementLearner(Learner):
 
     @staticmethod
     def axis_label_format(what):
-        return what.upper().replace('_', ' ')
+        return what.upper().replace('_', ' ').replace('OVER', '/').replace(' PCT', '')
 
     def plot_learning(self):
         cls = self.__class__

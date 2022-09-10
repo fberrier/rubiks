@@ -63,97 +63,37 @@ def performance(**kw_args):
 
 
 if '__main__' == __name__:
+    logger = Loggable(name='Perf22RC')
     action_type = Solver.do_performance_test
     fig_size = (12, 12)
     if action_type == Solver.do_plot:
+        exclude_solver_names = ['1000seq_20shf']
         performance(**locals())
     elif action_type == Solver.do_performance_test:
         nb_samples = 100
-        nb_cpus = 1
-        performance(solver_type=Solver.astar,
-                    heuristic_type=Heuristic.deep_learning,
-                    learner_type=Learner.deep_reinforcement_learner,
-                    skip=(24, 49, 59),
-                    time_out=3600 * 8,
-                    add_perfect_shuffle=True,
-                    min_nb_shuffles=0,
-                    max_nb_shuffles=0,
-                    nb_sequences=10000,
-                    nb_shuffles=15,
-                    nb_epochs=10000,
-                    layers_description=(600, 300, 100),
-                    training_data_every_epoch=False,
-                    cap_target_at_network_count=False,
-                    one_hot_encoding=True,
-                    drop_out=0.,
-                    network_type=DeepLearning.fully_connected_net,
-                    learning_rate=1e-2,
-                    scheduler=DeepReinforcementLearner.exponential_scheduler,
-                    gamma_scheduler=0.9999,
-                    **locals())
-        performance(solver_type=Solver.astar,
-                    heuristic_type=Heuristic.deep_learning,
-                    learner_type=Learner.deep_reinforcement_learner,
-                    skip=(24, 49, 67),
-                    time_out=3600 * 8,
-                    add_perfect_shuffle=True,
-                    min_nb_shuffles=0,
-                    max_nb_shuffles=0,
-                    nb_sequences=10000,
-                    nb_shuffles=15,
-                    nb_epochs=10000,
-                    layers_description=(600, 300, 100),
-                    training_data_every_epoch=False,
-                    cap_target_at_network_count=False,
-                    one_hot_encoding=True,
-                    drop_out=0.,
-                    network_type=DeepLearning.fully_connected_net,
-                    learning_rate=1e-2,
-                    scheduler=DeepReinforcementLearner.exponential_scheduler,
-                    gamma_scheduler=0.9999,
-                    **locals())
-        performance(solver_type=Solver.astar,
-                    heuristic_type=Heuristic.deep_learning,
-                    learner_type=Learner.deep_reinforcement_learner,
-                    skip=(67, 59, 24),
-                    time_out=3600 * 8,
-                    add_perfect_shuffle=True,
-                    min_nb_shuffles=0,
-                    max_nb_shuffles=0,
-                    nb_sequences=10000,
-                    nb_shuffles=15,
-                    nb_epochs=10000,
-                    layers_description=(600, 300, 100),
-                    training_data_every_epoch=False,
-                    cap_target_at_network_count=False,
-                    one_hot_encoding=True,
-                    drop_out=0.,
-                    network_type=DeepLearning.fully_connected_net,
-                    learning_rate=1e-2,
-                    scheduler=DeepReinforcementLearner.exponential_scheduler,
-                    gamma_scheduler=0.9999,
-                    **locals())
-        performance(solver_type=Solver.astar,
-                    heuristic_type=Heuristic.deep_learning,
-                    learner_type=Learner.deep_reinforcement_learner,
-                    skip=(67, 49, 59),
-                    time_out=3600 * 8,
-                    add_perfect_shuffle=True,
-                    min_nb_shuffles=0,
-                    max_nb_shuffles=0,
-                    nb_sequences=10000,
-                    nb_shuffles=15,
-                    nb_epochs=10000,
-                    layers_description=(600, 300, 100),
-                    training_data_every_epoch=False,
-                    cap_target_at_network_count=False,
-                    one_hot_encoding=True,
-                    drop_out=0.,
-                    network_type=DeepLearning.fully_connected_net,
-                    learning_rate=1e-2,
-                    scheduler=DeepReinforcementLearner.exponential_scheduler,
-                    gamma_scheduler=0.9999,
-                    **locals())
+        nb_cpus = 8
+        for counter in [14]: # range(14, 23, 2):
+            logger.log_info('counter: ', counter)
+            performance(solver_type=Solver.astar,
+                        heuristic_type=Heuristic.deep_q_learning,
+                        learner_type=Learner.deep_q_learner,
+                        time_out=300,
+                        add_perfect_shuffle=counter == 22,
+                        min_nb_shuffles=0 if counter > 20 else counter,
+                        max_nb_shuffles=0 if counter > 20 else counter,
+                        nb_sequences=10000,
+                        nb_shuffles=15,
+                        nb_epochs=10000,
+                        layers_description=(600, 300, 100),
+                        training_data_every_epoch=False,
+                        cap_target_at_network_count=False,
+                        one_hot_encoding=True,
+                        drop_out=0.,
+                        network_type=DeepLearning.fully_connected_net,
+                        learning_rate=1e-2,
+                        scheduler=DeepReinforcementLearner.exponential_scheduler,
+                        gamma_scheduler=0.9999,
+                        **locals())
         exit()
 
 

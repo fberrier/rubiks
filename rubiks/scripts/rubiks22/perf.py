@@ -71,13 +71,13 @@ if '__main__' == __name__:
         performance(**locals())
     elif action_type == Solver.do_performance_test:
         nb_samples = 100
-        nb_cpus = 10
+        nb_cpus = 6
         for counter in range(14, 23, 2):
             logger.log_info('counter: ', counter)
             performance(solver_type=Solver.astar,
                         heuristic_type=Heuristic.deep_q_learning,
                         learner_type=Learner.deep_q_learner,
-                        time_out=600,
+                        time_out=3600,
                         add_perfect_shuffle=counter == 22,
                         min_nb_shuffles=0 if counter > 20 else counter,
                         max_nb_shuffles=0 if counter > 20 else counter,

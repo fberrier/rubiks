@@ -175,6 +175,7 @@ Finally, let me mention that there is a long history of research into finding ti
 
 
 \Subsection{2x2x2 Rubik's -- search space, solvability}
+\label{Theory:222RCSSS}
 
 For the 2x2x2 cube, there are eight possible ways of choosing the physical position of the eight corner cubies (and since there are known algorithms, such as R’ U R’ D2 R U’ R’ D2 R2, to swap exactly two and only two adjacent corners we know all can indeed be obtained). Each corner cubie can be oriented in 3 different ways, so we get a total of $8! . 3^{8}$ configurations. However, due to the \textbf{COP} parity discussed in the previous section, we conclude that only one third of these are attainable (namely those for which the \textbf{COP} is equal to 0 \% 3). Overall, this gives $8! * 3^{7}$ = 88,179,840 possible configurations (probably a larger number than most people would expect for a mere 2x2x2 cube).
 \\
@@ -183,6 +184,17 @@ The insight and knowledge of this section has been useful for me to implement \t
 Some quick googling suggests the 2x2x2 Rubik's God number to be 11 in the quarter turn metric, but I could not find any clear and definitive paper on this.
 
 
+\Subsection{Rubik's -- multi-stage search}
+\label{Theory:RCMSS}
+Modern Rubik's domain-specific solvers (such as the Kociemba solver which I have used in this project as a comparison point) make use of a multi-stage search approach. Essentially, they just do what speedcubers do by hand, just much faster and better. The general idea is as follows: let us suppose we have a puzzle with a state space $\mathcal{S}$ of size $N$ (some large number) and one goal state $g$. Now imagine that we have discovered a much smaller subset of configurations $\mathcal{S}_{1} \in \mathcal{S}$ (say of size $n \ll N$) such that $g \in \mathcal{S}_{1}$ and such that it is \textit{easy} to check whether or not a given configuration $p \in \mathcal{S}$ belongs to $\mathcal{S}_{1}$. In addition, suppose we also have discovered a set of algorithms $\mathcal{A}_{1}$ (sequence of actions) under which elements of $\mathcal{S}_{1}$ are stable and which spans $\mathcal{S}_{1}$. Finally, suppose that we have a set of algorithms $\mathcal{A}_{2}$ which allow us to (provably) take any given configuration $p \in \mathcal{S}$ into $\mathcal{S}_{1}$ in a bounded number of steps. A viable strategy to solve any puzzle then becomes:
+\begin{titlemize}{Multi-stage search}
+\item If $p \in \mathcal{S}_{1}$, set $a_{2}$ to be the identity move in $\mathcal{S}$, and jump to step 3.
+\item Apply a search algorithm (e.g. A$^{*}$ - or some variant such as IDA$^{*}$ (\cite{IDAWiki}) - restricting eligible actions to $\mathcal{A}_{2}$, until we find a sequence of actions $a_{2}$ such that $a_{2}(p) \in \mathcal{S}_{1}$
+\item Apply our search algorithm to $a_{2}(p)$, restricting eligible actions to $\mathcal{A}_{1}$, until we find a sequence of actions $a_{1}$ such that $a_{1}(a_{2}(p)) = g$.
+\item $a_{1} \circ a_{2}$ is our multi-stage solution
+\end{titlemize}
+Notice that this is exactly how beginners and advanced speedcubers solve the Rubik's cube, except they usually have more than 2 stages as described above. $S_{1}$ might for instance be the set of cubes where both lower layers are solved, the cross on the top layer as well as all corners are in their respective places (but maybe not oriented as expected), and then they search within a well known and small set of algorithms how to get to the goal state. A previous stage might consist in $S_{2}$, the set of configurations where the two layers are solved, but the top layer is random, and then they will search for a sequence of moves to get into $S_{1}$, etc \dots
+
 
 %-----------------------------------
 %	SECTION 3
@@ -190,10 +202,10 @@ Some quick googling suggests the 2x2x2 Rubik's God number to be 11 in the quarte
 \Section{Solving puzzles without human knowledge}
 \label{sec:WHK}
 
-In the upcoming implementation (\ref{sec:Implementation}) and results (\ref{sec:ResultsSP}, \ref{sec:ResRubiks}) sections, I will be discussing various solvers. I would put them broadly in four different categories, by decreasing level of human knowledge that has been assumed and handcrafted in them. Notice that this human-knowledge-required scale is obviously somewhat arbitrary, but good to keep in mind in later (and in particular results) sections.
+In the upcoming implementation (\ref{sec:Implementation}) and results (\ref{sec:ResultsSP}, \ref{sec:ResRubiks}) sections, I will be discussing various solvers. I would put them broadly in four different categories, by decreasing level of human knowledge that has been assumed and handcrafted in them. Notice that my human-knowledge-required scale is obviously somewhat arbitrary, but good to keep in mind in later (and in particular results) sections.
 
 \paragraph{Domain-specific solvers}
-At 4 on the human-knowledge-required scale, I would put my NaiveSolver (handcrafted to solve the \textbf{SP}) as well as the hkociemba (2x2x2) and kociemba (3x3x3) open source implementations which I have integrated in my KociembaSolver. They make heavy use of specific knowledge about the two puzzles, not only about their mechanics, but also about how to actually (provably) solve them.
+At 4 on the human-knowledge-required scale, I would put my NaiveSolver (handcrafted to solve the \textbf{SP}) as well as the hkociemba (2x2x2) and kociemba (3x3x3) open source implementations which I have integrated in my KociembaSolver. They make heavy use of specific knowledge about the two puzzles (see \ref{Theory:RCMSS}), not only about their mechanics, but also about how to actually (and provably) solve them.
 
 
 \paragraph{Domain-specific heuristics}

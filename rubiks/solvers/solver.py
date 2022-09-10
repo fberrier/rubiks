@@ -839,6 +839,9 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
                                    cls.median_cost,
                                    cls.max_cost,
                                    cls.median_run_time,
+                                   cls.pct_solved,
+                                   cls.pct_optimal,
+                                   cls.nb_timeout,
                                    ]].groupby(cls.solver_name).mean().\
             reset_index(drop=False).sort_values(cls.optimality_score)
         self.log_info(pformat(performance, floatfmt='.2f', showindex=True))

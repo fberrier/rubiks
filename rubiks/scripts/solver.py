@@ -25,7 +25,7 @@ if '__main__' == __name__:
                             } """
     action_type = Solver.do_plot
     """ What puzzle """
-    puzzle_type = Puzzle.rubiks_cube
+    puzzle_type = Puzzle.sliding_puzzle
     n = 3
     m = 3
     dimension = Puzzle.factory(**globals()).dimension()

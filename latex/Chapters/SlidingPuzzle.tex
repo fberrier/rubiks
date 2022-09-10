@@ -188,10 +188,10 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 
 
 \begin{figure}[H]
-\centering
-\includegraphics[scale=0.42]{./Figures/33SPPerfectLearning}
-\caption[33SPPerfectLearning]{Perfect Learning of the 3x3 \textbf{SP}}
-\label{fig:33SPPerfectLearning}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.4]{./Figures/33SPPerfectLearning}}
+  \caption[33SPPerfectLearning]{Perfect Learning of the 3x3 \textbf{SP}}
+  \label{fig:33SPPerfectLearning}
 \end{figure}
 
 
@@ -199,6 +199,10 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 
 \Subsection{Deep reinforcement learner}
 \label{sec:S33DRL}
+
+
+\begin{comment} 
+
 Next I have run the DeepReinforcementLearner with the following main parameters:
 \begin{itemize}
 \item Update the target network every 1,000 epochs (\textit{update\_target\_network\_frequency=1000}) or when the MSE falls below 10 basis points of the maximum target cost-to-go (\textit{update\_target\_network\_threshold=1e-3})
@@ -225,15 +229,24 @@ Below I show some of the DeepReinforcementLearner's quantities tracked over the 
 
 Notice that the DeepLearner and DeepQLearner have very similar sets of parameters and track similar metrics during their learning for later display, but I shall not detail it here since there is not much extra insight to be had compared to the DeepReinforcementLearning example we just went through.
 
-
+\end{comment} 
 
 \Subsection{MCTS DQL}
 \label{sec:MTCSHyperParamsEffect}
+In this subsection I explore the effect on \textbf{MCTS} of the trade-off hyper-parameter $c$ as well as of trimming the resulting tree via \textbf{BFS}. (see the threory section \ref{sec:TheoryMCTS} as well as the implementation section \ref{sec:codesolvers} for more details). To that effect, I have run my Solver performance test with four different values of $c$ (0, 1, 10 and 100), and in each case, with and without \textbf{BFS} trimming. A$^{*}[Manhattan++]$ is also presented to have an optimal solver benchmark. For each level of difficulty, the test present the solvers with the same 150 random configurations (for fairness and to increase the significance of the results). The levels of difficulty (number of scrambles from goal) used here go from 5 to 50 in step of 5. The tests were also run with perfect shuffling (difficulty = $\infty$ on the graphs), corresponding to taking scrambling to $\infty$ as explained in \ref{Theory:SPSSS}). I used a \textit{time\_out} of 5 minutes, which none of the solvers hit on any of the (1,650) configurations they were presented with.
+The detailed results (percentage of configurations solved, optimality score, median and max cost, run time and expanded nodes) are shown on the next page \ref{fig:33SPPerformanceMCTS}, but let me make here some remarks on those results:
+\begin{itemize}
+\item $c=0$ makes no exploration as it simply follows the path of lowest cost-to-go. As $c$ increases, we expect more exploration, and therefore higher run time, more expanded nodes, and higher quality solutions. This is what we observe, where $c=0$ converges (for difficulty=$\infty$) to solutions on average three times longer than the optimal solver but take not much longer to obtain. At the other extreme, $c=100$ takes almost 2 orders of magnitude more time to obtain a solution, but these solutions are only 20-25\% longer than that of the optimal solver
+\item trimming via \textbf{BFS} takes hardly any time, and improves solutions' lengths by about 10\% at high values of $c$. At low value of $c$ there is little benefit as expected (since the trees are deep but not bushy at all and have much fewer leaves and branches).
+\item The quality of solutions is not amazing, but then given the algorithm has not really any mechanism to guarantee optimality this is not very surprising. 
+\item Notice that the number of expanded nodes can be compared within \textbf{MCTS} but given the algorithm is totally different to A$^{*}$ it makes little sense to compare between the different families of solvers. Also one point to note is that \textbf{MCTS} would be fairly easy to multithread (within the same process) using an appropriate language such as C++, and this is what \cite{https://doi.org/10.48550/arxiv.1805.07470} have done, and probably why they get considerably faster and better results.
+\item Despite the name \textit{Monte Carlo}, there is no randomness (or even peudo-randomness) in this algorithm, since the paths generated at each iteration are really just a deterministic function of the output of the \textbf{DQL} network (or QHeuristic in my code-jargon).
+\end{itemize}
 
 
 \begin{figure}[H]
-\centering
-\includegraphics[align=c, scale=0.6]{./Figures/33SPPerformanceMCTS}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.6]{./Figures/33SPPerformanceMCTS}}
 \caption[33SPPerformanceMCTS]{\textbf{MCTS} tuning 3x3 \textbf{SP}}
 \label{fig:33SPPerformanceMCTS}
 \end{figure}
@@ -258,11 +271,10 @@ DxL vs Perfect
 
 
 \begin{figure}[H]
-\centering
-\includegraphics[scale=0.65]{./Figures/33SPPerformance}
-%\decoRule
-\caption[33SPPerformance]{Solvers' performance comparison 3x3 \textbf{SP}}
-\label{fig:33SPPerformance}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.6]{./Figures/33SPPerformance}}
+  \caption[33SPPerformance]{Solvers' performance comparison 3x3 \textbf{SP}}
+  \label{fig:33SPPerformance}
 \end{figure}
 
 

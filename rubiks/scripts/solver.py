@@ -26,8 +26,8 @@ if '__main__' == __name__:
     action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 2
-    m = 5
+    n = 3
+    m = 3
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
@@ -55,16 +55,16 @@ if '__main__' == __name__:
                            Solver.median_expanded_nodes,
                            ]
     plot_abbreviated_names = True
-    labels_at_top = False
+    labels_at_top = True
     show_title = True
     lite_title = True
     plot_abbreviated_names = True
     #marker_size = 120
     #markers = ['4', 'x', '.', 'x', '.', 'x', '.', 'x', '.', ]
     #colors = ['olive', 'royalblue', 'royalblue', 'darkred', 'darkred', 'goldenrod', 'goldenrod', 'darkcyan', 'darkcyan']
-    #exclude_solver_names = ['hattan']
-    exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
-    fig_size = (10, 6)
+    exclude_solver_names = ['hattan', 'BFS', 'MCTS', 'Perf', 'Reinf', 'QL', 'Naive']
+    #exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
+    fig_size = (12, 8)
     """ Which solver type {Solver.dfs,
                            Solver.bfs,
                            Solver.astar,

@@ -182,14 +182,14 @@ An alternative approach in order to compute the cost-to-go is via \textbf{RL} va
 \caption{Deep Reinforcement Learning -- Heuristic}\label{alg:TheoryDRL}
 \begin{algorithmic}
 \Function{DeepReinforcementLearningHeuristic}{**args}
-\State{$puzzle\_type \gets \Call{FromParams}{**args}$}
-\State{$ puzzles\_gen\_params \gets \Call{FromParams}{**args}$}
+\State{$puzzle\_type \gets$ \Call{FromParams}{**args}}
+\State{$ puzzles\_gen\_params \gets$ \Call{FromParams}{**args}}
 \State{$puzzles\_generation\_criteria \gets$ \Call{FromParams}{**args}}
-\State{$n\_puzzles \gets$ \Call{FromParams}{**args}}
-\State{$target\_network\_update\_params \gets \Call{FromParams}{**args}$}
-\State{$max\_epochs \gets \Call{FromParams}{**args}$}
-\State{$loss\_function \gets \Call{FromParams}{**args}$}
-\State{$net\_architecture \gets \Call{FromParams}{**args}$}
+\State{$n\_puzzles \gets \gets$ \Call{FromParams}{**args}}
+\State{$target\_network\_update\_params \gets$ \Call{FromParams}{**args}}
+\State{$max\_epochs \gets$ \Call{FromParams}{**args}}
+\State{$loss\_function \gets$ \Call{FromParams}{**args}}
+\State{$net\_architecture \gets$ \Call{FromParams}{**args}}
 \\ \teal{\algorithmiccomment{initial network and target network}}\black
 \State {$net \gets \Call{GetNetwork}{puzzle\_type, network\_architecture}$}
 \State {$target\_net \gets \Call{GetNetwork}{puzzle\_type, network\_architecture}$}
@@ -263,39 +263,44 @@ I have for this project followed the exact same procedure described in \cite{htt
 Since in my \textbf{DRL} pseudo-code above (as well as in my actual code), the loss function is abstracted, and the network architecture (including the size of the output) configurable, the only modification to get \textbf{DQL} in lieu of \textbf{DRL} are extremely minimal, and essentially only to do with the Q-iteration-update section:
 
 
-\teal
-\paragraph{}{\textbf{pseudo code -- \textbf{DQL} heuristics}}
-\begin{pseudocode}
-###############################################################################
-def deep_q_learning(... same as DRL ...):
-    """ pseudo code for learning a puzzle via deep q learning """
-    # ... same as DRL ...
-    nb_actions = puzzle_type.get_nb_actions()
-    while epoch < max_epochs and other_convergence_criteria(network):
-        # ... same as DRL ...
-        Q_and_V = dict()
-        """ Compute updated cost and actions via V & Q iteration ... 
-             all moves are assumed to have cost 1 """
-        for puzzle in puzzles:
-            value = target_network(puzzle)[-1]
-            actions = [0] * nb_actions
-            best_action_id = 0
-            if puzzle.is_goal():
-                value = 0
-            else:
-                for action_id, child in puzzle.children():
-                    child_value = target_network(child)[-1]
-                    if child_value < value:
-                        value = child_value
-                        best_action_id = action_id
-            # We update both the value function and the best action
-            actions[best_action_id] = 1
-            Q_and_V[puzzle] = actions + [value]
-        # ... same as DRL ...
-###############################################################################
-\end{pseudocode}
-\black
 
+\teal
+\begin{algorithm}[H]
+\caption{Deep Q Learning -- Heuristic}\label{alg:TheoryDQL}
+\begin{algorithmic}
+
+\Function{DeepReinforcementLearningHeuristic}{**args}
+
+\\ \teal{\algorithmiccomment{ ... same params and init as for \textbf{DRL} ...}}\black
+ \State{$nb\_actions \gets$ \Call{GetNbActions}{puzzle\_type}}
+\While{epoch ...}
+\\ \teal{\algorithmiccomment{ ... same while epoch loop as for \textbf{DRL} ...}}\black
+\\ \teal{\algorithmiccomment{ ... update cost \textbf{and actions} via V \& Q iteration ...}}\black
+	\State{$Q\_and\_V \gets dict()$}
+	\For {$puzzle \in puzzles$}
+            \State{$value \gets target\_network(puzzle).value$}
+            \State{$actions = [0] * nb\_actions$}
+            \State{$best\_action\_id \gets 0$}
+	 \If{\Call{IsGoal}{$puzzle$}}
+                \State{$value \gets 0$}
+            \Else:
+                \For{$action\_id, child \in \Call{Children}{puzzle}$}
+                    \State{$child\_value \gets target\_network(child).value$}
+                    \If{$child\_value \le value$}:
+                        \State{$value \gets child\_value$}
+                        \State{$best\_action\_id \gets action\_id$}
+		\EndIf
+		\EndFor
+	\EndIf
+\\ \teal{\algorithmiccomment{ ... update cost \textbf{and best action} ...}}\black
+            \State{$actions[best\_action\_id] \gets 1$}
+            \State{$Q\_and\_V[puzzle] \gets actions + [value]$}
+	\EndFor
+\EndWhile
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+\black
 
 For this project, I have implemented the above algorithm in a class called DeepQLearner which I shall describe in details in section \ref{sec:codelearners}.
 
@@ -309,8 +314,39 @@ For this project, I have implemented the above algorithm in a class called DeepQ
 Since my implementation of \textbf{DQL} is no longer just a cost-to-go estimate as with \textbf{DRL}, but a joint cost-to-go and distribution over actions (to be concrete, that means a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss produces a better network and leads to better heuristics, since we use more information during the learning and iterations.
 \\
 \\
-Another possibility is to use an algorithm which combines both the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. In short, it generates at each step (and possibly in a distributed or multithreaded manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (following the most promising actions) as well as the value function, according to a trade-off which can be tuned via a hyper-parameter. In order to prevent always following the same paths (which might take us very far from the goal), \textbf{MCTS} algorithms usually keep track of actions they have followed already and underweight their probability so that subsequent paths explore other actions. A pseudo code description of it looks like this:
+Another possibility is to use an algorithm which combines both the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. In short, it generates at each step (and possibly in a distributed or multithreaded manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (following the most promising actions) as well as the value function, according to a trade-off which can be tuned via a hyper-parameter. In order to prevent always following the same paths (which might take us very far from the goal), \textbf{MCTS} algorithms usually keep track of actions they have followed already and underweight their probability so that subsequent paths explore other actions. Let me first present some pseudo-code for the paths generation, in particular the trade-off between actions-values (exploration-exploitation in some sense):
 \\
+
+
+\teal
+\begin{algorithm}[H]
+\caption{Monte Carlo Tree Search -- Child Node Choice}\label{alg:TheoryDQLNodeChoice}
+\begin{algorithmic}
+
+\Function{ChooseChildNode}{$node, actions\_probas, actions\_values, actions\_count, c$}
+
+\\ \teal{\algorithmiccomment{c is the actions-values trade-off hyper-parameter}}\black
+
+\State{$N \gets \sqrt{\sum_{n \in actions\_count}{n}}$}
+
+\\ \teal{\algorithmiccomment{... frequent actions penalized as denominator grows faster than numerator N ... }}\black
+\State{$Q \gets N . \frac{actions\_probas}{actions\_count}$}
+\State{$V \gets actions\_values$}
+\\ \teal{\algorithmiccomment{... high c gives weight to actions to favour exploration ... }}\black
+\\ \teal{\algorithmiccomment{... return child for which cQ + V is maximized ... }}\black
+\State{$action\_id \gets \Call{IndexMax}{Q + V}$}
+\\
+\Return{\Call{Child}{$node, action\_id$}}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+\black
+
+
+
+
+
+
 \teal
 \paragraph{}{\textbf{pseudo code -- \textbf{MCTS}}}
 \begin{pseudocode}

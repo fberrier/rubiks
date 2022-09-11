@@ -31,7 +31,7 @@ Search strategies typically maintain a frontier, which is the collection of unex
 \caption{Uninformed Graphs Search -- BFS \& DFS}\label{alg:TheoryBFSDFS}
 \begin{algorithmic}
 \Function{BlindSearch}{$root, time\_out, search\_type=Search.BFS$}
-\State\Call{InitialiseTimeOut}{$time\_out$}
+\State{\Call{InitialiseTimeOut}{$time\_out$}}
 \If{\Call{IsGoal}{$root$}}
   \Return{$root$}
 \EndIf
@@ -314,7 +314,7 @@ For this project, I have implemented the above algorithm in a class called DeepQ
 Since my implementation of \textbf{DQL} is no longer just a cost-to-go estimate as with \textbf{DRL}, but a joint cost-to-go and distribution over actions (to be concrete, that means a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss produces a better network and leads to better heuristics, since we use more information during the learning and iterations.
 \\
 \\
-Another possibility is to use an algorithm which combines both the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. In short, it generates at each step (and possibly in a distributed or multithreaded manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (following the most promising actions) as well as the value function, according to a trade-off which can be tuned via a hyper-parameter. In order to prevent always following the same paths (which might take us very far from the goal), \textbf{MCTS} algorithms usually keep track of actions they have followed already and underweight their probability so that subsequent paths explore other actions. Let me first present some pseudo-code for the paths generation, in particular the trade-off between actions-values (exploration-exploitation in some sense):
+Another possibility is to use an algorithm which combines both the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. In short, it generates at each step (and possibly in a distributed or multithreaded manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (following the most promising actions) as well as the value function, according to a trade-off which can be tuned via a hyper-parameter. In order to prevent always following the same paths (which might take us very far from the goal), \textbf{MCTS} algorithms usually keep track of actions they have followed already and underweight their probability so that subsequent paths explore other actions. Let me first present some pseudo-code for the paths generation, in particular the trade-off between actions-values (exploration-exploitation):
 \\
 
 
@@ -334,7 +334,7 @@ Another possibility is to use an algorithm which combines both the actions distr
 \State{$V \gets actions\_values$}
 \\ \teal{\algorithmiccomment{... high c gives weight to actions to favour exploration ... }}\black
 \\ \teal{\algorithmiccomment{... return child for which cQ + V is maximized ... }}\black
-\State{$action\_id \gets \Call{IndexMax}{Q + V}$}
+\State{$action\_id \gets \Call{IndexMax}{c.Q + V}$}
 \\
 \Return{\Call{Child}{$node, action\_id$}}
 \EndFunction
@@ -342,44 +342,38 @@ Another possibility is to use an algorithm which combines both the actions distr
 \end{algorithm}
 \black
 
-
-
-
-
+Then the actual \textbf{MCTS} algorithm is simply generating a new path from root to a new leaf at each iteration, until it finds the goal:
 
 \teal
-\paragraph{}{\textbf{pseudo code -- \textbf{MCTS}}}
-\begin{pseudocode}
-#################################################################
-def MCTS(initial_node, time_out, q_v_network):
-    """ pseudo code for Monte Carlo Tree Search """
-    initialize_time_out(time_out)
-    tree = Tree(initial_node)
-    while True:
-        check_time_out()
-        leaf = construct_path_to_new_leaf(tree, q_v_network)
-        if leaf.is_goal():
-            return BFS(tree) # path to leaf can usually be improved by BFS
-#################################################################
-def construct_path_to_new_leaf(tree, q_v_network):
-    leaf = tree.initial_node
-    while leaf.expanded:
-        actions_probas, actions_values = q_v_network(leaf)
-        """ choose next node based on joint actions probas & values
-        as well as history of actions taken
-        """
-        leaf = leaf.choose_child(actions_probas,
-                                 actions_values)
-    # add children of leaf to tree
-    leaf.expand()
-    # penalize path taken to favour exploration
-    leaf.increment_historical_actions_count()
-    return leaf
-#################################################################
-\end{pseudocode}
+\begin{algorithm}[H]
+\caption{Monte Carlo Tree Search}\label{alg:TheoryMCTS}
+\begin{algorithmic}
+\Function{MCTS}{$root, time\_out, q\_v\_network, c$}
+\State{\Call{InitialiseTimeOut}{$time\_out$}}
+\State{$tree \gets \Call{Tree}{root}$}
+\If{\Call{IsGoal}{$root$}}
+  \Return{$root$}
+\EndIf
+\While{true}
+	\State\Call{CheckTimeOut}{void}
+	\State{$leaf \gets root$}
+	\While{$leaf.expanded$}
+        		\State{$actions\_probas, actions\_values \gets q\_v\_network(leaf)$}
+	           \State{$leaf \gets\Call{ChooseChildNode}{leaf,  actions\_probas, actions\_values, leaf.actions\_count, c}$}
+		 \State{\Call{Expand}{$leaf, tree$}}
+	\EndWhile
+           \Call{IncrementActionsFromLeafToRoot}{$leaf$}
+       \\ \teal{\algorithmiccomment{path to leaf can usually be improved by re-running \textbf{BFS} on the resulting tree}}\black
+       \If{\Call{IsGoal}{$leaf$}}
+            \Return{\Call{BlindSearch}{$tree, search\_type=Search.BFS$}}
+       \EndIf
+\EndWhile
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 \black
 
-I have implemented the exact \textbf{MCTS} procedure described in \cite{https://doi.org/10.48550/arxiv.1805.07470} and outlined in the above pseudo code in  a class called MonteCarloTreeSearch (see section \ref{sec:codesolvers} for details).
+I have implemented the exact \textbf{MCTS} procedure described in \cite{https://doi.org/10.48550/arxiv.1805.07470} and outlined in the above pseudo code in a class called MonteCarloTreeSearch (see section \ref{sec:codesolvers} for details).
 
 
 

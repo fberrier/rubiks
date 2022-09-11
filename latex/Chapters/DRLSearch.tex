@@ -302,7 +302,7 @@ Since in my \textbf{DRL} pseudo-code above (as well as in my actual code), the l
 \end{algorithm}
 \black
 
-For this project, I have implemented the above algorithm in a class called DeepQLearner which I shall describe in details in section \ref{sec:codelearners}.
+\noindent For this project, I have implemented the above algorithm in a class called DeepQLearner which I shall describe in details in section \ref{sec:codelearners}.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 6
@@ -311,10 +311,10 @@ For this project, I have implemented the above algorithm in a class called DeepQ
 \Section{Monte Carlo Tree Search}
 \label{sec:TheoryMCTS}
 
-Since my implementation of \textbf{DQL} is no longer just a cost-to-go estimate as with \textbf{DRL}, but a joint cost-to-go and distribution over actions (to be concrete, that means a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss produces a better network and leads to better heuristics, since we use more information during the learning and iterations.
+The \textbf{DQL} heuristics from \ref{alg:TheoryDQL} no longer only produce cost-to-go estimates as \textbf{DRL}, but rather a joint cost-to-go and distribution over actions (i.e. a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss produces a better network and leads to better heuristics, since we use more information during the learning and iterations.
 \\
 \\
-Another possibility is to use an algorithm which combines both the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. In short, it generates at each step (and possibly in a distributed or multithreaded manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (following the most promising actions) as well as the value function, according to a trade-off which can be tuned via a hyper-parameter. In order to prevent always following the same paths (which might take us very far from the goal), \textbf{MCTS} algorithms usually keep track of actions they have followed already and underweight their probability so that subsequent paths explore other actions. Let me first present some pseudo-code for the paths generation, in particular the trade-off between actions-values (exploration-exploitation):
+Another possibility is to use an algorithm combining the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. It generates at each iteration (possibly in a distributed or multithreaded manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (allowing exploration) and value function (exploitation), according to a trade-off which can be tuned via a hyper-parameter $c$. To prevent following the same paths (which might lead the search far from the goal), the \textbf{MCTS} keeps track of actions already followed and downweight their probability so that subsequent paths explore different actions. Let me first present in pseudo-code the paths generation, in particular the trade-off between actions-values (exploration-exploitation):
 \\
 
 
@@ -342,7 +342,7 @@ Another possibility is to use an algorithm which combines both the actions distr
 \end{algorithm}
 \black
 
-Then the actual \textbf{MCTS} algorithm is simply generating a new path from root to a new leaf at each iteration, until it finds the goal:
+\noindent The actual \textbf{MCTS} algorithm is simply generating a new path from root to a new leaf at each iteration, until the goal is found:
 
 \teal
 \begin{algorithm}[H]
@@ -373,7 +373,7 @@ Then the actual \textbf{MCTS} algorithm is simply generating a new path from roo
 \end{algorithm}
 \black
 
-I have implemented the exact \textbf{MCTS} procedure described in \cite{https://doi.org/10.48550/arxiv.1805.07470} and outlined in the above pseudo code in a class called MonteCarloTreeSearch (see section \ref{sec:codesolvers} for details).
+\noindent I have implemented the exact \textbf{MCTS} procedure described in \cite{https://doi.org/10.48550/arxiv.1805.07470} and outlined above (\ref{alg:TheoryMCTS}) in a class called MonteCarloTreeSearch (see section \ref{sec:codesolvers} for details).
 
 
 

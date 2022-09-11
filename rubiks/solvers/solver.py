@@ -774,6 +774,7 @@ class Solver(Factory, Puzzled, Loggable, metaclass=ABCMeta):
             plt.title(title.upper().replace('_', ' '), fontname='Consolas', fontdict={'weight': 'bold'})
         n_rows = ceil(len(y) / 2)
         n_cols = ceil(len(y) / n_rows)
+        #n_rows, n_cols = n_cols, n_rows
         sps = GridSpec(n_rows, n_cols, figure=fig)
         gb = performance.groupby(Solver.solver_name)
         max_shuffle = max(performance[Solver.nb_shuffles])

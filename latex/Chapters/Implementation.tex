@@ -23,27 +23,19 @@ The code is organised in several sub modules and makes use of factories in plent
 \end{figure}
 
 
-%\begin{figure}
-%\centering
-%\includegraphics[scale=0.52]{./Figures/codebase}
-%\caption[Codebase]{Code base}
-%\label{fig:Codebase}
-%\end{figure}
-
-
-Let me now describe what each submodule does in more details:
+\noindent Let me now describe what each submodule does in more details:
 
 \Section{rubiks.core}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.25]{./Figures/codebasecore}
+\includegraphics[scale=0.22]{./Figures/codebasecore}
 %\decoRule
 \caption[Codebase]{rubiks.core}
 \label{fig:Codebasecore}
 \end{figure}
 This submodule contains base classes that make the code base easier to use, debug, and extend. It contains the following:
 \begin{itemize}
-\item \textbf{Loggable}: a wrapper around Python's logger which automatically picks up classes' names at init and format things (dict, series and dataframes in particular) in a nicer way.
+\item \textbf{Loggable}: a wrapper around Python's logger to automatically picks up classes' names at init and format things nicely (dict, series and dataframes in particular).
 \item \textbf{Parsable}: a wrapper around ArgumentParser, which allows to construct objects in the project from command line, to define dependencies between object's configurations and to help a bit with typing of configs. The end result is that you can pretty much pass **kw\_args everywhere and it just works.
 \item \textbf{Factory}: a typical factory pattern. Concrete factories can just define what widget they produce and the factory will help construct them from **kw\_args (or command line, since Factory inherits from Parsable)
 \end{itemize}
@@ -52,7 +44,7 @@ This submodule contains base classes that make the code base easier to use, debu
 \Section{rubiks.puzzle}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.25]{./Figures/codebasepuzzle}
+\includegraphics[scale=0.22]{./Figures/codebasepuzzle}
 %\decoRule
 \caption[Codebase]{rubiks.puzzle}
 \label{fig:Codebasepuzzle}
@@ -70,7 +62,7 @@ In addition, this module contains a \textbf{Puzzled} base class which most class
 \Section{rubiks.search}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.25]{./Figures/codebasesearch}
+\includegraphics[scale=0.22]{./Figures/codebasesearch}
 %\decoRule
 \caption[Codebase]{rubiks.search}
 \label{fig:Codebasesearch}
@@ -87,7 +79,7 @@ This modules contains graph search strategies. I have actually reused the code I
 \Section{rubiks.heuristics}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.25]{./Figures/codebaseheuristics}
+\includegraphics[scale=0.22]{./Figures/codebaseheuristics}
 %\decoRule
 \caption[Codebase]{rubiks.heuristics}
 \label{fig:Codebaseheuristics}
@@ -160,7 +152,7 @@ n              & m & 2 & 3 & 4 & 5\\
 \Section{rubiks.deeplearning}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.25]{./Figures/codebasedeeplearning}
+\includegraphics[scale=0.22]{./Figures/codebasedeeplearning}
 %\decoRule
 \caption[Codebase]{rubiks.deeplearning}
 \label{fig:Codebasedeeplearning}
@@ -168,7 +160,7 @@ n              & m & 2 & 3 & 4 & 5\\
 This module is a wrapper around Pytorch. It contains:
 \begin{itemize}
 \item \textbf{DeepLearning}: a Puzzled Loggable Factory that can instantiate some configurable deep networks, and provide the necessary glue with the rest of the code base so that puzzles be seemlessly passed to the networks and trained on. 
-\item \textbf{FullyConnected}: wrapper around a Pytorch fully connected network, with configurable hidden layers and size. There are some params as well to add drop out, and to indicate whether or not the inputs are one hot encoding (in which case the first layer is automatically adjusted in size, using information from the puzzle dimension). There is also importantly a \textit{joint\_policy} parameter to indicate whether we want the output to be 1 dimensional (e.g. for value function learning) or $a+1$-dimensional, where $a$ is the size of the actions space (for joint policy-value learning).
+\item \textbf{FullyConnected}: wrapper around a Pytorch fully connected network, with configurable hidden layers and size. Parameters allow to add drop out, to indicate whether or not the inputs are one hot encoding (in which case the first layer is automatically adjusted in size, using information from the puzzle dimension). There is also importantly a \textit{joint\_policy} parameter to indicate whether we want the output to be 1 dimensional (e.g. for value function learning) or $a+1$-dimensional, where $a$ is the size of the actions space (for joint policy-value learning).
 \item \textbf{Convolutional}: similar wrapper to FullyConnected, but with the ability to add some parallel convolutional layers to complement fully connected layers.
 \end{itemize}
 
@@ -177,7 +169,7 @@ This module is a wrapper around Pytorch. It contains:
 \label{sec:codelearners}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.25]{./Figures/codebaselearners}
+\includegraphics[scale=0.22]{./Figures/codebaselearners}
 %\decoRule
 \caption[Codebase]{rubiks.learners}
 \label{fig:Codebaselearners}
@@ -218,40 +210,38 @@ Once it has completed (or on a regular basis), DeepLearner saves the trained net
 \label{sec:codesolvers}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.25]{./Figures/codebasesolvers}
+\includegraphics[scale=0.22]{./Figures/codebasesolvers}
 %\decoRule
 \caption[Codebase]{rubiks.solvers}
 \label{fig:Codebasesolvers}
 \end{figure}
-This module implements solvers, which solve puzzles. The base class Solver is a Factory of solvers, and in addition to being able to instantiating the following types of solvers, can run different solvers through a similal sequences of random puzzles (for various increasing degrees of difficulty (shuffling), and/or perfectly shuffled ones) and display a comparison of how they perform in a number of metrics (chosable from percentage of puzzles solved before time out, percentage of optimal puzzle (if optimality can be ascertained), mean-median-maximum run time, mean-median-maximum expanded nodes (for solvers where it makes sense), mean-median-max cost, and an optimality score which compares the total sum of cost over all puzzles versus a benchmark solver). Ideally the benchmark solver to compute the optimality score should be one which is provably optimal, but in the case of the \textbf{RC} that was not possible so I used A$^{*}$ with KociembaHeuristic as my benchmark. For the \textbf{SP} I used the optimal A$^{*}$ with Manhattan++ heuristic.
+This module implements the actual puzzles solvers. The base class Solver is a Factory, and in addition to being able to instantiating the following types of solvers, can run different solvers through a similal sequences of random puzzles (for various increasing degrees of difficulty (scrambling), and/or perfectly shuffled ones) and display a comparison of how they perform in a number of metrics (configurable from percentage of puzzles solved before time out, percentage of optimal puzzle (if optimality can be ascertained), mean-median-maximum run time, mean-median-maximum expanded nodes (for solvers where it makes sense), mean-median-max cost, and an optimality score which compares the total sum of cost over all puzzles versus a benchmark solver). Ideally the benchmark solver to compute the optimality score should provably optimal, but in the case of the \textbf{RC} that was not possible so I used A$^{*}$ with KociembaHeuristic as my benchmark. For the \textbf{SP} I used the optimal A$^{*}$ with Manhattan++ heuristic.
 
 \begin{itemize}
-\item \textbf{DFSSolver} This solver is literally a few lines of code, extremely close to the pseudo code detailed in \ref{sec:TheoryBFSDFS}
-\item \textbf{BFSSolver} Ditto, see \ref{sec:TheoryBFSDFS}
-\item \textbf{AStarSolver} Ditto, see \ref{sec:TheoryAStar}
+\item \textbf{DFSSolver} This solver is literally a few lines of code, extremely close to the pseudo code detailed in \ref{alg:TheoryBFSDFS}
+\item \textbf{BFSSolver} Ditto, see \ref{alg:TheoryBFSDFS}
+\item \textbf{AStarSolver} Ditto, see \ref{alg:TheoryAStar}
 \item \textbf{NaiveSlidingSolver} The NaiveSolver is conceptually simple, but was far from trivial to implement and debug. Its functioning is detailed in the appendix section \ref{sec:Examples}. Basically, it does what a beginner player would do, certainly what I do when I play the sliding puzzle: solving the top row first, then the left column, hence reducing the puzzle to a smaller dimensional one, and keep iterating until done.
 \item \textbf{KociembaSolver} This solver is a wrapper around two libraries. The first one, hkociemba (see \cite{HKociemba}) is a 2x2x2 implementation written by Kociemba himself, the second one is a Python pip-installable library which solves the 3x3x3 Rubik's. My  wrapper simply translates my cube representation in that accepted by these 2 solvers, and their result string into moves usable by my code. I also do some additional massaging for the 3x3x3 case, due to a shortcoming/bug in the 3x3x3 Python library, as I have detailed in appendix \ref{sec:Kociemba}.
-\item \textbf{MonteCarloSearchTreeSolver} I have implemented the algorithm described in the paper from McAleer \& Agostilenni et al \cite{https://doi.org/10.48550/arxiv.1805.07470}. My implementation is single-threaded however (in part due to my using Python for this project, which would have made using multiprocessing not efficient at all for their algorithm). A consequence of that is that I dropped the $\nu$ parameter from their implementation, since it only introduces a penalty to discourage parallel threads from generating the same paths from initial node to leaves (in single threaded mode, this parameter is inconsequential since the generation of a path decrements it, only to reincrement it once the leaf is generated).
+\item \textbf{MonteCarloSearchTreeSolver} My implementation follows McAleer \& Agostilenni et al \cite{https://doi.org/10.48550/arxiv.1805.07470} but is however single-threaded. As a consequence, I dropped the $\nu$ parameter from their implementation, since it only introduces a penalty to discourage parallel threads from generating the same paths (in single threaded mode, this parameter is inconsequential).
 \\
-This solver basically generates (pseudo-random) paths from initial node to a new leaf at each iteration, until we obtain a goal leaf. I use the word pseudo-random since the paths are actually completely deterministic. They indeed result from a trade-off between the probability of actions (penalised over time by discounting actions which have been taken already) and the value function, but there is no random draws performed anywhere in there.
-\\ As is described in McAleer \& Agostilenni's paper, I have implemented a final pruning via BFS of the tree resulting from the above \textit{Monte-Carlo} process consisting in generating random paths until a goal state is reached. Indeed, it is clear that the paths generated have very little chance of being optimal since there is no correction mechanism to avoid long and unecessary loops. I have however made this tree trimming by BFS optional via a \textit{trim\_tree} parameter as I wanted to study its effect on solutions' optimality and run time (see results section \ref{sec:MTCSHyperParamsEffect}).
+This solver basically generates \textit{pseudo-random} paths from initial node to a new leaf at each iteration (see \ref{alg:TheoryMCTS}), until we obtain a goal leaf.Paths are, despite the name, completely deterministic: they indeed result from a trade-off between the probability of actions (penalised for repeated use) and the value function, but there are no random draws being performed.
+\\ As per McAleer \& Agostilenni's paper, I have implemented a final pruning via \textbf{BFS} of the tree resulting from the above \textit{Monte-Carlo} process.It is inded clear that the paths generated by this \textbf{MCTS} algorithm have little chance of being optimal since there is no correction mechanism to favour shortcuts over long loops. I have however made this \textbf{BFS} trimming optional via a \textit{trim\_tree} parameter to study its effect on solutions' optimality and run time (see results section \ref{sec:MTCSHyperParamsEffect}).
 \\
-Similarly to their implementation, the trade off between optimal actions and value function is driven by a hyper-parameter \textit{c}, as I wanted to study its effect as well, and confirm my intuitions as to how it would affect solutions' quality and run time (again see results section \ref{sec:MTCSHyperParamsEffect}).
+I will study and report on the effect of the trade-off hyper-parameter \textit{c}, and confirm how it affects solutions' quality and run time in section \ref{sec:MTCSHyperParamsEffect}.
 
 \end{itemize}
 
 \Section{data}
 
-Finally it is worth noting that the code can/will save on disk a lot of data, including:
+The code generates a fair amount of data, in particular:
 \begin{itemize}
 \item Manhattan++ generates databases of linear constraint penalties (see \ref{HSS})
 \item TrainingData: (see e.g. \ref{DLSS}) generates databases of puzzles and their associated costs for later training of a DeepLearner.
-\item Learners: models generated by the DeepLearner, DeepReinforcementLearner, DeepQLearner as well as some convergence data useful to understand how the networks learnt. Similarly PerfectLearner saves its results for later reuse (in e.g. PerfectHeuristic) or display.
-\item Solver: Sequences of scrambled puzzles which we use to make the performance tests (comparing different solvers) fair.
-\item Solver.performance\_test: Results of the performance tests (all the metrics discussed earlier in \ref{sec:codesolvers}, for each solver and each difficulty level)
-\item etc \dots
+\item Learners: DeepLearner, DeepReinforcementLearner, DeepQLearner generate models as well as some convergence data useful to understand how the networks learn. Similarly PerfectLearner saves its results for later reuse (in e.g. PerfectHeuristic) or display.
+\item Solver: Generates sequences of scrambled puzzles used to make the performance test (comparing different solvers) fair.
+\item Solver.performance\_test: Generates a data frame containing the metrics discussed earlier in \ref{sec:codesolvers}, for each solver and each level of difficulty.
 \end{itemize}
-The data is saved according to a file system tree of the form:
-$$root/data\_type/puzzle\_type/dimension/file\_name.pkl$$
-where the root is driven by the "RUBIKSDATA" environment variable or, if not set, will go somewhere in your HOME.
+That data is saved under a tree following the schema below:
+$$\$\{ "RUBIKSDATA"\}/data\_type/puzzle\_type/dimension/file\_name.pkl$$
 

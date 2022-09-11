@@ -14,7 +14,8 @@ In this chapter, I will succinctly go through the different techniques that unde
 \Section{Graphs Search \& Heuristics}
 
 \label{GSH}
-
+\label{sec:TheoryBFSDFS}
+\label{sec:TheoryAStar}
 
 It is quite fruitful to think of single-player, deterministic, fully-observable puzzles such as the \textbf{SP} and \textbf{RC} as unit-cost graphs. We start from an initial \textit{node} (usually some scrambled configuration of the \textbf{SP} or \textbf{RC}), and via legal moves, we transition to new nodes, until hopefully we manage to get to the goal in the shortest number of moves possible. 
 \\
@@ -22,67 +23,74 @@ It is quite fruitful to think of single-player, deterministic, fully-observable 
 Graphs search (or graphs traversal) is a rather large, sophisticated and mature branch of \textbf{CS} that studies strategies to find \textit{optimal} paths from initial to goal node in a graph. What is meant by \textit{optimal} can vary, but usually is concerned with one or several of minimizing the run-time of the strategies, their memory complexity/usage or the total cost/length of the solutions they come up with. In the general theory, different transitions can have different costs associated with them. In this project however, we can reasonably consider that each move of a tile in the \textbf{SP} or each rotation of a face in the \textbf{RC} are taking a constant and identical amount of time and effort to perform, and I will therefore consider all the graphs to be unit-cost (i.e. all moves have cost 1).
 \\
 \\
-Search strategies typically maintain a frontier, which is the collection of unexpanded nodes so far. They keep expanding the frontier, by choosing the next node to expand (expanding a node simply means adding all of its children nodes - i.e. those which are reachable via legal transitions - to the frontier for future evaluation) until a solution is found. The question is how to choose the next node to expand! Some graphs search strategies are said to be \textit{uninformed}, in the sense that they do not exploit any domain-specific knowledge or insight about what the graphs represent to choose the next node to expand. In that category fall for instance Breadth First Search (\textbf{BFS}) and Depth First Search (\textbf{DFS}), which as their name suggest expand nodes from the frontier based on, respectively, a \textbf{FIFO} and \textbf{LIFO} policy. \textbf{BFS} and \textbf{DFS} will only work for modest problems where the number of transitions and states are reasonably small; they can however work in a wide variety of situations as they make no assumptions and require no knowledge. It is quite easy to see that \textbf{BFS} is an \textit{optimal} search strategy, in that when it does find a solution, that solution is of smallest possible cost (i.e. optimal). \textbf{DFS} is obvisouly not optimal as it could very well find a solution very deep in the graphs while expanding the very first branch, not realising that a solution was one level away from the start on another branch!
+Search strategies typically maintain a frontier, which is the collection of unexpanded nodes so far. They keep expanding the frontier, by choosing the next node to expand (expanding a node simply means adding all of its children nodes - i.e. those which are reachable via legal transitions - to the frontier for future evaluation) until a solution is found. The question is how to choose the next node to expand! Some graphs search strategies are said to be \textit{uninformed}, in the sense that they do not exploit any domain-specific knowledge or insight about what the graphs represent to choose the next node to expand. In that category fall for instance Breadth First Search (\textbf{BFS}) and Depth First Search (\textbf{DFS}), which as their name suggest expand nodes from the frontier based on, respectively, a \textbf{FIFO} and \textbf{LIFO} policy. \textbf{BFS} and \textbf{DFS} will only work for modest problems where the number of transitions and states are reasonably small; they can however work in a wide variety of situations as they make no assumptions and require no knowledge. It is quite easy to see that \textbf{BFS} is an \textit{optimal} search strategy, in that when it does find a solution, that solution is of smallest possible cost (i.e. optimal). \textbf{DFS} is obvisouly not optimal as it could very well find a solution very deep in the graph while expanding the very first branch, not realising that a solution was one level away from the root on the next branch!
 \\
 \\
 \teal
-\paragraph{}{\textbf{pseudo code -- BFS \& DFS}}
-\label{sec:TheoryBFSDFS}
-\begin{pseudocode}
-#################################################
-def blind_search(initial_node, time_out, search_type=Search.BFS):
-   """ pseudo code for BFS/DFS """
-    initialize_time_out(time_out)
-    if initial_node.is_goal():
-        return initial_node
-    explored = set()
-    frontier = [initial_node]
-    while True:
-        check_time_out() # -> raise TimeoutError if appropriate
-        if frontier.empty():
-            return None # -> Failure to find a solution
-       # FIFO/LIFO for BFS/DFS
-        node = pop_front(frontier) if search_type is Search.BFS else pop_back(frontier)
-        explored.add(node)
-        for child in node.children() and not in frontier.union(explored):
-            if child.is_goal():
-                return child
-            frontier.add(child)
-##################################################
-\end{pseudocode}
+\begin{algorithm}[H]
+\caption{Uninformed Graphs Search -- BFS \& DFS}\label{alg:TheoryBFSDFS}
+\begin{algorithmic}
+\Function{BlindSearch}{$root, time\_out, search\_type=Search.BFS$}
+\State\Call{InitialiseTimeOut}{$time\_out$}
+\If{\Call{IsGoal}{$root$}}
+  \Return{$root$}
+\EndIf
+\State $explored \gets \{\}$
+\State $frontier \gets [root]$
+\While{true}
+\State\Call{CheckTimeOut}{void}
+ \If{\Call{Empty}{frontier}}
+  \Return{$failure$}
+ \EndIf
+ \If{\Call{Equal}{$search\_type, Search.BFS$}}
+ \State $node \gets \Call{PopFront}{$frontier$}$
+ \Else
+ \State $node \gets \Call{PopBack}{$frontier$}$ \teal \algorithmiccomment{$Search.DFS$} \black
+ \EndIf
+\State \Call{Add}{$explored, node$}
+\For{$child \in $ \Call{Children}{$node$}}
+\If{\Call{IsGoal}{$child$}}
+\Return{$child$}
+\EndIf
+\State \Call{Add}{$frontier, child$}
+\EndFor
+\EndWhile
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 \black
-\textit{Informed} strategies, on the other hand, exploit domain-specific knowledge. One very popular such strategy is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which always first examine the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to solution (\textbf{h}). The expected cost-to-go \textbf{h} is often called a \textit{heuristic}. The better the heuristic is, the better \textbf{A$^{*}$} usually performs. An important property of heuristics is \textit{admissibility}. In short, admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.
+\noindent \textit{Informed} strategies, on the other hand, exploit domain-specific knowledge. One popular such strategy is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which first examines the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to goal (\textbf{h}). The expected cost-to-go \textbf{h} is often called a \textit{heuristic}. The better the heuristic is, the better \textbf{A$^{*}$} usually performs. An important property of heuristics is \textit{admissibility}: admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.
 \teal
-\paragraph{}{\textbf{pseudo code -- A$^{*}$}}
-\label{sec:TheoryAStar}
-\begin{pseudocode}
-###############################################################################
-def A*(initial_node, time_out, heuristic):
-    """ pseudo code for A*
-    g = cost from initial_node to a current node
-    h = heuristic (expected remaining cost from current node to goal)
-    """
-    initialize_time_out(time_out)
-    node = initial_node
-    cost = heuristic(node) # g = 0
-    frontier = sorted_multi_container({cost: {node}})
-    explored = set()
-    while True:
-        check_time_out()
-        if frontier.empty():
-            return None # -> Failure to find a solution
-        (cost, node) = frontier.pop_smallest() # smallest total expected cost
-        if node.is_goal():
-            return node
-        explored.add(node)
-        for child in node.children(): # -> children have g = node.g + 1
-            child_cost = child.g + heuristic(child)
-            if child in frontier and child_cost < cost:
-                frontier.update_cost(child, child_cost)
-            elif child not in explored:
-                frontier.add(child, child_cost)
-###############################################################################
-\end{pseudocode}
+\begin{algorithm}[H]
+\caption{Informed Graphs Search -- A$^{*}$}\label{alg:TheoryAStar}
+\begin{algorithmic}
+\Function{A$^{*}$}{$root, time\_out, H$} \teal \algorithmiccomment{H -- cost-to-go heuristic} \black
+\State\Call{InitialiseTimeOut}{$time\_out$}
+\State $f \gets 0 + \Call{H}{$node$}$
+\State $explored \gets \{\}$
+\State $frontier \gets \Call{SortedMultiMap}{\{cost: node\}}$
+\While{true}
+\State\Call{CheckTimeOut}{void}
+ \If{\Call{Empty}{frontier}}
+  \Return{$failure$}
+ \EndIf
+\State $(cost, node) = \Call{PopSmallest}{frontier}$
+\If{\Call{IsGoal}{$node$}}
+\Return{$node$}
+\EndIf
+\State \Call{Add}{$explored, node$}
+\For{$transition, child \in $ \Call{Children}{$node$}}
+	\State $child\_cost \gets \Call{Cost}{transition} + \Call{H}{child}$
+            \If{$child \in frontier \ and \ child\_cost \le cost$} \\
+             \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \Call{UpdateCost}{$frontier, child, child\_cost$}
+            \ElsIf{$child \notin explored$}
+                \Call{Add}{$frontier, child, child\_cost$}
+	\EndIf
+\EndFor
+\EndWhile
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 \black
 
 %-----------------------------------
@@ -94,22 +102,31 @@ def A*(initial_node, time_out, heuristic):
 \label{sec:RLTheory}
 
 As mentioned in the abstract, \textbf{RL} (see \cite{Sutton1998} for a brilliant exposition of the basic concepts and theory) has known a bit of false start in the 1950s and 1960s but recently been extremely successfully applied to a variety of problems (from Atari to board games and puzzles, robotics and else). \textbf{RL} is concerned with how intelligent agents can learn optimal decisions from observing/experiencing rewards while interacting in their environment. One of the fundamental concept in the field is that of value function $s \to \textbf{V}(s)$, which tells us the maximum expected reward - or equivalently and better suited to our puzzle solving task, the minimum cost - the agent can obtain from a given state $s$ (if it takes optimal decisions). In finite state and transitions spaces, the value function can be remarkably computed by a rather mechanical and magic-like procedure called value-iteration (kind of the equivalent of the Bellman equation from optimal control), where each state $s$'s value is iteratively refined by combining the value of $s$'s reachable children states.
+
+
 \teal
-\paragraph{}{\textbf{pseudo code -- \textbf{RL} Value Iteration}}
-\begin{pseudocode}
-###############################################################################
-def value_iteration(states):
-    """ pseudo code for RL value iteration """
-    V = {state: inf for state in states}
-    change = True
-    while change:
-        change = False
-        for state, cost in V:
-            V[state] = min(V[child] + t_cost for child, t_cost in state.children())
-            change |= V[state] < cost
-    return V 
-###############################################################################
-\end{pseudocode}
+\begin{algorithm}[H]
+\caption{Reinforcement Learning -- Value Iteration}\label{alg:RLTheory}
+\begin{algorithmic}
+\Function{ValueIteration}{$states$} \teal \algorithmiccomment{states -- generator of states} \black
+\State $V \gets \{state: \infty \ for \ state \in states\}$
+\State $change \gets true$
+\While{$change$}
+\State $change \gets False$
+\For{$state, cost \in states$}
+	\State $V[state] \gets \infty$
+	\For{$child, t\_cost \in \Call{Children}{state}$}
+	\State $V[state] \gets \Call{Min}{V[state], V[child] + t\_cost}$
+	\EndFor
+           \If{$V[state] \neq cost$}
+		\State{$change \gets true$}
+	\EndIf
+\EndFor
+\EndWhile
+\Return{$V$}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 \black
 
 
@@ -133,23 +150,24 @@ So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \te
 \\
 \\
 Sometimes we have ways of computing good solutions/heuristics to our puzzles, but cannot computationally do this for all possible states (maybe the state space is simply too large!). One approach in that case is to compute the solution/heuristic for \textit{some manageable number of} states, and let a \textbf{DL} model learn how to extrapolate to the rest of the state space. This is a case of \textit{supervised} learning in some sense, since we need a teacher-solver to tell us good solutions or heuristics to extrapolate from. In very simplified pseudo code, the procedure looks like the following:
+
+\newlength\mylen
+\settowidth\mylen{DeepLearningHeuristic(}
 \teal
-\paragraph{}{\textbf{pseudo code -- \textbf{DL} heuristics}}
-\begin{pseudocode}
-###############################################################################
-def deep_learning(puzzle_type,
-                  teacher_heuristic,
-                  loss_function,
-                  network_architecture):
-    """ pseudo code for learning a puzzle via deep learning and a teacher heuristic """
-    target_value_function = {state: teacher_heuristic(state)
-                             for state in generate_random_states(puzzle_type)}
-    dl_heuristic = train_neural_network(target_value_function,
-                                        loss_function,
-                                        network_architecture)
-    return dl_heuristic
-###############################################################################
-\end{pseudocode}
+\begin{algorithm}[H]
+\caption{Deep Learning -- Heuristic}\label{alg:TheoryDLDRL}
+\begin{algorithmic}
+\Function{DeepLearningHeuristic}{**args}
+\State{$puzzle\_type \gets \Call{FromParams}{**args}$}
+\State{$n\_puzzles \gets$ \Call{FromParams}{**args}}
+\State{$H \gets \Call{FromParams}{**args}$} \teal{\algorithmiccomment{H -- teacher heuristic to extrapolate via \textbf{DL}}}\black
+\State{$loss\_function \gets \Call{FromParams}{**args}$}
+\State{$net\_architecture \gets \Call{FromParams}{**args}$}
+\State $V = \{state: \Call{H}{state} \ for \ state \in \Call{GenerateRandomStates}{puzzle\_type, n\_puzzles}\}$
+\ \ \ \ \Return{$\Call{TrainNeuralNetwork}{V, loss\_function, net\_architecture}$}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 \black
 
 For this project, I have implemented the above procedure of training a \textbf{DL} network from the solutions of other solvers/heuristics in a class called DeepLearner (see section \ref{sec:codelearners} for details).
@@ -158,48 +176,61 @@ For this project, I have implemented the above procedure of training a \textbf{D
 An alternative approach in order to compute the cost-to-go is via \textbf{RL} value-iteration as described in the previous section (\ref{sec:RLTheory}). The state space is often so large however - and this certainly is the case for pretty much all \textbf{SP} and \textbf{RC}, except maybe the smallest dimensional \textbf{SP}s - that we cannot practically perform the value iteration procedure for all states. This is where \textbf{DL} comes again to the rescue to act as function approximator, combining with \textbf{RL} into what has become known as \textbf{DRL}. The subtelty is then that both the left-hand-side and right hand side in the value-iteration procedure are given by a \textbf{DL} network which we are constantly tweaking. For my implementation of \textbf{DRL}, I followed the same approach as in \cite{Mnih2013}, utilising two loops. During iteration over the first (inner) loop, the right hand-side $V$ of the value-function update equation is computed using a fixed \textit{target-network}. The left hand side $V$ is using another \textit{current-network} which alone is modified by the \textbf{DL} learning (backward propagation and optimization), until convergence is deemed reached. When convergence in the inner loop is deemed obtained, we break out of it, and run the outer loop, which updates the \textit{target-network} via a copy of the \textit{current-network}. The outer loop is itself broken out of when deemed appropriate (some kind of convergence criteria). In simplified pseudo-code, this looks like:
 \\
 \\
+
 \teal
-\paragraph{}{\textbf{pseudo code -- \textbf{DRL} heuristics}}
-\begin{pseudocode}
-###############################################################################
-def deep_reinforcement_learning(puzzle_type,
-                                loss_function,
-                                max_epochs,
-                                target_network_update_criteria,
-                                puzzles_generation_criteria,
-                                network_architecture):
-    """ pseudo code for learning a puzzle via deep reinforcement learning """
-    net = get_network(puzzle_type, network_architecture)
-    target_net = get_network(puzzle_type, network_architecture)
-    epoch = 0
-    puzzles = list()
-    while epoch < max_epochs and other_convergence_criteria(network):
-        epoch += 1
-        """ Generate a new bunch of puzzles """
-        if puzzles_generation_criteria(puzzles):
-            puzzles = generate_random_states(puzzle_type)
-        V = dict()
-        """ Compute their updated cost via value iteration ... 
-             all moves are assumed to have cost 1 """
-        for puzzle in puzzles:
-            if puzzle.is_goal():
-                V[puzzle] = 0
-            else:
-                V[puzzle] = 1 + min(target_net(child) for child in puzzle.children()))
-        """ Train lhs network to approximate rhs target network better
-        i.e. perform a forward / backward-propagation update
-        """
-        network = train_neural_net(V,
-                                   loss_function,
-                                   network_architecture)
-        """ Update the target network if criteria are met 
-        (e.g. epochs, convergence, no progress, etc...) """
-        if target_network_update_criteria(net, target_net):
-            target_net = copy(net)
-    return net
-###############################################################################
-\end{pseudocode}
+\begin{algorithm}[H]
+\caption{Deep Reinforcement Learning -- Heuristic}\label{alg:TheoryDRL}
+\begin{algorithmic}
+\Function{DeepReinforcementLearningHeuristic}{**args}
+\State{$puzzle\_type \gets \Call{FromParams}{**args}$}
+\State{$ puzzles\_gen\_params \gets \Call{FromParams}{**args}$}
+\State{$puzzles\_generation\_criteria \gets$ \Call{FromParams}{**args}}
+\State{$n\_puzzles \gets$ \Call{FromParams}{**args}}
+\State{$target\_network\_update\_params \gets \Call{FromParams}{**args}$}
+\State{$max\_epochs \gets \Call{FromParams}{**args}$}
+\State{$loss\_function \gets \Call{FromParams}{**args}$}
+\State{$net\_architecture \gets \Call{FromParams}{**args}$}
+\\ \teal{\algorithmiccomment{initial network and target network}}\black
+\State {$net \gets \Call{GetNetwork}{puzzle\_type, network\_architecture}$}
+\State {$target\_net \gets \Call{GetNetwork}{puzzle\_type, network\_architecture}$}
+\State{$epoch \gets 0$}
+\State{$puzzles \gets null$}
+
+\While{epoch < max\_epochs \&\& other\_convergence\_criteria(network)}
+        \State{$epoch \gets epoch + 1$}
+\\ \teal{\algorithmiccomment{generate \textit{training} puzzles if criteria met}}\black
+        \If{puzzles\_generation\_criteria($puzzles$)}
+            \State{$puzzles \gets generate\_random\_states(puzzle\_type)$}
+        \EndIf
+        \State{$V \gets dict()$}
+        \For{$puzzle \in puzzles}$
+            \State{$V[puzzle] \gets \infty$}
+            \If \Call{IsGoal}{$puzzle$}:
+                \State{$V[puzzle] \gets 0$}
+            \Else:
+	     \For{$transition, child \in \Call{Children}{$puzzle$}$}
+\\ \teal{\algorithmiccomment{perform value iteration}}\black
+		\State{$child_cost \gets \Call{Cost}{transition} + target\_net(child)$}
+                	\State{$V[puzzle] \gets \Call{Min}{V[puzzle], child\_cost}$}
+	     \EndFor
+	\EndIf
+       \EndFor
+\\ \teal{\algorithmiccomment{iterate through network training running feed-forward and backward-prop}}\black
+	\State{$net \gets \Call{TrainNeuralNet}{V, loss\_function, net\_architecture}$}
+\\ \teal{\algorithmiccomment{update target network if criteria met}}\black
+	\If{$target\_network\_update\_criteria(net, target\_net)$}
+		\State{$target\_net \gets \Call{Copy}{net}$}
+	\EndIf
+    \Return{$net$}
+\EndWhile
+
+
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 \black
+
+
 For this project, I have implemented the above algorithm in a class called DeepReinforcementLearner which I shall describe in details in section \ref{sec:codelearners}.
 
 

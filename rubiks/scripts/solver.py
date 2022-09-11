@@ -26,8 +26,8 @@ if '__main__' == __name__:
     action_type = Solver.do_plot
     """ What puzzle """
     puzzle_type = Puzzle.sliding_puzzle
-    n = 3
-    m = 3
+    n = 4
+    m = 4
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """
     nb_shuffles = 0
@@ -62,8 +62,8 @@ if '__main__' == __name__:
     #marker_size = 120
     #markers = ['4', 'x', '.', 'x', '.', 'x', '.', 'x', '.', ]
     #colors = ['olive', 'royalblue', 'royalblue', 'darkred', 'darkred', 'goldenrod', 'goldenrod', 'darkcyan', 'darkcyan']
-    exclude_solver_names = ['hattan', 'BFS', 'MCTS', 'Perf', 'Reinf', 'QL', 'Naive']
-    #exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
+    #exclude_solver_names = ['hattan', 'BFS', 'MCTS', 'Perf', 'Reinf', 'QL', 'Naive']
+    exclude_solver_names = ['seen=1.4', '1.2e-07', '1e-07', '9.5']   #  <- for SP 4, 4
     fig_size = (12, 8)
     """ Which solver type {Solver.dfs,
                            Solver.bfs,

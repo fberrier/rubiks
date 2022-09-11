@@ -242,8 +242,8 @@ As promised earlier in table \ref{tab:gridSP}, I have run the Solver's compariso
 \item As expected, \textbf{BFS} becomes quickly hopeless.
 \item The naive solver is obvioulsy by far the fastest but finds poor solutions (about 2.5 longer on average than optimal).
 \item As discussed in the previous section, \textbf{MCTS} is slow, and even with much exploration and \textbf{BFS} tree trimming found solution about 25\% longer than optimal.
-\item I originally was naively hoping a pure convolutional network would do well but did not manage to get the loss to converge. I later realized that this is quite different from the typical image patterns recognition as there is less direct translation and scale invariants at play here, and decided instead to try combining convolutional with fully connected layers in parallel. That improved things, but overall I saw little difference in performance from my simpler 3-hidden-layer fully connected network.
-\item \textbf{DRL} and \textbf{DQL} heuristics, though not as efficient in terms node-expansion as the perfect heuristic and the \textbf{DL} heuristics, were rather surprisingly doing better than even Manhattan++. They ended up \textit{seeing} around 25\% of all the possible configurations during training (in an \textit{unsupervised} way though) so did show some reasonable amount of generalization out of sample. Their optimality score was an impressive 99\%+ at all levels of difficuly for \textbf{DRL} and 98\%+ at all levels of difficuly for \textbf{DQL}. Even more interestingly, the \textbf{DQL} heuristic expanded almost 4 times less nodes than \textbf{DRL}, suggesting some benefit from the joint learning of the policy and value function.
+\item I originally was naively hoping a pure convolutional network would do well but did not manage to get the loss to converge. I later realized that this is quite different from the typical image patterns recognition as there is less direct translation and scale invariants at play here, and decided instead to try combining convolutional with fully connected layers in parallel in order to appropriately value 2x2 patterns together with their position on the sliding-puzzle. That did improve things, but overall I saw little difference in performance from my simpler 3-hidden-layer fully connected network.
+\item \textbf{DRL} and \textbf{DQL} heuristics, though not as efficient in terms node-expansion as the perfect and the \textbf{DL} heuristics, were rather surprisingly doing better than Manhattan++. They ended up \textit{seeing} around 25\% of all the possible configurations during training (in an \textit{unsupervised} way though) so did show some reasonable amount of out-of-sample generalization. Their optimality score was an impressive 99\%+ at all levels of difficuly for \textbf{DRL} and 98\%+ for \textbf{DQL}. Even more interestingly, the \textbf{DQL} heuristic expanded almost 4 times less nodes than \textbf{DRL}, suggesting some benefit from the joint learning of the policy and value function.
 \item The \textbf{DL} heuristics (fully connected and convolutional) performed almost on par with the perfect heuristic (optimality score of 99\%+ at all levels of difficulty and nodes expansion only increased by about 12\%), despite seeing only 8\% of the configurations by the end of their training.
 \end{itemize}
 
@@ -307,17 +307,13 @@ Finally, the naive solver outperforms every other solver in terms of run time, b
 %-----------------------------------
 \Section{3x4}
 
-blablabla
-\\
-blablabla
-\\
-blablabla
+For the 3x4 \textbf{SP}, I ran the performance test (100 random puzzles for difficulty going from 1 to 45 as well as $\infty$ shuffling) on the Naive solver and A$^{*}$ with Manhattan, Manhattan++, \textbf{DRL}, \textbf{DQL} and \textbf{DL} heuristics. Given the 239,500,800 total possible configurations there was no chance for me to compute the perfect heuristic as I did with smaller dimensions, so \textbf{DL} got trained on randomly generated configurations solved by A$^{*}$[Manhattan++]. The network architecture for all \textbf{DxL} was the fully-connected (left-hand-side of figure \ref{fig:33SPnets}), mutatis-mutandis for the input size, which in the general case is $(n.m)^{2}$ when using one-hot-encoding (I always did after a few unsuccessful attempts without it). Detailed results can be found at \ref{fig:34SPPerformance}. Key take-aways are that all \textbf{DxL} outperformed A$^{*}$[Manhattan++] in terms of node expansion and got optimality scores of 99\%+ for all levels of difficulty, despite only seeing 0.009\% of all configurations for \textbf{DL}, and 0.27\% for \textbf{DRL} and \textbf{DQL}. Again this shows very impressive generalisation and performance from the\textbf{DxL} methods.
 
 \label{ssec:34SPSC}
 
 \begin{figure}[H]
   \noindent
-  \makebox[\textwidth]{\includegraphics[scale=0.6]{./Figures/34SPPerformance}}
+  \makebox[\textwidth]{\includegraphics[scale=0.55]{./Figures/34SPPerformance}}
   \caption[34SPPerformance]{Solvers' performance comparison 3x4 \textbf{SP}}
    \label{fig:34SPPerformance}
 \end{figure}
@@ -332,13 +328,14 @@ blablabla
 
 \Section{4x4}
 
+In the 4x4 case, due to time constraints, I ran the performance test with 100 random puzzles for difficulty going from 5 to 60 except for $\infty$ shuffling where I only ran a handful of configurations (5). I ran the Naive solver as well as A$^{*}$ with Manhattan++, \textbf{DRL} and \textbf{DL} heuristics, again using the same fully-connected network architecture (left-hand-side of figure \ref{fig:33SPnets}). The 4x4 \textbf{SP} has 10,461,394,944,000 total possible configurations so it does start being quite a large state space! Again \textbf{DL} got trained on randomly generated configurations solved by A$^{*}$[Manhattan++]. \textbf{DL} obtained an optimality scores of 97\%+ across all levels of difficulty and \textbf{DRL} managed 99\%+. \textbf{DL} and \textbf{DRL} saw of the order of respectively $10^{-7}$\% and $10^{-5}$\% of all configurations during training, so again showed impressive performance and generalization!
 
 
 \label{ssec:44SPSC}
 
 \begin{figure}[H]
   \noindent
-  \makebox[\textwidth]{\includegraphics[scale=0.55]{./Figures/44SPPerformance}}
+  \makebox[\textwidth]{\includegraphics[scale=0.6]{./Figures/44SPPerformance}}
   \caption[44SPPerformance]{Solvers' performance comparison 4x4 \textbf{SP}}
   \label{fig:44SPPerformance}
 \end{figure}

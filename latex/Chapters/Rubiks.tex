@@ -8,12 +8,9 @@
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-In this second results section, I discuss my experiments on the Rubik's cube. I have run reasonably comprehensive experiments on the 2x2x2, throwing 6 of my solvers at the problem. As mentioned in \ref{sec:Puzzles}, the 2x2x2 \textbf{RC}, in spite of its deceivingly simple physical appearance, is actually not that much easier to solve. For instance, it takes me usually just under 1 minute, whereras the 3x3x3 takes me only double that time, just under 2 minutes. I am obviously a beginner in Rubik's cube handsolving, but my personal ratio of time-to-solve and perceived difficulty is in line with that of experienced speedcubers who might take and average of, say, 2-3 seconds for the 2x2x2 and 10 seconds for the 3x3x3.
+In this second results section, I discuss my experiments on the Rubik's cube. I have run reasonably comprehensive experiments on the 2x2x2, throwing 6 of my solvers at the problem. As mentioned in \ref{sec:Puzzles}, the 2x2x2 \textbf{RC}, in spite of its deceivingly simple physical appearance, is actually not that much easier to solve (by hand) than the 3x3x3. For instance, it takes me usually just under 1 minute, wherras the 3x3x3 takes me only double that time, just under 2 minutes. I am obviously a beginner in Rubik's cube handsolving, but my personal ratio of time-to-solve and perceived difficulty is in line with that of experienced speedcubers who might take and average of, say, 2-3 seconds for the 2x2x2 and 10 seconds for the 3x3x3.
 \\
-Computing wise, the 2x2x2 was of decent size for my purpose, with its 88 million configurations, so in particular it 
-\\
-\\
-Let me start with a table summarizing which solvers I have attempted to run on the 2 dimensions I have looked at:
+Computing wise, the 2x2x2 was of decent size for my purpose, with its 88 million configurations. Let me start with a table summarizing which solvers I have attempted to run on the 2 dimensions I have attempted to experiment with:
 
 \begin{center}
 \begin{tabular}{l*{5}{c}r}
@@ -50,10 +47,12 @@ A$^{*}$[DQL]  &   &  &  x  &  \\
 All the following experiments on the 2x2x2 \textbf{RC} have been run using my Solver's \textit{performance\_test} (see \ref{sec:codesolvers}): for each level of difficulty, the test present the solvers with the same 100 random configurations (for fairness and to increase the significance of the results). The levels of difficulty (number of scrambles from goal) used here go from 2 to 20 in step of 2. The tests were also run with perfect shuffling (difficulty = $\infty$ on the graphs), corresponding to taking scrambling to $\infty$ as explained in \ref{Theory:222RCSSS}).
 
 \Subsection{BFS}
-BFS is the only one for which I used a step of 1 on the difficuly and stopped at 5 as it was clear it would not go any further. Given that the run time and expanded nodes are clearly going to increase linearly, and give where difficulty of 5 took this solver already, there was no point going any further!
+BFS is the only one for which I used a step of 1 on the difficuly and stopped at 5 as it was clear it would not go any further. Given that the run time and expanded nodes are clearly going to increase linearly, and given where 5 scrambling from goal took this solver already, there was no point going any further!
 
 \Subsection{Kociemba, A$^{*}$[Kociemba], A$^{*}$[DL[A$^{*}$[Kociemba]]]}
-Next, let me discuss Kociemba (\ref{}) and associated experiments. We obviously expect Kociemba to be by far the fastest solver since it is handcrafted with much specific knowledge about the Rubik's cube.
+Next, let me discuss Kociemba (see \cite{HKociemba} and \cite{Kociemba}) and associated experiments. We obviously expect Kociemba to be by far the fastest solver since it is handcrafted with much specific knowledge about the Rubik's cube group theory and multi-stage solving which I discussed in \ref{Theory:RCMSS}. I found the 2x2x2 library I used to not be optimal however, despite claims to the contrary. I have not had the time to investigate why this was not the case, but empirically I found that for instance running A$^{*}$ with Kociemba's cost as a heuristic was resulting in higher quality (i.e. of lower cost) solutions, clearly showing the non-optimality of Kociemba to begin with.
+\\
+\noindent Similarly to the higher dimensions \textbf{SP} from the previous section, there was no hope for me to run a perfect solver on the 2x2x2 \textbf{RC}. For starter, I have no admissible heuristic to guarantee optimality! Even if I had found one such heuristic and managed to implement it, it is doubtful I could have solved all 88 millions configurations without considerable work and time to reduce the configurations via symmetry arguments. As a result, I used solutions from A$^{*}$[Kociemba] on (perfectly) randomly generated configurations to train my \textbf{DL} heuristic. Thinking of it, it is rather amusing since Kociemba is itself using a two-stage IDA$^{*}$ solver, so we end-up with 3 levels of nested A$^{*}$ algorithm, namely A$^{*}$[DL[A$^{*}$[IDA$^{*}$[2-stage-subgroups]]]].
 
 
 
@@ -94,12 +93,12 @@ Notice that the DeepLearner and DeepQLearner have very similar sets of parameter
 
 \Subsection{Solvers' comparison}
 
+
 \begin{figure}[H]
-\centering
-\includegraphics[scale=0.60]{./Figures/222RCPerformance}
-%\decoRule
-\caption[222RCPerformance]{Solvers' performance comparison 2x2x2 \textbf{RC}}
-\label{fig:222RCPerformance}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.55]{./Figures/222RCPerformance}}
+  \caption[222RCPerformance]{Solvers' performance comparison 2x2x2 \textbf{RC}}
+  \label{fig:222RCPerformance}
 \end{figure}
 
 

@@ -25,8 +25,8 @@ if '__main__' == __name__:
                             } """
     action_type = Solver.do_plot
     """ What puzzle """
-    puzzle_type = Puzzle.sliding_puzzle
-    n = 4
+    puzzle_type = Puzzle.rubiks_cube
+    n = 2
     m = 4
     dimension = Puzzle.factory(**globals()).dimension()
     """ How much to shuffle """

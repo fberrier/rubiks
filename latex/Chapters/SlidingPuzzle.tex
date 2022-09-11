@@ -131,7 +131,7 @@ In this section, I verify empirically that, as expected, the overhead of adding 
 \label{fig:25SPPerformanceManhattan}
 \end{figure}
 
-\noindent As can be seen, for low difficulty (up to \textit{nb\_shuffles = 20}), the node expansions are about the same in both cases, and the overhead of adding the linear constraints penalty increases the run time. However, for any non trivial case, Manhattan++ outperforms considerably (by a factor of about 2.5). Table \ref{tab:mppOutperformance} below summarizes the results for the 250 \textit{perfectly} shuffled instances:
+\noindent As can be seen, for low difficulty (up to \textit{nb\_shuffles = 20}), the node expansions are about the same in both cases, and the overhead of adding the linear constraints penalty increases the run time. However, for any non trivial case, Manhattan++ outperforms considerably (by a factor of about 2.5). Table \ref{tab:mppOutperformance} below summarizes the results for the 250 \textit{perfectly} shuffled configurations:
 
 
 
@@ -159,7 +159,7 @@ Improvement               & n/a &  n/a & \textbf{x2.5} & \textbf{x2.7} & \textbf
 \Section{Intermediary case - 3x3}
 \label{sec:S33}
 
-In this section, which focusses on the 3x3 \textbf{SP}, I detail some results from the PerfectLearner (\ref{sec:S33PL}), from the DeepReinforcementLearner (\ref{sec:S33DRL}), before moving to a discussion of the \textbf{DQL} \textbf{MCTS} solver and the effect of its trade-off hyper-parameter \textit{c} and of its optional \textbf{BFS} tree-trimming on the quality of the solutions (\ref{sec:MTCSHyperParamsEffect}). I then run a comprehensive comparison of my 10 different solvers on the 3x3 \textbf{SP} in \ref{ssec:33SPSC}. Finally, I end the section by running a few select solvers on one of the two hardest 3x3 puzzle in \ref{ssec:33SPHard}
+In this section, which focusses on the 3x3 \textbf{SP}, I detail some results from the PerfectLearner (\ref{sec:S33PL}) before moving to a discussion of the \textbf{DQL} \textbf{MCTS} solver and the effect of its trade-off hyper-parameter \textit{c} and of its optional \textbf{BFS} tree-trimming on the quality of the solutions (\ref{sec:MTCSHyperParamsEffect}). I then run a comprehensive comparison of my 10 different solvers on the 3x3 \textbf{SP} in \ref{ssec:33SPSC} including \textbf{DL},  \textbf{DRL} and  \textbf{DQL}. Finally, I end the section by running a few select solvers on one of the two hardest 3x3 puzzle in \ref{ssec:33SPHard}
 
 
 \Subsection{Perfect learner}
@@ -177,8 +177,8 @@ As discussed in the previous section section \ref{sec:SPLowDimension}, the 3x3 \
 
 
 
-\Subsection{Deep reinforcement learner}
-\label{sec:S33DRL}
+%\Subsection{Deep reinforcement learner}
+%\label{sec:S33DRL}
 
 
 \begin{comment} 

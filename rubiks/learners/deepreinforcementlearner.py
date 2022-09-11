@@ -77,6 +77,8 @@ class DeepReinforcementLearner(Learner):
                             puzzles_seen_pct]
     training_data_every_epoch = 'training_data_every_epoch'
     cap_target_at_network_count = 'cap_target_at_network_count'
+    fig_size = 'fig_size'
+    show_title = 'show_title'
 
     @classmethod
     def populate_parser_impl(cls, parser):
@@ -151,6 +153,15 @@ class DeepReinforcementLearner(Learner):
         cls.add_argument(parser,
                          field=cls.cap_target_at_network_count,
                          default=False,
+                         action=cls.store_true)
+        cls.add_argument(parser,
+                         cls.fig_size,
+                         type=int,
+                         nargs='+',
+                         default=[15, 12])
+        cls.add_argument(parser,
+                         field=cls.show_title,
+                         default=True,
                          action=cls.store_true)
 
     def more_model_name(self):
@@ -567,12 +578,13 @@ class DeepReinforcementLearner(Learner):
             title[field] = config[field]
         title = pformat(title)
         title = cls.__name__ + '\n' + title
-        fig = plt.figure(self.learning_file_name, figsize=(15, 10))
+        fig = plt.figure(self.learning_file_name, figsize=self.fig_size)
         plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
         plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
         plt.axis('off')
         title = pformat(title).upper().replace('_', ' ')
-        plt.title(title, fontname='Consolas', fontdict={'weight': 'bold'})
+        if self.show_title:
+            plt.title(title, fontname='Consolas', fontdict={'weight': 'bold'})
         x = drl.epoch
         gs = fig.add_gridspec(len(self.plot_metrics), 1)
         axes = list()

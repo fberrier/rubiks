@@ -34,11 +34,13 @@ if '__main__' == __name__:
                             Learner.deep_reinforcement_learner,
                             }
     """
-    learner_type = Learner.deep_reinforcement_learner
+    learner_type = Learner.deep_q_learner
     """ for plot """
     plot_metrics = DeepReinforcementLearner.default_plot_metrics \
         if learner_type is Learner.deep_reinforcement_learner \
         else DeepLearner.default_plot_metrics
+    fig_size = (15, 7)
+    show_title = False
     """ If it's a perfect learner config here """
     time_out = 900
     nb_cpus = 1

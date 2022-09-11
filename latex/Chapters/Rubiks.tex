@@ -52,37 +52,54 @@ BFS is the only one for which I used a step of 1 on the difficuly and stopped at
 \Subsection{Kociemba, A$^{*}$[Kociemba], A$^{*}$[DL[A$^{*}$[Kociemba]]]}
 Next, let me discuss Kociemba (see \cite{HKociemba} and \cite{Kociemba}) and associated experiments. We obviously expect Kociemba to be by far the fastest solver since it is handcrafted with much specific knowledge about the Rubik's cube group theory and multi-stage solving which I discussed in \ref{Theory:RCMSS}. I found the 2x2x2 library I used to not be optimal however, despite claims to the contrary. I have not had the time to investigate why this was not the case, but empirically I found that for instance running A$^{*}$ with Kociemba's cost as a heuristic was resulting in higher quality (i.e. of lower cost) solutions, clearly showing the non-optimality of Kociemba to begin with.
 \\
-\noindent Similarly to the higher dimensions \textbf{SP} from the previous section, there was no hope for me to run a perfect solver on the 2x2x2 \textbf{RC}. For starter, I have no admissible heuristic to guarantee optimality! Even if I had found one such heuristic and managed to implement it, it is doubtful I could have solved all 88 millions configurations without considerable work and time to reduce the configurations via symmetry arguments. As a result, I used solutions from A$^{*}$[Kociemba] on (perfectly) randomly generated configurations to train my \textbf{DL} heuristic. Thinking of it, it is rather amusing since Kociemba is itself using a two-stage IDA$^{*}$ solver, so we end-up with 3 levels of nested A$^{*}$ algorithm, namely A$^{*}$[DL[A$^{*}$[IDA$^{*}$[2-stage-subgroups]]]].
+\noindent Similarly to the higher dimensions \textbf{SP} from the previous section, there was no hope for me to run a perfect solver on the 2x2x2 \textbf{RC}. For starter, I have no admissible heuristic to guarantee optimality! Even if I had found one such heuristic and managed to implement it, it is doubtful I could have solved all 88 millions configurations without considerable work and time to reduce the configurations via symmetry arguments. As a result, I used solutions from A$^{*}$[Kociemba] on (perfectly) randomly generated configurations to train my \textbf{DL} heuristic. Thinking of it, it is rather amusing since Kociemba is itself using a two-stage IDA$^{*}$ solver, so I end-up here with 3 levels of nested A$^{*}$ algorithms, namely A$^{*}$[DL[A$^{*}$[IDA$^{*}$[2-stage-subgroups]]]].
+\\
+Notice finally that, since I have no optimal solver for the \textbf{RC}, I have set Kociemba as my benchmark in the performance test for the purpose of computing the optimality score. This is why some (actually all) of the other solvers will show scores larger than 100\% (top-right graph of figure \ref{fig:222RCPerformance}).
 
 
 
 
 
 
-\Subsection{Deep reinforcement learner}
+\Subsection{Deep Reinforcement Learner \& Deep Q Learner}
 \label{sec:S33DRL}
-Next I have run the DeepReinforcementLearner with the following main parameters:
+To get my \textbf{DRL} and \textbf{DQL} heuristics, I have run the DeepReinforcementLearner and DeepQLearner with the following main parameters:
 \begin{itemize}
 \item Update the target network every 1,000 epochs (\textit{update\_target\_network\_frequency=1000}) or when the MSE falls below 10 basis points of the maximum target cost-to-go (\textit{update\_target\_network\_threshold=1e-3})
 \item Run for a maximum of 11,000 epochs (\textit{nb\_epochs=11000}) or when the maximum target so far has not been increasing by more than 1\% in the last 5,500 epochs (\textit{max\_target\_uptick=1e-2} and \textit{max\_target\_not\_increasing\_epochs\_pct=0.5})
-\item At every update of the target network (\textit{training\_data\_every\_epoch=False}), generate 100 sequences of puzzles (\textit{nb\_sequences=100}), each comprised of a 50-scramble puzzle back to goal state, with all intermediary puzzles along the path (\textit{nb\_shuffles=50}).
-\item Use a fully connected network (\textit{network\_type=fully\_connected\_net}) with three hidden layers of size 600, 300, 100 (\textit{layers\_description=(600,300,100)}) and use torch.optim.RMSProp as optimiser (\textit{optimiser=rms\_prop}) with an exponential scheduler (\textit{scheduler=exponential\_scheduler}) with gamma 0.999 (\textit{gamma\_scheduler=0.9999}).
+\item At every update of the target network (\textit{training\_data\_every\_epoch=False}), generate 10,00 sequences of puzzles (\textit{nb\_sequences=10,000}), each comprised of a 15-scramble puzzle back to goal state, with all intermediary puzzles along the path (\textit{nb\_shuffles=15}).
+\item Use a fully connected network (\textit{network\_type=fully\_connected\_net}) with three hidden layers of size 600, 300, 100 (\textit{layers\_description=(600,300,100)}) and use torch.optim.RMSProp as optimiser (\textit{optimiser=rms\_prop}) with an exponential scheduler (\textit{scheduler=exponential\_scheduler}) with gamma 0.999 (\textit{gamma\_scheduler=0.9999}) and \textit{learning\_rate=0.001}. The networks architecture is shown in figure \ref{fig:222RCnets}.
 \end{itemize}
-Below I show some of the DeepReinforcementLearner's quantities tracked over the epochs (see \ref{fig:33SPDeepReinforcementLearning}). I have shown only the following quantities:
+Graphs \ref{fig:222RCDRL} and \ref{fig:222RCDQL} show both learners' following metrics tracked over the epochs:
 \begin{itemize}
 \item learning rate, which decreases due to the scheduler, but gets reset at each network update.
 \item max target. One interesting dynamic during learning is that due to the way targets are constructed using value-iteration update, and starting from an all 0 network, the max target only increases by about 1 at best at every network update. That is, the first network only learns how to differentiate goal from non-goal, then the second one learns how to differentiate goals, cost 1 and cost 2+ in some sense. This is why I have introduced the first set of parameters discussed just above. The first one makes sure we do not waste time initially training the left-hand-side network when training is easy (as consist of just goal versus not goal). The second ones make sure that we stop training altogether when the max target does not grow anymore. This is because we do not know a-priori what the God number of a given puzzle/dimension is, but let's assume for the sake of the argument that it is 15. Then that means that after 15 updates of the target network we might not really get so much benefit by keeping training and value-iterating.
-\item the MSE loss
-\item the MSE loss divided by the max target. The exit criterion \textit{update\_target\_network\_threshold} is based on that quantity, since a loss of e.g. 0.01 means little if the we do not compare it to the possible range that the cost-to-go can take.
+\item the loss (MSE for \textbf{DRL}, MSE + CrossEntropyLoss for \textbf{DQL})
+\item the loss divided by the max target. The exit criterion \textit{update\_target\_network\_threshold} is based on that quantity, since a loss of e.g. 0.01 means little if the we do not compare it to the possible range that the cost-to-go can take.
 \item The percentage of all the possible puzzles of that dimension \textit{seen} by the DeepReinforcementLearner. This is an interesting quantity, as it tells us later on when testing out of sample and comparing with other solvers, how well the solvers are able to generalise. In this case (3x3) we can see that the DeepReinforcementLearner quickly has seen a very large percentage of all puzzles. That being said, it is good to keep in mind that \textit{seen} does not mean really much here, since the learning is unsupervised. This is quite in contrast to the DeepLearner, for which puzzles seen come along with the cost-to-go computed by a \textit{teacher}, usually an optimal or at least efficient solver.
 \end{itemize}
 
 
-\begin{figure}[H]
-\centering
-\includegraphics[align=c, scale=0.42]{./Figures/33SPDeepReinforcementLearning}
-\caption[33SPDeepReinforcementLearning]{\textbf{DRL} of the 3x3 \textbf{SP}}
-\label{fig:33SPDeepReinforcementLearning}
+\begin{figure}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.6]{./Figures/222RCnets}}
+  \caption[222RCnets]{2x2x2 \textbf{RC} architecture for \textbf{DRL} (left) \& \textbf{DQL} (right) heuristics training}
+  \label{fig:222RCnets}
+\end{figure}
+
+
+\begin{figure}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.5]{./Figures//222RCDRL}}
+  \caption[222RCDRL]{\textbf{DRL} of the 2x2x2 \textbf{RC}}
+  \label{fig:222RCDRL}
+\end{figure}
+
+\begin{figure}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.5]{./Figures//222RCDQL}}
+  \caption[222RCDQL]{\textbf{DQL} of the 2x2x2 \textbf{RC}}
+  \label{fig:222RCDQL}
 \end{figure}
 
 Notice that the DeepLearner and DeepQLearner have very similar sets of parameters and track similar metrics during their learning for later display, but I shall not detail it here since there is not much extra insight to be had compared to the DeepReinforcementLearning example we just went through.

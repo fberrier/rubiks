@@ -31,7 +31,7 @@ Since then, several variations of the 15-puzzle have become popular, such as the
 \end{figure}
 
 
-\noindent It is rather easy to see why this is the case, let us discuss why: given a configuration c of the tiles, let us define the permutation p(c) of this configuration according to the following schema: we enumerate the tiles row by row (top to bottom), left to right for odd rows and right to left for the even rows, ignoring the empty compartment. For instance, the following 15-puzzle c:
+\noindent It is easy to see why this is the case, let me discuss why: given a configuration $c$ of the tiles, let us define the permutation $p(c)$ corresponding to enumerating the tiles row by row (top to bottom), left to right for odd rows and right to left for the even rows, ignoring the empty compartment. For the following left-hand-side15-puzzle $c_{l}$ we have $p(c_{l})$ = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, \red 14 \black, \blue 11, 8\black, 12, 13):
 
 \begin{fifteen}
 \setrow{4}{1,6,2,3}
@@ -39,12 +39,7 @@ Since then, several variations of the 15-puzzle have become popular, such as the
 \setrow{2}{9,15,\red14\black,\blue11}
 \setrow{1}{13,12,,\blue 8}
 \end{fifteen}
-\\
-\\
-we have p(c) = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, \red 14 \black, \blue 11, 8\black, 12, 13).
-\\
-It is easy to see that the parity of p(c) cannot change by a legal move of the puzzle. Indeed, p(c) is clearly invariant by lateral move of a tile, so its parity is invariant too. A vertical move of a tile will displace a number in p(c) by an even number of positions right or left. For instance, moving tile 14 into the empty compartment below it results in a new configuration $c_{2}$:
-
+% 
 \begin{fifteen}
 \setrow{4}{1,6,2,3}
 \setrow{3}{5,10,7,4}
@@ -52,14 +47,7 @@ It is easy to see that the parity of p(c) cannot change by a legal move of the p
 \setrow{1}{13,12,\red14\black,\blue8}
 \end{fifteen}
 \\
-\\
-with $p(c_{2})$ = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, \blue11, 8\black, \red14\black, 12, 13), which is equivalent to moving 14 by 2 positions on the right. This obviously cannot change the parity since exactly 2 pairs of numbers are now in a different order, that is (14, 11) and (14, 8) now appear in the respective opposite orders as (11, 14) and (8, 14).
-\\
-\\
-This is the crux of the proof of the well known necessary condition (even parity of p(c)) for a configuration c to be solvable (see part I of \cite{Johnson1879}).
-\\
-\\
-In the case of the coiled puzzle, we can clearly solve all configurations of even parity, since all the legal moves of the normal puzzle are allowed. In addition, we can for instance transition between the following 2 configurations, which clearly have respectively even and odd parities:
+The parity $p(c)$ of a configuration $c$ cannot change via a legal move. Indeed, p(c) is clearly invariant by lateral move of a tile, so its parity is invariant too. A vertical move of a tile will displace a number in $p(c)$ by an even number of positions right or left. For instance, moving tile 14 above in $c_{l}$  into the empty compartment below it results in a new configuration $c_{r}$ with $p(c_{r})$ = (1, 6, 2, 3, 4, 7, 10, 5, 9, 15, \blue11, 8\black, \red14\black, 12, 13), which is equivalent to moving 14 by 2 positions on the right. This obviously cannot change the parity since exactly 2 pairs of numbers are now in a different order, that is (14, 11) and (14, 8) now appear in the respective opposite orders as (11, 14) and (8, 14). This is the crux of the proof of the well known necessary condition (even parity of p(c)) for a configuration c to be solvable (see part I of \cite{Johnson1879}). In the case of the coiled puzzle, we can solve all configurations of even parity, since all the legal moves of the normal puzzle are allowed. In addition, we can for instance transition between the following 2 configurations, which clearly have respectively even and odd parities:
 
 \begin{fifteen}
 \centering
@@ -119,39 +107,31 @@ A very poor lower bound can be always obtained by the following reasoning: each 
 
 
 \Subsection{History -- from Erno Rubik to speed cubing competitions}
-The second puzzle I will focus on is the well known Rubik's Cube (\textbf{RC}), invented in 1974 by Erno Rubik, originally known under the name of \textit{Magic Cube} (see \cite{RubiksWiki}). Since it was commercialized in 1980, it has kown a worldwide success: countless people are playing with the famous original 3x3x3 cube, as well as with many variants of it, more or less difficult and contrived. Competitions nowadays bring together \textit{speedcubers} who have trained for years and memorized various algorithms to solve the Rubik's in astonishly effective and fast times (literally in seconds for the best ones). Interestingly, some of the principles used by speedcubers generalise to different dimensions. As an example, it is quite impressive to watch \textit{Cubastic} solve a 15x15x15 cube in (only) two and a half hours! (see \cite{151515Rubiks}). The key insight to solving high dimensional \textbf{RC}s (short obviously of coming up with specific and sophisticated strategies) is the following: if we manage to group all the inside (i.e. not located on a corner or an edge of the cube) cubies by colour, and then all the non-corner edges on a given tranche of a face by colour, we are essentially reducing the cube to a 3x3x3, since no face rotation will ever undo the inside cubies and non-corner-edge cubies' grouping. For instance, the following picture shows faces of my own 4x4x4 and 3x3x3 cubes which I have arranged to be in identical configurations.
-\\
-\\
-It is quite interesting to note that the difficuly of hand-solving cubes does not grow nearly as much with increasing dimensionality (most of the time difference comes rather from the difficulty of handling and manipulating the cubes of high dimensions at speed). 
-
-
+The second puzzle I will focus on is the Rubik's Cube (\textbf{RC}), invented in 1974 by Erno Rubik, originally known as \textit{Magic Cube} (see \cite{RubiksWiki}). Since it was commercialised in 1980, it has kown a worldwide success: countless people are playing with the original 3x3x3 cube, as well as with variants of it of all shapes and sizes. Competitions bring together \textit{speedcubers} who have trained for years and memorized algorithms to solve the Rubik's in astonishly fast times (seconds for the best ones). Some of the principles used by speedcubers generalise to different dimensions. As an example, it is quite impressive to watch \textit{Cubastic} solve a 15x15x15 cube in (only) two and a half hours! (see \cite{151515Rubiks}). The key insight to solving high dimensional \textbf{RC}s (short obviously of coming up with specific strategies) is the following: if we manage to group all the inside (i.e. not located on a corner or an edge) cubies by colour, and then all the non-corner edges on a given tranche of a face by colour, we are essentially reducing the cube to a 3x3x3, since no face rotation will ever undo these groupings. The picture below (\ref{fig:4442333}) shows my own 4x4x4 and 3x3x3 cubes arranged to be in identical configurations.
 \begin{figure}[H]
-\centering
-\includegraphics[scale=0.3]{./Figures/RC333444}
-\caption[Reducing RC]{Reducing a 4x4x4 \textbf{RC} to a 3x3x3 -- home made picture}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.25]{./Figures/RC333444}}
+  \caption[Reducing RC]{Reducing a 4x4x4 \textbf{RC} to a 3x3x3 -- home made picture}
+  \label{fig:4442333}
 \end{figure}
-
-
-\noindent It is quite clear from that picture above that if we can bring the 4x4x4 cube to such a configuration on all faces (which is not super hard), and we know how to solve a 3x3x3, we are essentially done. (well, almost, since the additional degrees of freedom coming from the higher dimension of the 4x4x4 mean that certain arrangements of the colors which are possible on the 4x4x4 are not on the 3x3x3. For instance we can never have the center red and white on opposite faces of a 3x3x3, but we easily can on a 4x4x4! Fortunately that is nothing that a couple of easily learnable algorithms cannot fix).
+\noindent If we can bring the 4x4x4 cube to such a configuration on all faces (which is not very hard), and if we know how to solve a 3x3x3, we are essentially done. (The additional degrees of freedom on the 4x4x4 complicate slightly the story since certain arrangements of colors which are possible on the 4x4x4 are not on the 3x3x3, e.g. red an and white on opposite faces). Overall, the difficuly of hand-solving cubes does not grow as much with dimensionality as one would think, and the time difference comes mostly from the difficulty of handling and manipulating larger cubes.
 
 
 
 
 \Subsection{Conventions: faces, moves and configurations}
-In my code as well as in this write-up, I follow the conventions and notations of the \textbf{RC} literature and community as much as possible, I will refer to the faces as F (front), B (back), U (up), D (down), L (left) and R (right). The cubes' tiles are of 6 different colors, and without loss of generality (though the interested reader is referred to appendix \ref{sec:Kociemba} for some subtlety around that), we can consider that these colors are also called F, B, U, D, L and R, and consider the goal state as one where, up to rotations of the whole cube, the color's name match the faces (color F on face F, etc). The Rubik's has, as one would expect, an extremely large state space. I will compute the state space size for the 3x3x3 and 2x2x2 cubes in the next two subsections and discuss conditions under which  a cube is solvable.
+I follow the conventions and notations of the \textbf{RC} community and refer to the faces as F (front), B (back), U (up), D (down), L (left) and R (right). It is common in \textbf{RC} jargon to refer to moves  by the name of the face that is rotated clock-wise (when facing it), and by adding a \textit{'} for counter-clock-wise rotations. Sometimes numbers are used to indicate repeated moves, though I will count that as multiple moves, since obviously e.g. U2 = U U = U' U'. As another example: F B' F2 means rotating the front face clock-wise, the back face counter-clock-wise, followed by the front face twice. The convention I follow is called the \textit{quarter-turn-metric}, and obvioulsy the length of solutions is affected by which metric we use.
 \\
-It is common in \textbf{RC} jargon to refer to moves  by the name of the face that is rotated clock-wise (when facing it), and by adding a prime \textit{'} for counter-clock-wise rotations. Sometimes people use a number after the face to indicate repeated similar moves, though I will count in my code that as 2 moves, since obviously e.g. U2 = U U = U' U'. As another example: F B' F2 means rotating the front face clock-wise, the back face counter-clock-wise, followed by the front face twice. Some people refer to the convention I have chosen as the \textit{quarter turn metric}, and obvioulsy the length of solutions is affected by which convention/metric we use.
-\\
-Finally, let me make a remark on what I consider in this project to be distinct configurations of the Rubik's cube. Since I am interested in experimenting with, among other methods, \textbf{DRL} and \textbf{DQL}, and that they are usually presented as methods which learn \textit{without-human-knowledge}, I thought it would be a bit akin to cheating to consider that two cubes equivalent by full space rotation are one and the same and represent them as such in my code. Ideally, we would rather let the algorithms learn (if they are able to) about symmetries. For instance, the two following cubes (which are clearly just a rotation away or equivalently a change-in-observer away from one another) are the same for us humans. I however represent them as different tensors in my code, and this is up to the solvers to make sense of things.
+Since I am interested in experimenting with \textit{no-human-knowledge} methods such as \textbf{DRL} and \textbf{DQL}, I will consider cubes which are identical up to full cube rotation such as the \textit{flattened} cubes on figure \ref{fig:configurations} ) to be different. They will be represented by different tensors in my code, and this is up to the solvers to make sense of things.
 
 \begin{figure}[H]
-\centering
-\includegraphics[scale=0.4]{./Figures/equivalentcubes}
-\caption[Reducing RC]{Two equivalent configurations by full-cube-rotation}
-\label{fig:configurations}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.4]{./Figures/equivalentcubes}}
+  \caption[Reducing RC]{Two equivalent configurations by full-cube-rotation}
+  \label{fig:configurations}
 \end{figure}
 
-
+\noindent The \textbf{RC} has, as one would expect, an extremely large state space. I will compute the state space size for the 3x3x3 and 2x2x2 cubes in the next two subsections and discuss conditions under which a cube is solvable.
 
 \Subsection{3x3x3 Rubik's -- search space, solvability \& God's number}
 \label{Theory:333RCSSS}

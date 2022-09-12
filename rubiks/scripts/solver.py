@@ -58,7 +58,6 @@ if '__main__' == __name__:
     labels_at_top = True
     show_title = True
     lite_title = True
-    plot_abbreviated_names = True
     #marker_size = 120
     #markers = ['4', 'x', '.', 'x', '.', 'x', '.', 'x', '.', ]
     #colors = ['olive', 'royalblue', 'royalblue', 'darkred', 'darkred', 'goldenrod', 'goldenrod', 'darkcyan', 'darkcyan']

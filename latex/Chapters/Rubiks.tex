@@ -102,14 +102,18 @@ Graphs \ref{fig:222RCDRL} and \ref{fig:222RCDQL} show both learners' following m
   \label{fig:222RCDQL}
 \end{figure}
 
-Notice that the DeepLearner and DeepQLearner have very similar sets of parameters and track similar metrics during their learning for later display, but I shall not detail it here since there is not much extra insight to be had compared to the DeepReinforcementLearning example we just went through.
-
-
 
 
 
 \Subsection{Solvers' comparison}
 
+We summarize as usual the 2x2x2 \textbf{RC} performance tests by our usual metrics \ref{fig:222RCPerformance}. Overall, the \textbf{DL} and \textbf{DRL} managed to solve all cubes (though \textbf{DL} took over an houd and \textbf{DRL} up to 6 hours for the slowest cube they encountered. Both methods outperformed in terms of optimality score Kociemba and got on par with A$^{*}[Kociemba]$. Their max cost over all cubes encountered was 12 for up to 20 shuffles, and 13 for $\infty$ shuffling. Considering God's number for the 2x2x2 \textbf{RC} of 11, this is rather impressive!
+\\
+\\
+An very interesting remark is that if we check the learning graph \ref{fig:222RCDRL} of the \textbf{DRL}, we can see it only ever assigned a cost-to-go (value function) of 7.6 at most. Despite that fact, it was still able to solve cubes requiring 13 moves. How is that possible? Notice that the loss of 0.2 towards which it converged at the end of its training is misleading, since it is not a loss versus the actual true cost-to-go, but rather versus that of the target network. My theory is that while the value the \textbf{DRL} assigned to hard-to-solve cubes is off (by at least 4 or 5), it is likely the case that the network gets the relative value of neighbouring cubes about right, and this is sufficient to guide A$^{*}$ extremely well.
+\\
+\\
+Finally, we can see that \textbf{DQL}, despite showing seemingly/visually cleaner and more monotonic loss convergence than \textbf{DRL} (see \ref{fig:222RCDQL} versus \ref{fig:222RCDRL}), struggled a lot more to solve difficult cubes (above 10 shuffles). Clearly this shows that my earlier findings on the 3x3 \textbf{SP} are likely not universal, and very much depend on the parameters set during training, as well as on the problem at hand.
 
 \begin{figure}[H]
   \noindent
@@ -126,17 +130,17 @@ Notice that the DeepLearner and DeepQLearner have very similar sets of parameter
 \Section{3x3x3}
 \label{sec:ResRubiks333}
 
-For now just showing Kociemba as a baseline. Will first try out DL trained on data generated from Kociemba, then will try out DRL. If unsuccessful or too slow, might try similar to paper using DQL/MC search.
-\\
-Notice Kociemba 3, unlike the 2x2x2 implementation that I found on github, does not do automatic color mapping. So if you present it with a cube which is not with the \textit{standard} centers (facing red and white up), it will actually not solve the cube. I have therefore added a bit of logic in Kociemba solver to look for the equivalent cube among the 24 equivalent cubes to the one being solved, with standard colors. We then solve this one using Kociemba and add the whole cube rotations to the solution (which in my code are deemed to have 0 cost anyway). This way, not only can I use Kociemba 3 to solve any (solvable) 3x3x3 cube irrespective of rotations, but I can also use that in A* or to train a DL network (also for A*)
-
-
+I did not get to run very many experiments on the 3x3x3 \textbf{RC}. The results of the performance test (50 random configurations for levels of difficulty from 2 to 40 by increment of 2 as well as $\infty$ shuffling) can be found on figure \ref{fig:333RCPerformance}.
+\begin{itemize}
+\item Here again, Kociemba does not show optimality, since we can see that my A$^{*}[Kociemba]$, that is A$^{*}$ using Kociemba as a heuristic, performs much better than Kociemba (solutions about 20\% shorter at $\infty$ shuffling). This is not surprising though since Kociemba 3x3x3 does not claim to be optimal and is meant to find solution in the 40 moves at most (which is what I have observed indeed). A$^{*}[Kociemba]$ never took more than 30 moves on any of the cubes presented to it, which is not bad given the known God number of 26 in the quarter-turn-metric (as discussed earlier in \ref{Theory:333RCSSS})
+\item A$^{*}$[\textbf{DL}] managed to solve all puzzles scrambled less than 10 times, and found shorter worst case solutions than even A$^{*}[Kociemba]$ on which it was trained. Within the 2 hours time out, it failed to solve one of the 50 cubes for difficulty 10, and two of the 50 cubes of difficulty 12, so i did not try further than that.
+\item A$^{*}$[\textbf{DRL}] only managed to solve all puzzles of difficulty less than 6 but at least did find only optimal solutions (compared with \textbf{BFS}).
+\end{itemize}
 
 
 \begin{figure}[H]
-\centering
-\includegraphics[scale=0.50]{./Figures/333RCPerformance}
-%\decoRule
-\caption[333RCPerformance]{Solvers' performance comparison 3x3x3 \textbf{RC}}
-\label{fig:333RCPerformance}
+  \noindent
+  \makebox[\textwidth]{\includegraphics[scale=0.55]{./Figures/333RCPerformance}}
+  \caption[333RCPerformance]{Solvers' performance comparison 3x3x3 \textbf{RC}}
+  \label{fig:333RCPerformance}
 \end{figure}

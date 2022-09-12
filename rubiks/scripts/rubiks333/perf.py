@@ -61,9 +61,13 @@ def performance(**kw_args):
 
 
 if '__main__' == __name__:
-    action_type = Solver.do_performance_test
-    fig_size = (12, 12)
+    action_type = Solver.do_plot
+    fig_size = (12, 10)
     if action_type == Solver.do_plot:
+        plot_abbreviated_names = True
+        labels_at_top = True
+        show_title = True
+        lite_title = True
         exclude_solver_names = ['122seq_40shf', '500seq_12shf']
         performance(**locals())
     elif action_type == Solver.do_performance_test:

@@ -1,7 +1,7 @@
 \documentclass[11pt]{article} % do not change this line
 \input{BigDataStyle.txt}      % do not change this line
 \input{Packages/Packages}
-
+\pagenumbering{gobble}
 
 \addbibresource{references.bib} % The filename of the bibliography
 \newcommand{\chapter}{\section}
@@ -48,13 +48,7 @@
 \input{Abstract/Abstract}
 \end{abstract}
 
-\noindent
-\textbf{Acknowledgements}
-\newline
-\newline
-\input{Acknowledgements/Acknowledgements}
 
-%\tableofcontents % Prints the main table of contents
 
 \newpage
 
@@ -62,6 +56,7 @@
   colorlinks = true,
   linkcolor  = orange
 }
+\pagenumbering{arabic}
 \input{Chapters/Objectives}
 \include{Chapters/DRLSearch}
 \include{Chapters/Puzzles}

@@ -4,7 +4,7 @@
 
 \label{Chapter1} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
 
-In this chapter, I will succinctly go through the different techniques that underly the algorithms I have implemented and compared in this project and present them in (very simplified) pseudo code. Along the way, I will give some references for the interested reader.
+In this chapter, I succinctly go through the different techniques underlying the algorithms I have implemented for this project and present them in simplified pseudo-code. Along the way, I will give some references for the interested reader.
 
 
 %----------------------------------------------------------------------------------------
@@ -17,18 +17,19 @@ In this chapter, I will succinctly go through the different techniques that unde
 \label{sec:TheoryBFSDFS}
 \label{sec:TheoryAStar}
 
-It is quite fruitful to think of single-player, deterministic, fully-observable puzzles such as the \textbf{SP} and \textbf{RC} as unit-cost graphs. We start from an initial \textit{node} (usually some scrambled configuration of the \textbf{SP} or \textbf{RC}), and via legal moves, we transition to new nodes, until hopefully we manage to get to the goal in the shortest number of moves possible. 
+It is fruitful to think of single-player, deterministic, fully-observable puzzles such as the \textbf{SP} and \textbf{RC} as unit-cost graphs. We start from an initial \textit{node} (usually some scrambled configuration of the \textbf{SP} or \textbf{RC}), and via legal moves, we transition to new nodes, until hopefully we manage to get to the goal in the shortest number of moves possible. 
 \\
 \\
 Graphs search (or graphs traversal) is a rather large, sophisticated and mature branch of \textbf{CS} that studies strategies to find \textit{optimal} paths from initial to goal node in a graph. What is meant by \textit{optimal} can vary, but usually is concerned with one or several of minimizing the run-time of the strategies, their memory complexity/usage or the total cost/length of the solutions they come up with. In the general theory, different transitions can have different costs associated with them. In this project however, we can reasonably consider that each move of a tile in the \textbf{SP} or each rotation of a face in the \textbf{RC} are taking a constant and identical amount of time and effort to perform, and I will therefore consider all the graphs to be unit-cost (i.e. all moves have cost 1).
 \\
 \\
-Search strategies typically maintain a frontier, which is the collection of unexpanded nodes so far. They keep expanding the frontier, by choosing the next node to expand (expanding a node simply means adding all of its children nodes - i.e. those which are reachable via legal transitions - to the frontier for future evaluation) until a solution is found. The question is how to choose the next node to expand! Some graphs search strategies are said to be \textit{uninformed}, in the sense that they do not exploit any domain-specific knowledge or insight about what the graphs represent to choose the next node to expand. In that category fall for instance Breadth First Search (\textbf{BFS}) and Depth First Search (\textbf{DFS}), which as their name suggest expand nodes from the frontier based on, respectively, a \textbf{FIFO} and \textbf{LIFO} policy. \textbf{BFS} and \textbf{DFS} will only work for modest problems where the number of transitions and states are reasonably small; they can however work in a wide variety of situations as they make no assumptions and require no knowledge. It is quite easy to see that \textbf{BFS} is an \textit{optimal} search strategy, in that when it does find a solution, that solution is of smallest possible cost (i.e. optimal). \textbf{DFS} is obvisouly not optimal as it could very well find a solution very deep in the graph while expanding the very first branch, not realising that a solution was one level away from the root on the next branch!
+Search strategies typically maintain a frontier, which is the collection of unexpanded nodes. They keep expanding the frontier, by choosing the next node to process (by adding all of its children nodes - i.e. those which are reachable via legal transitions - to the frontier for future evaluation) until a solution is found. The question is how to choose the next node to expand! Some graphs search strategies are said to be \textit{blind}, in the sense that they do not exploit any domain-specific knowledge or insight about what the graphs represent to choose the next node to expand. In that category fall Breadth First Search (\textbf{BFS}) and Depth First Search (\textbf{DFS}), which as their name suggest expand nodes from the frontier based on, respectively, a \textbf{FIFO} and \textbf{LIFO} policy (see pseudo-code \ref{alg:TheoryBFSDFS}). \textbf{BFS} and \textbf{DFS} will only work for modest problems where the number of transitions and states are reasonably small; they can however work in a wide variety of situations as they make no assumptions and require no knowledge. It is quite easy to see that \textbf{BFS} is an \textit{optimal} search strategy, in that when it does find a solution, that solution is of smallest possible cost (i.e. optimal). \textbf{DFS} is obvisouly not optimal as it could very well find a solution very deep in the graph while expanding the very first branch, not realising that a solution was one level away from the root on the next branch!
 \\
 \\
+\noindent \textit{Informed} strategies (see pseudo-code \ref{alg:TheoryAStar}) on the other hand exploit domain-specific knowledge. One popular algorithm is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which first examines the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to goal (\textbf{h}). The expected cost-to-go \textbf{h} is called a \textit{heuristic}. The better the heuristic, the better \textbf{A$^{*}$} performs. An important property of heuristics is \textit{admissibility}: admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.
 \teal
 \begin{algorithm}[H]
-\caption{Uninformed Graphs Search -- BFS \& DFS}\label{alg:TheoryBFSDFS}
+\caption{Blind Graphs Search -- BFS \& DFS}\label{alg:TheoryBFSDFS}
 \begin{algorithmic}
 \Function{BlindSearch}{$root, time\_out, search\_type=Search.BFS$}
 \State{\Call{InitialiseTimeOut}{$time\_out$}}
@@ -59,7 +60,6 @@ Search strategies typically maintain a frontier, which is the collection of unex
 \end{algorithmic}
 \end{algorithm}
 \black
-\noindent \textit{Informed} strategies, on the other hand, exploit domain-specific knowledge. One popular such strategy is \textbf{A$^{*}$} (see \cite{DBLP:journals/jacm/DechterP85}), which first examines the node of smallest expected total cost (\textbf{f}), itself the sum of the cost-so-far from initial to current node (\textbf{g}) plus the expected cost-to-go from current node to goal (\textbf{h}). The expected cost-to-go \textbf{h} is often called a \textit{heuristic}. The better the heuristic is, the better \textbf{A$^{*}$} usually performs. An important property of heuristics is \textit{admissibility}: admissible heuristics never over-estimate the real cost-to-go, and can easily be shown to render \textbf{A$^{*}$} optimal.
 \teal
 \begin{algorithm}[H]
 \caption{Informed Graphs Search -- A$^{*}$}\label{alg:TheoryAStar}
@@ -101,7 +101,7 @@ Search strategies typically maintain a frontier, which is the collection of unex
 \Section{Reinforcement Learning}
 \label{sec:RLTheory}
 
-As mentioned in the abstract, \textbf{RL} (see \cite{Sutton1998} for a brilliant exposition of the basic concepts and theory) has known a bit of false start in the 1950s and 1960s but recently been extremely successfully applied to a variety of problems (from Atari to board games and puzzles, robotics and else). \textbf{RL} is concerned with how intelligent agents can learn optimal decisions from observing/experiencing rewards while interacting in their environment. One of the fundamental concept in the field is that of value function $s \to \textbf{V}(s)$, which tells us the maximum expected reward - or equivalently and better suited to our puzzle solving task, the minimum cost - the agent can obtain from a given state $s$ (if it takes optimal decisions). In finite state and transitions spaces, the value function can be remarkably computed by a rather mechanical and magic-like procedure called value-iteration (kind of the equivalent of the Bellman equation from optimal control), where each state $s$'s value is iteratively refined by combining the value of $s$'s reachable children states.
+\textbf{RL} (see \cite{Sutton1998} for a brilliant exposition of the basic concepts and theory) has known a bit of false start in the 1950s and 1960s but recently been extremely successfully applied to a variety of problems (from Atari to board games and puzzles, robotics, \dots). \textbf{RL} is concerned with how intelligent agents can learn optimal decisions from experiencing rewards while interacting in their environment. One of the fundamental concept in the field is that of value function $s \to \textbf{V}(s)$, which tells us the maximum expected reward - or equivalently and better suited to our puzzle solving task, the minimum cost - the agent can obtain from a given state $s$ (assuming optimal decisions). In finite state and transitions spaces, the value function can be remarkably computed by a mechanical, rather magic-like procedure called value-iteration (equivalent to Optimal Control's Bellman equation, see pseudo-code below \ref{alg:RLTheory}), where each state $s$'s value is iteratively refined by combining the value of $s$'s reachable children states.
 
 
 \teal
@@ -138,7 +138,7 @@ As mentioned in the abstract, \textbf{RL} (see \cite{Sutton1998} for a brilliant
 
 \Section{Deep Learning}
 
-Quite similarly to \textbf{RL}, Deep Learning (\textbf{DL}) has not initially had the success the \textbf{AI} community was hoping it would. Marvin Minsky, who often took the blame for having \textit{killed} funding into the field, even regretted writing his 1969 book (\cite{minskypapert69}) in which he had proved that three-layer feed forward perceptrons were not quite the universal functions approximators some had hypothesized them to be. Since around 2006 (see \cite{GoodBengCour16} for more history of the recent burgeoning of \textbf{DL}), the field has known a rebirth, probably due to a combination of factors, from ever more powerful computers and larger storage, the availability of data sets large and small on the internet, the advances in many techniques and heuristics (backward propagation, normalisation, drop-outs, different optimisation schemes, etc \dots) and the huge amount of experimentation with different architectures (from very deep feed forward fully connected networks, to convolutional, recurrent and more exoctic networks). It is not an exageration to say that \textbf{DL} has rendered obsolete entire fields of research and bodies of knowledge, most notably in \textbf{CV}, robotics, computational biology and \textbf{NLP}. \textbf{DL} has often become the method of choice to learn or approximate highly dimensional functions or random processes. The beauty of it is that the relevant features are autodiscovered during the training of the network, via back-ward propagation and trial-and-error, rather than having to be postulated or handcrafted as is often the case with other \textbf{ML} techniques.
+Similarly to \textbf{RL}, \textbf{DL} has not initially had the success the \textbf{AI} community was hoping it would. Marvin Minsky, who often took the blame for having \textit{killed} funding into the field, even regretted writing his 1969 book (\cite{minskypapert69}) in which he had proved that three-layer feed forward perceptrons were not quite the universal functions approximators some had hypothesized them to be. Since around 2006 (see \cite{GoodBengCour16} for more history of the recent burgeoning of \textbf{DL}), the field has known a rebirth, probably due to a combination of factors, from ever more powerful computers and larger storage, the availability of data sets large and small on the internet, the advances in many techniques and heuristics (backward propagation, normalisation, drop-outs, different optimisation schemes, etc \dots) and the huge amount of experimentation with different architectures (from very deep feed forward fully connected networks, to convolutional, recurrent and more exoctic networks). It is not an exageration to say that \textbf{DL} has revolutionized entire fields of research such as computer vision, robotics, computational biology and \textbf{NLP}. \textbf{DL} has often become the method of choice to learn or approximate highly dimensional functions or random processes. The beauty of it is that the relevant features are autodiscovered during the training of the network, via back-ward propagation and trial-and-error, rather than having to be postulated or handcrafted as is often the case with other \textbf{ML} techniques.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
@@ -146,10 +146,7 @@ Quite similarly to \textbf{RL}, Deep Learning (\textbf{DL}) has not initially ha
 
 \Section{DL and DLR Heuristics}
 \label{sec:TheoryDLDRL}
-So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \textbf{RL}'s value iteration?
-\\
-\\
-Sometimes we have ways of computing good solutions/heuristics to our puzzles, but cannot computationally do this for all possible states (maybe the state space is simply too large!). One approach in that case is to compute the solution/heuristic for \textit{some manageable number of} states, and let a \textbf{DL} model learn how to extrapolate to the rest of the state space. This is a case of \textit{supervised} learning in some sense, since we need a teacher-solver to tell us good solutions or heuristics to extrapolate from. In very simplified pseudo code, the procedure looks like the following:
+So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \textbf{RL}'s value iteration? Sometimes we have ways of computing good solutions/heuristics to our puzzles, but cannot computationally do this for all states (the state space might be too large!). One approach in that case is to compute solutions for \textit{some manageable number of} states, and let a \textbf{DL} model learn how to extrapolate to the whole state space. This is a case of \textit{supervised} learning, since we need a teacher-solver to tell us good solutions or heuristics to extrapolate from. Pseudo-code is provided below, see \ref{alg:TheoryDLDRL}:
 
 \newlength\mylen
 \settowidth\mylen{DeepLearningHeuristic(}
@@ -169,14 +166,9 @@ Sometimes we have ways of computing good solutions/heuristics to our puzzles, bu
 \end{algorithmic}
 \end{algorithm}
 \black
-
-For this project, I have implemented the above procedure of training a \textbf{DL} network from the solutions of other solvers/heuristics in a class called DeepLearner (see section \ref{sec:codelearners} for details).
+\noindent An alternative approach to compute the cost-to-go is via \textbf{RL} value-iteration as described in the previous section (\ref{sec:RLTheory}). The state space is often so large however - and this certainly is the case for pretty much all \textbf{SP} and \textbf{RC}, except maybe the smallest dimensional \textbf{SP}s - that we cannot practically perform the value iteration procedure for all states. This is where \textbf{DL} comes again to the rescue to act as function approximator, combining with \textbf{RL} into what has become known as \textbf{DRL}. The subtlety is that both the left-hand-side and right hand side in the value-iteration procedure are given by a \textbf{DL} network which we are constantly tweaking. For my implementation of \textbf{DRL}, I followed the same approach as in \cite{Mnih2013}, utilising two loops. During iteration over the first (inner) loop, the right hand-side $V$ of the value-function update equation is computed using a fixed \textit{target-network}. The left hand side $V$ is using another \textit{current-network} which alone is modified by the \textbf{DL} learning (backward propagation and optimization), until convergence is deemed reached. When convergence in the inner loop is deemed obtained, we break out of it, and run the outer loop, which updates the \textit{target-network} via a copy of the \textit{current-network}. The outer loop is itself broken out of when deemed appropriate (some kind of convergence criteria). See pseudo-code \ref{alg:TheoryDRL} below:
 \\
 \\
-An alternative approach in order to compute the cost-to-go is via \textbf{RL} value-iteration as described in the previous section (\ref{sec:RLTheory}). The state space is often so large however - and this certainly is the case for pretty much all \textbf{SP} and \textbf{RC}, except maybe the smallest dimensional \textbf{SP}s - that we cannot practically perform the value iteration procedure for all states. This is where \textbf{DL} comes again to the rescue to act as function approximator, combining with \textbf{RL} into what has become known as \textbf{DRL}. The subtelty is then that both the left-hand-side and right hand side in the value-iteration procedure are given by a \textbf{DL} network which we are constantly tweaking. For my implementation of \textbf{DRL}, I followed the same approach as in \cite{Mnih2013}, utilising two loops. During iteration over the first (inner) loop, the right hand-side $V$ of the value-function update equation is computed using a fixed \textit{target-network}. The left hand side $V$ is using another \textit{current-network} which alone is modified by the \textbf{DL} learning (backward propagation and optimization), until convergence is deemed reached. When convergence in the inner loop is deemed obtained, we break out of it, and run the outer loop, which updates the \textit{target-network} via a copy of the \textit{current-network}. The outer loop is itself broken out of when deemed appropriate (some kind of convergence criteria). In simplified pseudo-code, this looks like:
-\\
-\\
-
 \teal
 \begin{algorithm}[H]
 \caption{Deep Reinforcement Learning -- Heuristic}\label{alg:TheoryDRL}
@@ -231,9 +223,6 @@ An alternative approach in order to compute the cost-to-go is via \textbf{RL} va
 \black
 
 
-For this project, I have implemented the above algorithm in a class called DeepReinforcementLearner which I shall describe in details in section \ref{sec:codelearners}.
-
-
 %----------------------------------------------------------------------------------------
 %	SECTION 5
 %----------------------------------------------------------------------------------------
@@ -244,7 +233,7 @@ Another fundamental concept of \textbf{RL} is that of the Q-function $Q(s, a)$, 
 \begin{equation} \label{eq:QI}
 V(s) = max_{a \in \mathcal{A}(s)} Q(s, a)
 \end{equation}
-where $\mathcal{A}(s)$ are the transitions/actions available from state $s$. Conversely, we can recover $Q$ from $V$ since:
+where $\mathcal{A}(s)$ are the actions from state $s$. Conversely, we can recover $Q$ from $V$ since:
 \begin{equation} \label{eq:QI2}
 Q(s, a) = R(a) + V(a(s))
 \end{equation}
@@ -301,8 +290,6 @@ Since in my \textbf{DRL} pseudo-code above (as well as in my actual code), the l
 \end{algorithmic}
 \end{algorithm}
 \black
-
-\noindent For this project, I have implemented the above algorithm in a class called DeepQLearner which I shall describe in details in section \ref{sec:codelearners}.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 6
@@ -373,7 +360,7 @@ Another possibility is to use an algorithm combining the actions distribution an
 \end{algorithm}
 \black
 
-\noindent I have implemented the exact \textbf{MCTS} procedure described in \cite{https://doi.org/10.48550/arxiv.1805.07470} and outlined above (\ref{alg:TheoryMCTS}) in a class called MonteCarloTreeSearch (see section \ref{sec:codesolvers} for details).
+\noindent Note that for this project, I have implemented all the above algorithms in Python (BFS, DFS, A$^{*}$, DeepLearner, DeepReinforcementLearner, DeepQLearner, MonteCarloTreeSearch), and more details can be found in section (\ref{sec:Implementation}).
 
 
 

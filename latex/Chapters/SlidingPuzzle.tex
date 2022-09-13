@@ -173,40 +173,6 @@ As discussed in the previous section \ref{sec:SPLowDimension}, the 3x3 \textbf{S
 
 
 
-%\Subsection{Deep reinforcement learner}
-%\label{sec:S33DRL}
-
-
-\begin{comment} 
-
-Next I have run the DeepReinforcementLearner with the following main parameters:
-\begin{itemize}
-\item Update the target network every 1,000 epochs (\textit{update\_target\_network\_frequency=1000}) or when the MSE falls below 10 basis points of the maximum target cost-to-go (\textit{update\_target\_network\_threshold=1e-3})
-\item Run for a maximum of 11,000 epochs (\textit{nb\_epochs=11000}) or when the maximum target so far has not been increasing by more than 1\% in the last 5,500 epochs (\textit{max\_target\_uptick=1e-2} and \textit{max\_target\_not\_increasing\_epochs\_pct=0.5})
-\item At every update of the target network (\textit{training\_data\_every\_epoch=False}), generate 100 sequences of puzzles (\textit{nb\_sequences=100}), each comprised of a 50-scramble puzzle back to goal state, with all intermediary puzzles along the path (\textit{nb\_shuffles=50}).
-\item Use a fully connected network (\textit{network\_type=fully\_connected\_net}) with three hidden layers of size 600, 300, 100 (\textit{layers\_description=(600,300,100)}) and use torch.optim.RMSProp as optimiser (\textit{optimiser=rms\_prop}) with an exponential scheduler (\textit{scheduler=exponential\_scheduler}) with gamma 0.999 (\textit{gamma\_scheduler=0.9999}).
-\end{itemize}
-Below I show some of the DeepReinforcementLearner's quantities tracked over the epochs (see \ref{fig:33SPDeepReinforcementLearning}). I have shown only the following quantities:
-\begin{itemize}
-\item learning rate, which decreases due to the scheduler, but gets reset at each network update.
-\item max target. One interesting dynamic during learning is that due to the way targets are constructed using value-iteration update, and starting from an all 0 network, the max target only increases by about 1 at best at every network update. That is, the first network only learns how to differentiate goal from non-goal, then the second one learns how to differentiate goals, cost 1 and cost 2+ in some sense. This is why I have introduced the first set of parameters discussed just above. The first one makes sure we do not waste time initially training the left-hand-side network when training is easy (as consist of just goal versus not goal). The second ones make sure that we stop training altogether when the max target does not grow anymore. This is because we do not know a-priori what the God number of a given puzzle/dimension is, but let's assume for the sake of the argument that it is 15. Then that means that after 15 updates of the target network we might not really get so much benefit by keeping training and value-iterating.
-\item the MSE loss
-\item the MSE loss divided by the max target. The exit criterion \textit{update\_target\_network\_threshold} is based on that quantity, since a loss of e.g. 0.01 means little if the we do not compare it to the possible range that the cost-to-go can take.
-\item The percentage of all the possible puzzles of that dimension \textit{seen} by the DeepReinforcementLearner. This is an interesting quantity, as it tells us later on when testing out of sample and comparing with other solvers, how well the solvers are able to generalise. In this case (3x3) we can see that the DeepReinforcementLearner quickly has seen a very large percentage of all puzzles. That being said, it is good to keep in mind that \textit{seen} does not mean really much here, since the learning is unsupervised. This is quite in contrast to the DeepLearner, for which puzzles seen come along with the cost-to-go computed by a \textit{teacher}, usually an optimal or at least efficient solver.
-\end{itemize}
-
-
-\begin{figure}[H]
-\centering
-\includegraphics[align=c, scale=0.42]{./Figures/33SPDeepReinforcementLearning}
-\caption[33SPDeepReinforcementLearning]{\textbf{DRL} of the 3x3 \textbf{SP}}
-\label{fig:33SPDeepReinforcementLearning}
-\end{figure}
-
-Notice that the DeepLearner and DeepQLearner have very similar sets of parameters and track similar metrics during their learning for later display, but I shall not detail it here since there is not much extra insight to be had compared to the DeepReinforcementLearning example we just went through.
-
-\end{comment} 
-
 \Subsection{MCTS DQL}
 \label{sec:MTCSHyperParamsEffect}
 In this subsection I explore the effect on \textbf{MCTS} of the trade-off hyper-parameter $c$ as well as of trimming the resulting tree via \textbf{BFS}. (see the theory section \ref{sec:TheoryMCTS} as well as the implementation section \ref{sec:codesolvers} for more details). To that effect, I have run my Solver performance test with four different values of $c$ (0, 1, 10 and 100), and in each case, with and without \textbf{BFS} trimming. A$^{*}[Manhattan++]$ is also presented to have an optimal solver benchmark. For each level of difficulty, the test presents the solvers with the same 150 random configurations (for fairness and to increase the significance of the results). The levels of difficulty (number of scrambles from goal) used here go from 5 to 50 in step of 5. The tests were also run with perfect shuffling (difficulty = $\infty$ on the graphs), corresponding to taking scrambling to $\infty$ as explained in \ref{Theory:SPSSS}). I used a \textit{time\_out} of 5 minutes, which none of the solvers hit on any of the (1,650) configurations they were presented with.

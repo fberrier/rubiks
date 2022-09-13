@@ -64,15 +64,15 @@ def performance(**kw_args):
 
 if '__main__' == __name__:
     logger = Loggable(name='Perf22RC')
-    action_type = Solver.do_plot
+    action_type = Solver.do_performance_test
     fig_size = (12, 11)
     if action_type == Solver.do_plot:
         exclude_solver_names = ['1000seq_20shf']
         performance(**locals())
     elif action_type == Solver.do_performance_test:
         nb_samples = 100
-        nb_cpus = 1
-        for counter in [22]:
+        nb_cpus = 8
+        for counter in [20]:
             logger.log_info('counter: ', counter)
             performance(solver_type=Solver.astar,
                         heuristic_type=Heuristic.deep_q_learning,

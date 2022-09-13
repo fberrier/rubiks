@@ -135,7 +135,8 @@ class TrainingData(Loggable, Puzzled):
             return
         s.index.name = 'SEQUENCE MAX COST'
         s = s.reset_index(drop=False)
-        self.log_info(pformat(s, showindex=True), ' total sequences = ', sum(s))
+        self.log_info(pformat(s, showindex=False))
+        self.log_info({'TOTAL SEQUENCES': sum(s['# SEQUENCES'])})
 
     def get(self, nb_shuffles):
         self.fetch_data()

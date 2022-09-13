@@ -177,7 +177,7 @@ So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \te
 \State{$puzzle\_type \gets$ \Call{FromParams}{**args}}
 \State{$ puzzles\_gen\_params \gets$ \Call{FromParams}{**args}}
 \State{$puzzles\_generation\_criteria \gets$ \Call{FromParams}{**args}}
-\State{$n\_puzzles \gets \gets$ \Call{FromParams}{**args}}
+\State{$n\_puzzles \gets $ \Call{FromParams}{**args}}
 \State{$target\_network\_update\_params \gets$ \Call{FromParams}{**args}}
 \State{$max\_epochs \gets$ \Call{FromParams}{**args}}
 \State{$loss\_function \gets$ \Call{FromParams}{**args}}
@@ -188,33 +188,33 @@ So what is the link between all of these: A$^{*}$'s heuristics, \textbf{DL}, \te
 \State{$epoch \gets 0$}
 \State{$puzzles \gets null$}
 
-\While{epoch < max\_epochs \&\& other\_convergence\_criteria(network)}
+\While{epoch < max\_epochs \&\& other\_convergence\_criteria(net)}
         \State{$epoch \gets epoch + 1$}
 \\ \teal{\algorithmiccomment{generate \textit{training} puzzles if criteria met}}\black
         \If{puzzles\_generation\_criteria($puzzles$)}
-            \State{$puzzles \gets generate\_random\_states(puzzle\_type)$}
+            \State{$puzzles \gets generate\_random\_states(puzzle\_type, n\_puzzles)$}
         \EndIf
         \State{$V \gets dict()$}
         \For{$puzzle \in puzzles}$
             \State{$V[puzzle] \gets \infty$}
-            \If \Call{IsGoal}{$puzzle$}:
+            \If{\Call{IsGoal}{$puzzle$}}:
                 \State{$V[puzzle] \gets 0$}
             \Else:
 	     \For{$transition, child \in \Call{Children}{$puzzle$}$}
 \\ \teal{\algorithmiccomment{perform value iteration}}\black
-		\State{$child_cost \gets \Call{Cost}{transition} + target\_net(child)$}
+		\State{$child\_cost \gets \Call{Cost}{transition} + target\_net(child)$}
                 	\State{$V[puzzle] \gets \Call{Min}{V[puzzle], child\_cost}$}
 	     \EndFor
 	\EndIf
        \EndFor
 \\ \teal{\algorithmiccomment{iterate through network training running feed-forward and backward-prop}}\black
-	\State{$net \gets \Call{TrainNeuralNet}{V, loss\_function, net\_architecture}$}
+	\State{$net \gets \Call{TrainNeuralNet}{V, loss\_function, net}$}
 \\ \teal{\algorithmiccomment{update target network if criteria met}}\black
 	\If{$target\_network\_update\_criteria(net, target\_net)$}
 		\State{$target\_net \gets \Call{Copy}{net}$}
 	\EndIf
-    \Return{$net$}
 \EndWhile
+\Return{$net$}
 
 
 \EndFunction
@@ -285,6 +285,8 @@ Since in my \textbf{DRL} pseudo-code above (as well as in my actual code), the l
             \State{$actions[best\_action\_id] \gets 1$}
             \State{$Q\_and\_V[puzzle] \gets actions + [value]$}
 	\EndFor
+\\ \teal{\algorithmiccomment{ ... same as \textbf{DRL} ...}}\black
+\State{$net \gets \Call{TrainNeuralNet}{Q\_and\_V, loss\_function, net}$}
 \EndWhile
 \EndFunction
 \end{algorithmic}
@@ -301,7 +303,7 @@ Since in my \textbf{DRL} pseudo-code above (as well as in my actual code), the l
 The \textbf{DQL} heuristics from \ref{alg:TheoryDQL} no longer only produce cost-to-go estimates as \textbf{DRL}, but rather a joint cost-to-go and distribution over actions (i.e. a 5-dimensional vector for the \textbf{SP} and a 13-dimensional vector for the \textbf{RC}). This leaves us with the question of how can we use the output of such a network to search for a solution. One simple answer (which I have tried, see e.g. subsection \ref{sec:S33DRLDQL}) is that we could disregard the distribution and only take into account the cost-to-go by simply using $A^{*}$. The rationale for doing so is that we might hope that jointly learning the cost-to-go and the actions via a combination of MSE and cross-entropy-loss produces a better network and leads to better heuristics, since we use more information during the learning and iterations.
 \\
 \\
-Another possibility is to use an algorithm combining the actions distribution and the value function to inform its search. The Monte Carlo Tree Search (\textbf{MCTS}) is such an algorithm. It generates at each iteration (possibly in a distributed or multithreaded manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until the goal is found). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (allowing exploration) and value function (exploitation), according to a trade-off which can be tuned via a hyper-parameter $c$. To prevent following the same paths (which might lead the search far from the goal), the \textbf{MCTS} keeps track of actions already followed and down-weight their probability so that subsequent paths explore different actions. Let me first present in pseudo-code the paths generation, in particular the trade-off between actions-values (exploration-exploitation):
+Another possibility is to use an algorithm, such as the Monte Carlo Tree Search (\textbf{MCTS}), combining the actions distribution and the value function to inform its search. \textbf{MCTS} generates at each iteration (possibly in a distribute manner) paths to a \textit{leaf} on the frontier of unexpanded nodes, expands that node and checks if it is a goal state (and keeps going until it is). The paths followed from initial state to leaves are decided via a combination of the probability distribution over actions (exploration) and value function (exploitation), according to a trade-off which can be tuned via a hyper-parameter $c$. To prevent always following the same paths, the \textbf{MCTS} keeps track of actions already followed and down-weights their probability so that subsequent paths explore different actions. Let me first present in pseudo-code the paths generation, in particular the trade-off between actions-values (exploration-exploitation):
 \\
 
 
@@ -337,13 +339,13 @@ Another possibility is to use an algorithm combining the actions distribution an
 \begin{algorithmic}
 \Function{MCTS}{$root, time\_out, q\_v\_network, c$}
 \State{\Call{InitialiseTimeOut}{$time\_out$}}
-\State{$tree \gets \Call{Tree}{root}$}
 \If{\Call{IsGoal}{$root$}}
+\State{$tree \gets \Call{Tree}{root}$}
   \Return{$root$}
 \EndIf
 \While{true}
 	\State\Call{CheckTimeOut}{void}
-	\State{$leaf \gets root$}
+	\State{$leaf \gets tree.root$}
 	\While{$leaf.expanded$}
         		\State{$actions\_probas, actions\_values \gets q\_v\_network(leaf)$}
 	           \State{$leaf \gets\Call{ChooseChildNode}{leaf,  actions\_probas, actions\_values, leaf.actions\_count, c}$}
@@ -360,7 +362,7 @@ Another possibility is to use an algorithm combining the actions distribution an
 \end{algorithm}
 \black
 
-\noindent Note that for this project, I have implemented all the above algorithms in Python (BFS, DFS, A$^{*}$, DeepLearner, DeepReinforcementLearner, DeepQLearner, MonteCarloTreeSearch), and more details can be found in section (\ref{sec:Implementation}).
+\noindent Note that for this project, I have implemented all the above algorithms in Python (\textbf{BFS}, \textbf{DFS}, A$^{*}$, DeepLearner, DeepReinforcementLearner, DeepQLearner, MonteCarloTreeSearch), and more details can be found in section \ref{sec:Implementation}.
 
 
 

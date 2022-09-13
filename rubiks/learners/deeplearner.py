@@ -412,6 +412,10 @@ class DeepLearner(Learner):
     convergence_data_tag = 'convergence_data'
     puzzles_seen_tag = 'puzzles_seen'
 
+    @staticmethod
+    def axis_label_format(what):
+        return DeepReinforcementLearner.axis_label_format(what)
+
     def save(self):
         DeepReinforcementLearner.save(self)
 

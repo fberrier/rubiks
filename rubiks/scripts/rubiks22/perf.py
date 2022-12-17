@@ -64,7 +64,7 @@ def performance(**kw_args):
 
 if '__main__' == __name__:
     logger = Loggable(name='Perf22RC')
-    action_type = Solver.do_performance_test
+    action_type = Solver.do_plot
     fig_size = (12, 11)
     if action_type == Solver.do_plot:
         exclude_solver_names = ['1000seq_20shf']

@@ -114,7 +114,7 @@ The second puzzle I will focus on is the Rubik's Cube (\textbf{RC}), invented in
   \caption[Reducing RC]{Reducing a 4x4x4 \textbf{RC} to a 3x3x3 -- home-made picture}
   \label{fig:4442333}
 \end{figure}
-\noindent If we can bring the 4x4x4 cube to such a configuration on all faces (which is not very hard), and if we know how to solve a 3x3x3, we are essentially done. (The additional degrees of freedom on the 4x4x4 complicate slightly the story since certain arrangements of colors which are possible on the 4x4x4 are not on the 3x3x3, e.g. red an and white on opposite faces). Overall, the difficulty of hand-solving cubes does not grow as much with dimensionality as one would think, and the time difference comes mostly from the difficulty of handling and manipulating larger cubes.
+\noindent If we can bring the 4x4x4 cube to such a configuration on all faces (which is not very hard), and if we know how to solve a 3x3x3, we are essentially done. (The additional degrees of freedom on the 4x4x4 complicate slightly the story since certain arrangements of colors which are possible on the 4x4x4 are not on the 3x3x3, e.g. red and white on opposite faces). Overall, the difficulty of hand-solving cubes does not grow as much with dimensionality as one would think, and the time difference comes mostly from the difficulty of handling and manipulating larger cubes.
 
 
 
@@ -122,7 +122,7 @@ The second puzzle I will focus on is the Rubik's Cube (\textbf{RC}), invented in
 \Subsection{Conventions: faces, moves and configurations}
 I follow the conventions and notations of the \textbf{RC} community and refer to the faces as F (front), B (back), U (up), D (down), L (left) and R (right). It is common in \textbf{RC} jargon to refer to moves  by the name of the face that is rotated clockwise (when facing it), and by adding a \textit{'} for counter-clockwise rotations. Sometimes numbers are used to indicate repeated moves, though I will count that as multiple moves, since obviously e.g. U2 = U U = U' U'. As another example: F B' F2 means rotating the front face clockwise, the back face counter-clockwise, followed by the front face twice. The convention I follow is called the \textit{quarter-turn-metric}, and obviously the length of solutions is affected by which metric we use.
 \\
-Since I am interested in experimenting with \textit{no-human-knowledge} methods such as \textbf{DRL} and \textbf{DQL}, I will consider cubes which are identical up to full cube rotation such as the \textit{flattened} cubes on figure \ref{fig:configurations} ) to be different. They will be represented by different tensors in my code, and this is up to the solvers to make sense of things.
+Since I am interested in experimenting with \textit{no-human-knowledge} methods such as \textbf{DRL} and \textbf{DQL}, I will consider cubes which are identical up to full cube rotation such as the \textit{flattened} cubes on figure \ref{fig:configurations} to be different. They will be represented by different tensors in my code, and this is up to the solvers to make sense of things.
 
 \begin{figure}[H]
   \noindent
